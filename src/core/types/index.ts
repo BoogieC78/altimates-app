@@ -61,21 +61,33 @@ export interface RadioMessage {
 
 export type FeedbackStatus = 'backlog' | 'todo' | 'inprogress' | 'done' | 'wontdo'
 
+export interface FeedbackComment {
+  author: string
+  text: string
+  ts?: string
+}
+
 export interface Feedback {
   id: number
   text: string
   cat: string
   author: string
   votes?: { up: number; down: number }
+  /** vote par membre (nouveau champ, ignoré par l'ancienne app ; les compteurs restent la référence) */
+  voters?: Record<string, 'up' | 'down'>
   status?: FeedbackStatus
-  comments?: { author: string; text: string; ts?: string }[]
+  comments?: FeedbackComment[]
+  /** libellé statique hérité ("à l'instant") */
+  ts?: string
   createdAt?: Timestamp
 }
 
+
 export interface DepartItem {
-  id: number
+  /** number (Date.now()) pour les ajouts, string ('tente') pour les items seedés */
+  id: number | string
   name: string
-  assignee?: string
+  assignee?: string | null
   done: boolean
   createdAt?: Timestamp
 }

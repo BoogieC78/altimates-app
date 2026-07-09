@@ -4,6 +4,7 @@ import { useMemberName } from './hooks/useMemberName'
 import { signInWithGoogle, signOut, isAdmin } from './core/firebase/auth'
 import { SommetsPage } from './features/sommets/SommetsPage'
 import { RadioPage } from './features/radio/RadioPage'
+import { KitPage } from './features/kit/KitPage'
 import { TopoBackground } from './components/TopoBackground'
 import { LogoIcon, NAV_ICONS } from './components/icons'
 
@@ -98,6 +99,8 @@ export default function App() {
           <SommetsPage memberName={memberName} />
         ) : tab === 'radio' ? (
           <RadioPage memberName={memberName} />
+        ) : tab === 'kit' ? (
+          <KitPage user={user} memberName={memberName} />
         ) : (
           <div className="tab active">
             <div className="sec">{tabs.find((t) => t.key === tab)?.label}</div>

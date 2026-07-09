@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from './hooks/useAuth'
+import { useMemberName } from './hooks/useMemberName'
 import { signInWithGoogle, signOut, isAdmin } from './core/firebase/auth'
 import { SommetsPage } from './features/sommets/SommetsPage'
 import './App.css'
@@ -9,6 +10,7 @@ type Tab = (typeof TABS)[number] | 'Admin'
 
 export default function App() {
   const { user, loading } = useAuth()
+  const memberName = useMemberName(user)
   const [tab, setTab] = useState<Tab>('Sommets')
   const [loginError, setLoginError] = useState('')
 
@@ -55,7 +57,7 @@ export default function App() {
       </nav>
       <main className="content">
         {tab === 'Sommets' ? (
-          <SommetsPage />
+          <SommetsPage memberName={memberName} />
         ) : (
           <p className="muted">{tab} : migration en cours.</p>
         )}

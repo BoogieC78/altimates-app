@@ -1,0 +1,42 @@
+const MONTHS_FR = [
+  'janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin',
+  'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.',
+]
+
+function parseISO(iso: string): { day: number; month: number } | null {
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (!m) return null
+  return { day: Number(m[3]), month: Number(m[2]) - 1 }
+}
+
+/**
+ * Libellé de date au format de l'ancienne app : '15 juin' ou '6–7 juin'.
+ * C'est ce libellé qui est stocké dans le champ `date` des randos.
+ */
+export function formatDateLabel(dateStart?: string | null, dateEnd?: string | null): string {
+  const start = dateStart ? parseISO(dateStart) : null
+  if (!start) return 'À venir'
+  const end = dateEnd ? parseISO(dateEnd) : null
+  if (end && (end.day !== start.day || end.month !== start.month)) {
+    if (end.month === start.month) return `${start.day}–${end.day} ${MONTHS_FR[start.month]}`
+    return `${start.day} ${MONTHS_FR[start.month]} – ${end.day} ${MONTHS_FR[end.month]}`
+  }
+  return `${start.day} ${MONTHS_FR[start.month]}`
+}
+
+/** Nombre de jours ('1j', '3j') entre deux dates ISO incluses. */
+export function durationLabel(dateStart?: string | null, dateEnd?: string | null): string {
+  if (!dateStart || !dateEnd) return '1j'
+  const days = Math.round((Date.parse(dateEnd) - Date.parse(dateStart)) / 86400000) + 1
+  return `${Math.max(1, days)}j`
+}
+
+/**
+ * Une rando est "passée" si sa date de fin (ou de début) est avant aujourd'hui.
+ * Sans date connue, elle est considérée à venir.
+ */
+export function isPast(rando: { dateStart?: string | null; dateEnd?: string | null }, today: string): boolean {
+  const ref = rando.dateEnd || rando.dateStart
+  if (!ref) return false
+  return ref.slice(0, 10) < today
+}

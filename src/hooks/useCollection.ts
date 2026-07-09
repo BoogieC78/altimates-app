@@ -6,15 +6,18 @@ import {
   type QueryConstraint,
 } from 'firebase/firestore'
 
+export type WithDocId<T> = T & { docId: string }
+
 interface CollectionState<T> {
-  data: (T & { id: string })[]
+  data: WithDocId<T>[]
   loading: boolean
   error: Error | null
 }
 
 /**
  * Abonnement temps réel à une collection Firestore (équivaut aux onSnapshot
- * de l'ancienne app). Se désabonne automatiquement au démontage.
+ * de l'ancienne app). L'id du document est exposé en `docId` pour ne pas
+ * écraser le champ métier `id` des anciens documents.
  */
 export function useCollection<T>(
   ref: CollectionReference<T>,
@@ -30,7 +33,7 @@ export function useCollection<T>(
     return onSnapshot(
       query(ref, ...constraints),
       (snap) => {
-        const data = snap.docs.map((d) => ({ ...d.data(), id: d.id }))
+        const data = snap.docs.map((d) => ({ ...d.data(), docId: d.id }))
         setState({ data, loading: false, error: null })
       },
       (error) => setState({ data: [], loading: false, error }),

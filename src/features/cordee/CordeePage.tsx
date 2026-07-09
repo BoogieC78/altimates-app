@@ -26,6 +26,19 @@ export function CordeePage({ memberName }: CordeePageProps) {
   const { data: users, loading } = useCollection(usersCol)
   const { data: departItems } = useCollection(departItemsCol)
   const [newItem, setNewItem] = useState('')
+  const [copied, setCopied] = useState(false)
+
+  // Lien d'invitation : URL de l'app (comme copyInvite de l'ancienne app)
+  const inviteUrl = window.location.origin
+  const copyInvite = () => {
+    void navigator.clipboard
+      .writeText(inviteUrl)
+      .then(() => {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      })
+      .catch((e) => console.warn('clipboard:', e))
+  }
 
   const members = users
     .map((u) => ({
@@ -200,6 +213,20 @@ export function CordeePage({ memberName }: CordeePageProps) {
         />
         <button className="btn btn-sm" onClick={add}>
           Ajouter
+        </button>
+      </div>
+
+      <div className="sec" style={{ marginTop: 12 }}>
+        Inviter
+      </div>
+      <div className="card" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <input className="form-input" style={{ flex: 1, fontSize: 11 }} readOnly value={inviteUrl} />
+        <button className="btn btn-sm" onClick={copyInvite}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+          </svg>
+          {copied ? 'Copié !' : 'Copier'}
         </button>
       </div>
     </div>

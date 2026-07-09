@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { voteRando, deleteRando } from '../../core/firebase/randos'
 import { jMinus } from '../../core/services/dates'
+import { RandoDetailModal } from './RandoDetailModal'
 import { useWeather } from '../../hooks/useWeather'
 import type { Rando, VoteValue } from '../../core/types'
 import type { WithDocId } from '../../hooks/useCollection'
@@ -28,6 +30,7 @@ const DIFF_TAG: Record<string, string> = {
 
 export function RandoCard({ rando: r, memberName }: RandoCardProps) {
   const weather = useWeather(r.lat, r.lon)
+  const [showDetail, setShowDetail] = useState(false)
   const myVote = r.memberVotes?.[memberName] ?? null
   const today = new Date().toISOString().slice(0, 10)
   const jx = jMinus(r.dateStart, today)
@@ -44,7 +47,8 @@ export function RandoCard({ rando: r, memberName }: RandoCardProps) {
 
   return (
     <div className="rcard">
-      <div className="rcard-top">
+      {/* Comme l'ancienne app : clic sur la zone principale = ouverture du détail */}
+      <div className="rcard-top" onClick={() => setShowDetail(true)} style={{ cursor: 'pointer' }}>
         <div className="rcard-main">
           <div
             style={{
@@ -111,11 +115,23 @@ export function RandoCard({ rando: r, memberName }: RandoCardProps) {
             )}
           </div>
           <div className="vrow">
-            <button className={myVote === 'oui' ? 'vbtn vyes' : 'vbtn'} onClick={() => vote('oui')}>
+            <button
+              className={myVote === 'oui' ? 'vbtn vyes' : 'vbtn'}
+              onClick={(e) => {
+                e.stopPropagation()
+                vote('oui')
+              }}
+            >
               <ThumbIcon />
               {myVote === 'oui' ? '✓ VOTÉ' : 'PARTANT'}
             </button>
-            <button className={myVote === 'peut' ? 'vbtn vmay' : 'vbtn'} onClick={() => vote('peut')}>
+            <button
+              className={myVote === 'peut' ? 'vbtn vmay' : 'vbtn'}
+              onClick={(e) => {
+                e.stopPropagation()
+                vote('peut')
+              }}
+            >
               <MaybeIcon />
               PEUT-ÊTRE
             </button>
@@ -124,7 +140,10 @@ export function RandoCard({ rando: r, memberName }: RandoCardProps) {
             </span>
             {r.proposedBy === memberName && (
               <button
-                onClick={remove}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  remove()
+                }}
                 title="Supprimer"
                 style={{
                   background: 'none',
@@ -190,6 +209,8 @@ export function RandoCard({ rando: r, memberName }: RandoCardProps) {
           </div>
         </div>
       )}
+
+      {showDetail && <RandoDetailModal rando={r} memberName={memberName} onClose={() => setShowDetail(false)} />}
     </div>
   )
 }

@@ -128,6 +128,39 @@ export const AlertIcon = () => (
   </svg>
 )
 
+export const CheckIcon = () => (
+  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+)
+
+export const BubbleIcon = () => (
+  <svg width="11" height="11" viewBox="0 0 24 24" {...stroke}>
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+  </svg>
+)
+
+export const SmallAlertIcon = () => (
+  <svg width="11" height="11" viewBox="0 0 24 24" {...stroke}>
+    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+    <line x1="12" y1="9" x2="12" y2="13" />
+  </svg>
+)
+
+export const SmallPinIcon = () => (
+  <svg width="11" height="11" viewBox="0 0 24 24" {...stroke}>
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+    <circle cx="12" cy="10" r="3" />
+  </svg>
+)
+
+export const SendIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="#E8C84A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="22" y1="2" x2="11" y2="13" />
+    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+  </svg>
+)
+
 export const PlusIcon = () => (
   <svg viewBox="0 0 24 24">
     <line x1="12" y1="5" x2="12" y2="19" />

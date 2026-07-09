@@ -3,6 +3,7 @@ import { useAuth } from './hooks/useAuth'
 import { useMemberName } from './hooks/useMemberName'
 import { signInWithGoogle, signOut, isAdmin } from './core/firebase/auth'
 import { SommetsPage } from './features/sommets/SommetsPage'
+import { RadioPage } from './features/radio/RadioPage'
 import { TopoBackground } from './components/TopoBackground'
 import { LogoIcon, NAV_ICONS } from './components/icons'
 
@@ -95,6 +96,8 @@ export default function App() {
 
         {tab === 'sommets' ? (
           <SommetsPage memberName={memberName} />
+        ) : tab === 'radio' ? (
+          <RadioPage memberName={memberName} />
         ) : (
           <div className="tab active">
             <div className="sec">{tabs.find((t) => t.key === tab)?.label}</div>

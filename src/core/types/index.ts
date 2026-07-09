@@ -52,7 +52,10 @@ export interface RadioMessage {
   text: string
   type: MessageType
   pinned?: boolean
+  /** initiales (2 lettres) des membres ayant lu */
   reads?: string[]
+  /** libellé statique hérité de l'ancienne app ("à l'instant") ; préférer createdAt */
+  time?: string
   createdAt?: Timestamp
 }
 

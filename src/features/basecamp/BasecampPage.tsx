@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { User } from 'firebase/auth'
 import { randosCol } from '../../core/firebase/collections'
 import { GEAR, LVLS, type Level } from '../../core/constants/gear'
-import { jMinus } from '../../core/services/dates'
+import { jMinus, todayLocalISO } from '../../core/services/dates'
 import { useCollection } from '../../hooks/useCollection'
 import { useUserProfile, type Profile } from '../../hooks/useUserProfile'
 import { Modal } from '../../components/Modal'
@@ -37,7 +37,7 @@ export function BasecampPage({ user, memberName, onGoKit }: BasecampPageProps) {
   const kitPct = Math.round((doneItems / allItems.length) * 100)
 
   // Prochaine sortie où je suis partant (vote 'oui') avec une date future
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayLocalISO()
   const next = randos
     .filter((r) => r.memberVotes?.[memberName] === 'oui' && r.dateStart && r.dateStart.slice(0, 10) >= today)
     .sort((a, b) => (a.dateStart ?? '').localeCompare(b.dateStart ?? ''))[0]

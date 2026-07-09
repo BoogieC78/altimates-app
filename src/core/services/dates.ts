@@ -31,6 +31,18 @@ export function durationLabel(dateStart?: string | null, dateEnd?: string | null
   return `${Math.max(1, days)}j`
 }
 
+/**
+ * Date du jour en heure LOCALE au format yyyy-mm-dd.
+ * Ne pas utiliser toISOString() qui est en UTC : entre minuit et 2h (heure d'été
+ * française), la date UTC est encore celle de la veille.
+ */
+export function todayLocalISO(now: Date = new Date()): string {
+  const y = now.getFullYear()
+  const m = String(now.getMonth() + 1).padStart(2, '0')
+  const d = String(now.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
 /** Badge compte à rebours de l'ancienne app : 'J-3', "AUJOURD'HUI", null si passé ou sans date. */
 export function jMinus(dateStart: string | null | undefined, today: string): string | null {
   if (!dateStart) return null

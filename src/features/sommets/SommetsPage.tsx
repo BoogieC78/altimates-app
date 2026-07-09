@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { randosCol } from '../../core/firebase/collections'
-import { isPast } from '../../core/services/dates'
+import { isPast, todayLocalISO } from '../../core/services/dates'
 import { useCollection } from '../../hooks/useCollection'
 import { RandoCard } from './RandoCard'
 import { AddRandoModal } from './AddRandoModal'
@@ -15,7 +15,7 @@ export function SommetsPage({ memberName }: SommetsPageProps) {
   const [showAdd, setShowAdd] = useState(false)
 
   const { upcoming, past } = useMemo(() => {
-    const today = new Date().toISOString().slice(0, 10)
+    const today = todayLocalISO()
     const upcoming = randos
       .filter((r) => !isPast(r, today))
       .sort((a, b) => (a.dateStart ?? '9999').localeCompare(b.dateStart ?? '9999'))

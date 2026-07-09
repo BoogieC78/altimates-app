@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { voteRando, deleteRando } from '../../core/firebase/randos'
-import { jMinus } from '../../core/services/dates'
+import { jMinus, todayLocalISO } from '../../core/services/dates'
 import { RandoDetailModal } from './RandoDetailModal'
 import { useWeather } from '../../hooks/useWeather'
 import type { Rando, VoteValue } from '../../core/types'
@@ -32,7 +32,7 @@ export function RandoCard({ rando: r, memberName }: RandoCardProps) {
   const weather = useWeather(r.lat, r.lon)
   const [showDetail, setShowDetail] = useState(false)
   const myVote = r.memberVotes?.[memberName] ?? null
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayLocalISO()
   const jx = jMinus(r.dateStart, today)
 
   const vote = (v: VoteValue) => {

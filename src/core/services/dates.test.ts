@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { durationLabel, formatDateLabel, isPast } from './dates'
+import { durationLabel, formatDateLabel, isPast, jMinus, todayLocalISO } from './dates'
 
 describe('formatDateLabel', () => {
   it('formate une date simple', () => {
@@ -21,6 +21,22 @@ describe('durationLabel', () => {
     expect(durationLabel('2026-06-06', '2026-06-07')).toBe('2j')
     expect(durationLabel('2026-06-06', '2026-06-06')).toBe('1j')
     expect(durationLabel('2026-06-06', null)).toBe('1j')
+  })
+})
+
+describe('todayLocalISO', () => {
+  it("utilise la date locale, pas l'UTC", () => {
+    // 00:30 heure locale le 10 juillet : toISOString() dirait encore le 9 en été
+    expect(todayLocalISO(new Date(2026, 6, 10, 0, 30))).toBe('2026-07-10')
+  })
+})
+
+describe('jMinus', () => {
+  it('compte les jours restants', () => {
+    expect(jMinus('2026-07-12', '2026-07-09')).toBe('J-3')
+    expect(jMinus('2026-07-09', '2026-07-09')).toBe("AUJOURD'HUI")
+    expect(jMinus('2026-07-01', '2026-07-09')).toBeNull()
+    expect(jMinus(null, '2026-07-09')).toBeNull()
   })
 })
 

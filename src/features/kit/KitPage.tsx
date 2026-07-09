@@ -142,7 +142,7 @@ export function KitPage({ user, memberName }: KitPageProps) {
           <span className={`tag ${mode === 'trek' ? 'tb' : 'tg'}`}>{mode === 'trek' ? 'Trek' : 'Journée'}</span>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
-          <button className="btn btn-gold btn-sm" onClick={() => generateKitPdf(mode, kitStatus, memberName)}>
+          <button className="btn btn-gold btn-sm" onClick={() => void generateKitPdf(mode, kitStatus, memberName)}>
             PDF
           </button>
           <button className="btn btn-sm" onClick={() => setEmailOpen(true)}>

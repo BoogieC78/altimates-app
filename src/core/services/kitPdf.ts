@@ -1,10 +1,11 @@
 // Export PDF du kit, porté tel quel depuis generatePDF() de l'ancienne app
 // (mêmes couleurs, mêmes sections, même mise en page A4).
-import { jsPDF } from 'jspdf'
+// jspdf est importé dynamiquement : ~400 Ko chargés uniquement au clic sur PDF.
 import { GEAR_INFO, type KitMode, type KitStatus } from '../constants/gear'
 import { allItems } from './kit'
 
-export function generateKitPdf(mode: KitMode, kitStatus: Record<string, KitStatus>, userName: string): void {
+export async function generateKitPdf(mode: KitMode, kitStatus: Record<string, KitStatus>, userName: string): Promise<void> {
+  const { jsPDF } = await import('jspdf')
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
   const all = allItems(mode)
 

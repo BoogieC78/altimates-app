@@ -1,29 +1,63 @@
-import { orderBy } from 'firebase/firestore'
+import { useMemo, useState } from 'react'
 import { randosCol } from '../../core/firebase/collections'
+import { isPast } from '../../core/services/dates'
 import { useCollection } from '../../hooks/useCollection'
+import { RandoCard } from './RandoCard'
+import { AddRandoModal } from './AddRandoModal'
 
-// Première feature migrée, en lecture seule pour valider le socle Firestore.
-// Votes, météo et détail rando arrivent dans les PR suivantes.
-export function SommetsPage() {
-  const { data: randos, loading, error } = useCollection(randosCol, orderBy('date', 'asc'))
+interface SommetsPageProps {
+  memberName: string
+}
+
+export function SommetsPage({ memberName }: SommetsPageProps) {
+  const { data: randos, loading, error } = useCollection(randosCol)
+  const [showAdd, setShowAdd] = useState(false)
+
+  const { upcoming, past } = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10)
+    const upcoming = randos
+      .filter((r) => !isPast(r, today))
+      .sort((a, b) => (a.dateStart ?? '9999').localeCompare(b.dateStart ?? '9999'))
+    const past = randos
+      .filter((r) => isPast(r, today))
+      .sort((a, b) => (b.dateStart ?? '').localeCompare(a.dateStart ?? ''))
+    return { upcoming, past }
+  }, [randos])
 
   if (loading) return <p className="muted">Chargement des sorties…</p>
   if (error) return <p className="muted">Erreur : {error.message}</p>
-  if (randos.length === 0) return <p className="muted">Aucune sortie planifiée.</p>
 
   return (
-    <ul className="rando-list">
-      {randos.map((r) => (
-        <li key={r.id} className="rando-card">
-          <div className="rando-name">{r.name}</div>
-          <div className="rando-meta">
-            {r.region} · {r.date}
-            {r.dateEnd ? ` → ${r.dateEnd}` : ''} · {r.dplus} m D+
-            {r.durType === 'trek' ? ' · trek' : ''}
-          </div>
-          {r.alert?.text && <div className="rando-alert">⚠ {r.alert.text}</div>}
-        </li>
-      ))}
-    </ul>
+    <>
+      <div className="page-head">
+        <h2>Prochaines sorties</h2>
+        <button className="btn-primary" onClick={() => setShowAdd(true)}>
+          + Proposer
+        </button>
+      </div>
+
+      {upcoming.length === 0 ? (
+        <p className="muted">Aucune sortie planifiée. Propose la prochaine !</p>
+      ) : (
+        <ul className="rando-list">
+          {upcoming.map((r) => (
+            <RandoCard key={r.docId} rando={r} memberName={memberName} />
+          ))}
+        </ul>
+      )}
+
+      {past.length > 0 && (
+        <>
+          <h2 className="section-past">Sorties passées</h2>
+          <ul className="rando-list past">
+            {past.map((r) => (
+              <RandoCard key={r.docId} rando={r} memberName={memberName} />
+            ))}
+          </ul>
+        </>
+      )}
+
+      {showAdd && <AddRandoModal memberName={memberName} onClose={() => setShowAdd(false)} />}
+    </>
   )
 }

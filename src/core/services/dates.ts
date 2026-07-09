@@ -31,6 +31,15 @@ export function durationLabel(dateStart?: string | null, dateEnd?: string | null
   return `${Math.max(1, days)}j`
 }
 
+/** Badge compte à rebours de l'ancienne app : 'J-3', "AUJOURD'HUI", null si passé ou sans date. */
+export function jMinus(dateStart: string | null | undefined, today: string): string | null {
+  if (!dateStart) return null
+  const diff = Math.round((Date.parse(dateStart.slice(0, 10)) - Date.parse(today)) / 86400000)
+  if (diff < 0) return null
+  if (diff === 0) return "AUJOURD'HUI"
+  return `J-${diff}`
+}
+
 /**
  * Une rando est "passée" si sa date de fin (ou de début) est avant aujourd'hui.
  * Sans date connue, elle est considérée à venir.

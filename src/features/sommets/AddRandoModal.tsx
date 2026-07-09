@@ -41,66 +41,84 @@ export function AddRandoModal({ memberName, onClose }: AddRandoModalProps) {
 
   return (
     <Modal title="Proposer une rando" onClose={onClose}>
-      <form className="form" onSubmit={submit}>
-        <label>
-          Nom *
-          <input name="name" required placeholder="Lac Blanc — Chamonix" />
-        </label>
-        <label>
-          Région
-          <input name="region" placeholder="Haute-Savoie" />
-        </label>
-        <label>
-          Difficulté
-          <select name="diff" defaultValue="Moyen">
-            <option>Facile</option>
-            <option>Moyen</option>
-            <option>Difficile</option>
-          </select>
-        </label>
-        <div className="form-row">
-          <button
-            type="button"
-            className={!isTrek ? 'btn-toggle active' : 'btn-toggle'}
-            onClick={() => setIsTrek(false)}
-          >
-            Journée
-          </button>
-          <button
-            type="button"
-            className={isTrek ? 'btn-toggle active' : 'btn-toggle'}
-            onClick={() => setIsTrek(true)}
-          >
-            Trek
-          </button>
+      <form onSubmit={submit}>
+        <div style={{ marginBottom: 9 }}>
+          <label className="form-lbl">Nom</label>
+          <input className="form-input" name="name" required placeholder="ex: Lac Blanc" />
         </div>
-        <label>
-          {isTrek ? 'Date de début' : 'Date'}
-          <input name="dateStart" type="date" />
-        </label>
-        {isTrek && (
-          <label>
-            Date de fin
-            <input name="dateEnd" type="date" />
-          </label>
+        <div className="form-row2" style={{ marginBottom: 9 }}>
+          <div>
+            <label className="form-lbl">Région</label>
+            <input className="form-input" name="region" placeholder="ex: Haute-Savoie" />
+          </div>
+          <div>
+            <label className="form-lbl">Niveau</label>
+            <select className="form-input" name="diff" defaultValue="Moyen">
+              <option>Facile</option>
+              <option>Moyen</option>
+              <option>Difficile</option>
+            </select>
+          </div>
+        </div>
+        <div style={{ marginBottom: 9 }}>
+          <label className="form-lbl">Lien Komoot (optionnel)</label>
+          <input className="form-input" name="komoot" placeholder="https://www.komoot.com/tour/..." />
+        </div>
+        <div style={{ marginBottom: 9 }}>
+          <label className="form-lbl">Durée</label>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+            <button
+              type="button"
+              className={!isTrek ? 'btn btn-sm btn-primary' : 'btn btn-sm'}
+              style={{ flex: 1, justifyContent: 'center' }}
+              onClick={() => setIsTrek(false)}
+            >
+              Journée
+            </button>
+            <button
+              type="button"
+              className={isTrek ? 'btn btn-sm btn-primary' : 'btn btn-sm'}
+              style={{ flex: 1, justifyContent: 'center' }}
+              onClick={() => setIsTrek(true)}
+            >
+              Plusieurs jours
+            </button>
+          </div>
+          {!isTrek ? (
+            <div>
+              <label className="form-lbl">Date</label>
+              <input className="form-input" name="dateStart" type="date" />
+            </div>
+          ) : (
+            <div className="form-row2">
+              <div>
+                <label className="form-lbl">Du</label>
+                <input className="form-input" name="dateStart" type="date" />
+              </div>
+              <div>
+                <label className="form-lbl">Au</label>
+                <input className="form-input" name="dateEnd" type="date" />
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="form-row2" style={{ marginBottom: 12 }}>
+          <div>
+            <label className="form-lbl">Distance (km)</label>
+            <input className="form-input" name="km" type="number" placeholder="15" />
+          </div>
+          <div>
+            <label className="form-lbl">Dénivelé (m D+)</label>
+            <input className="form-input" name="dplus" type="number" placeholder="850" />
+          </div>
+        </div>
+        {error && (
+          <div className="alert-band" style={{ marginBottom: 10 }}>
+            <div className="alert-text">{error}</div>
+          </div>
         )}
-        <div className="form-row">
-          <label>
-            Distance (km)
-            <input name="km" type="number" min="0" />
-          </label>
-          <label>
-            Dénivelé (m D+)
-            <input name="dplus" type="number" min="0" />
-          </label>
-        </div>
-        <label>
-          Lien Komoot
-          <input name="komoot" type="url" placeholder="https://www.komoot.com/..." />
-        </label>
-        {error && <p className="error">{error}</p>}
-        <button className="btn-primary" disabled={saving}>
-          {saving ? 'Enregistrement…' : 'Proposer'}
+        <button className="btn btn-primary btn-full" disabled={saving}>
+          {saving ? 'Enregistrement…' : 'Proposer la rando'}
         </button>
       </form>
     </Modal>

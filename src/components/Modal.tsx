@@ -6,13 +6,15 @@ interface ModalProps {
   children: ReactNode
 }
 
+// Bottom-sheet du design topo (classes modal-wrap/modal/modal-handle de l'ancienne app).
 export function Modal({ title, onClose, children }: ModalProps) {
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-wrap open" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-head">
+        <div className="modal-handle" />
+        <div className="modal-header">
           <span className="modal-title">{title}</span>
-          <button className="btn-ghost" onClick={onClose}>
+          <button className="close-btn" onClick={onClose} aria-label="Fermer">
             ✕
           </button>
         </div>

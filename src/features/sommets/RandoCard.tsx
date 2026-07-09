@@ -1,19 +1,36 @@
 import { voteRando, deleteRando } from '../../core/firebase/randos'
-import { votersFor } from '../../core/services/votes'
+import { jMinus } from '../../core/services/dates'
 import { useWeather } from '../../hooks/useWeather'
 import type { Rando, VoteValue } from '../../core/types'
 import type { WithDocId } from '../../hooks/useCollection'
+import {
+  AlertIcon,
+  DplusIcon,
+  DurIcon,
+  KmIcon,
+  MaybeIcon,
+  PinIcon,
+  ThumbIcon,
+  TrashIcon,
+} from '../../components/icons'
 
 interface RandoCardProps {
   rando: WithDocId<Rando>
   memberName: string
 }
 
+const DIFF_TAG: Record<string, string> = {
+  Facile: 'tg',
+  Moyen: 'ta',
+  Trek: 'tb',
+  Difficile: 'tr',
+}
+
 export function RandoCard({ rando: r, memberName }: RandoCardProps) {
   const weather = useWeather(r.lat, r.lon)
   const myVote = r.memberVotes?.[memberName] ?? null
-  const partants = votersFor(r, 'oui')
-  const peutEtre = votersFor(r, 'peut')
+  const today = new Date().toISOString().slice(0, 10)
+  const jx = jMinus(r.dateStart, today)
 
   const vote = (v: VoteValue) => {
     void voteRando(r, memberName, v).catch((e) => console.warn('vote:', e))
@@ -26,26 +43,126 @@ export function RandoCard({ rando: r, memberName }: RandoCardProps) {
   }
 
   return (
-    <li className="rando-card">
-      <div className="rando-top">
-        <div className="rando-main">
-          <div className="rando-name">{r.name}</div>
-          <div className="rando-meta">
-            {r.region}
-            {r.date ? ` · ${r.date}` : ''}
-            {r.dur && r.dur !== '1j' ? ` · ${r.dur}` : ''}
-            {r.diff ? ` · ${r.diff}` : ''}
-            {r.km ? ` · ${r.km} km` : ''}
-            {r.dplus ? ` · ${r.dplus} m D+` : ''}
+    <div className="rcard">
+      <div className="rcard-top">
+        <div className="rcard-main">
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              justifyContent: 'space-between',
+              gap: 6,
+              marginBottom: 3,
+            }}
+          >
+            <div className="rname" style={{ margin: 0, flex: 1 }}>
+              {r.name}
+              {r.alert && <span className="alert-dot" />}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2, flexShrink: 0 }}>
+              {r.date && (
+                <span style={{ fontSize: 9, fontFamily: 'var(--mono)', color: 'var(--ink3)', whiteSpace: 'nowrap' }}>
+                  {r.date}
+                </span>
+              )}
+              {jx && (
+                <span
+                  style={{
+                    fontSize: 9,
+                    fontFamily: 'var(--mono)',
+                    padding: '1px 6px',
+                    borderRadius: 10,
+                    background: 'var(--ink)',
+                    color: 'var(--gold)',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {jx}
+                </span>
+              )}
+            </div>
           </div>
-          {r.desc && <div className="rando-desc">{r.desc}</div>}
+          <div className="rreg">
+            <PinIcon />
+            {r.region}
+          </div>
+          <div className="rstats">
+            {r.km != null && (
+              <span className="rst">
+                <KmIcon />
+                {r.km}km
+              </span>
+            )}
+            {r.dplus != null && (
+              <span className="rst">
+                <DplusIcon />+{r.dplus}m
+              </span>
+            )}
+            {r.dur && (
+              <span className="rst">
+                <DurIcon />
+                {r.dur}
+              </span>
+            )}
+            {r.diff && (
+              <span className={`tag ${DIFF_TAG[r.diff] ?? 'ta'}`} style={{ marginLeft: 'auto' }}>
+                {r.diff}
+              </span>
+            )}
+          </div>
+          <div className="vrow">
+            <button className={myVote === 'oui' ? 'vbtn vyes' : 'vbtn'} onClick={() => vote('oui')}>
+              <ThumbIcon />
+              {myVote === 'oui' ? '✓ VOTÉ' : 'PARTANT'}
+            </button>
+            <button className={myVote === 'peut' ? 'vbtn vmay' : 'vbtn'} onClick={() => vote('peut')}>
+              <MaybeIcon />
+              PEUT-ÊTRE
+            </button>
+            <span className="vtally">
+              {r.votes?.oui ?? 0}✓ {r.votes?.peut ?? 0}?
+            </span>
+            {r.proposedBy === memberName && (
+              <button
+                onClick={remove}
+                title="Supprimer"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 3,
+                  color: 'var(--ink4)',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                <TrashIcon />
+              </button>
+            )}
+          </div>
         </div>
+
+        {weather === null && (r.lat != null || r.lon != null) && (
+          <div className="rcard-wx wx-mid" style={{ justifyContent: 'center' }}>
+            <div className="spinner" />
+          </div>
+        )}
+        {weather === 'error' && (
+          <div
+            className="rcard-wx wx-mid"
+            style={{ justifyContent: 'center', fontSize: 9, fontFamily: 'var(--mono)', color: 'var(--ink3)' }}
+          >
+            N/A
+          </div>
+        )}
         {weather && weather !== 'error' && (
-          <div className={`wx wx-${weather.quality}`}>
+          <div className={`rcard-wx wx-${weather.quality}`}>
             <div className="wx-icon">{weather.icon}</div>
             <div className="wx-temp">{weather.temp}°</div>
-            <div className="wx-wind">{weather.wind} km/h</div>
-            <div className="wx-label">{weather.label}</div>
+            <div className="wx-wind">
+              {weather.wind}km/h
+            </div>
+            <div className={`wx-lbl wx-${weather.quality}`}>{weather.label}</div>
           </div>
         )}
       </div>
@@ -54,42 +171,25 @@ export function RandoCard({ rando: r, memberName }: RandoCardProps) {
         <div className="forecast">
           {weather.forecast.map((d, i) => (
             <div key={i} className="fc">
-              <div className="fc-day">{d.dayName}</div>
-              <div className="fc-icon">{d.icon}</div>
-              <div className="fc-temp">{d.tempMax}°</div>
-              {d.precipitation > 0 && <div className="fc-rain">{d.precipitation}mm</div>}
+              <div className="fc-d">{d.dayName}</div>
+              <div className="fc-i">{d.icon}</div>
+              <div className="fc-t">{d.tempMax}°</div>
+              {d.precipitation > 0 && <div className="fc-r">{d.precipitation}mm</div>}
             </div>
           ))}
         </div>
       )}
 
-      {r.alert?.text && <div className="rando-alert">⚠ {r.alert.text}</div>}
-
-      <div className="rando-actions">
-        <button className={myVote === 'oui' ? 'btn-vote active' : 'btn-vote'} onClick={() => vote('oui')}>
-          ✓ Partant {r.votes?.oui ?? 0}
-        </button>
-        <button className={myVote === 'peut' ? 'btn-vote active' : 'btn-vote'} onClick={() => vote('peut')}>
-          ? Peut-être {r.votes?.peut ?? 0}
-        </button>
-        {r.traces?.[0]?.url && (
-          <a className="btn-link" href={r.traces[0].url} target="_blank" rel="noreferrer">
-            Komoot ↗
-          </a>
-        )}
-        {r.proposedBy === memberName && (
-          <button className="btn-ghost btn-delete" onClick={remove} title="Supprimer">
-            🗑
-          </button>
-        )}
-      </div>
-
-      {(partants.length > 0 || peutEtre.length > 0) && (
-        <div className="rando-voters">
-          {partants.length > 0 && <span>✓ {partants.join(', ')}</span>}
-          {peutEtre.length > 0 && <span>? {peutEtre.join(', ')}</span>}
+      {r.alert?.text && (
+        <div style={{ padding: '0 13px 9px' }}>
+          <div className="alert-band">
+            <span style={{ color: 'var(--red)', flexShrink: 0, marginTop: 1 }}>
+              <AlertIcon />
+            </span>
+            <div className="alert-text">{r.alert.text}</div>
+          </div>
         </div>
       )}
-    </li>
+    </div>
   )
 }

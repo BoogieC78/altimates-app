@@ -8,6 +8,8 @@ import { KitPage } from './features/kit/KitPage'
 import { IdeesPage } from './features/idees/IdeesPage'
 import { CordeePage } from './features/cordee/CordeePage'
 import { BasecampPage } from './features/basecamp/BasecampPage'
+import { AdminPage } from './features/admin/AdminPage'
+import { GuidedTour, shouldShowTour } from './components/GuidedTour'
 import { TopoBackground } from './components/TopoBackground'
 import { LogoIcon, NAV_ICONS } from './components/icons'
 
@@ -25,6 +27,7 @@ export default function App() {
   const memberName = useMemberName(user)
   const [tab, setTab] = useState('sommets')
   const [loginError, setLoginError] = useState('')
+  const [showTour, setShowTour] = useState(shouldShowTour)
 
   if (loading) return null
 
@@ -78,6 +81,10 @@ export default function App() {
 
   const tabs = isAdmin(user) ? [...TABS, { key: 'admin', label: 'Admin' } as const] : [...TABS]
 
+  if (showTour) {
+    return <GuidedTour onDone={() => setShowTour(false)} />
+  }
+
   return (
     <>
       <TopoBackground />
@@ -110,6 +117,8 @@ export default function App() {
           <CordeePage memberName={memberName} />
         ) : tab === 'basecamp' ? (
           <BasecampPage user={user} memberName={memberName} onGoKit={() => setTab('kit')} />
+        ) : tab === 'admin' ? (
+          <AdminPage memberName={memberName} />
         ) : (
           <div className="tab active">
             <div className="sec">{tabs.find((t) => t.key === tab)?.label}</div>

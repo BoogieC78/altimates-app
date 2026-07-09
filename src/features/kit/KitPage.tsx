@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { User } from 'firebase/auth'
 import { GEAR, GEAR_INFO, LVLS, type KitMode, type KitStatus, type Level } from '../../core/constants/gear'
 import { budgetRange, findGearItem, kitStats } from '../../core/services/kit'
+import { buildKitEmailLines, EMAIL_SECTION_LABELS, kitMailtoUrl } from '../../core/services/kitEmail'
 import { generateKitPdf } from '../../core/services/kitPdf'
 import { useUserProfile } from '../../hooks/useUserProfile'
 import { Modal } from '../../components/Modal'
@@ -28,6 +29,8 @@ export function KitPage({ user, memberName }: KitPageProps) {
     facultatif: false,
   })
   const [infoId, setInfoId] = useState<string | null>(null)
+  const [emailOpen, setEmailOpen] = useState(false)
+  const [emailAddr, setEmailAddr] = useState('')
 
   if (loading) {
     return (
@@ -142,6 +145,9 @@ export function KitPage({ user, memberName }: KitPageProps) {
           <button className="btn btn-gold btn-sm" onClick={() => generateKitPdf(mode, kitStatus, memberName)}>
             PDF
           </button>
+          <button className="btn btn-sm" onClick={() => setEmailOpen(true)}>
+            Email
+          </button>
           <button className="btn btn-sm" onClick={() => void update({ mode: mode === 'trek' ? 'journee' : 'trek' })}>
             {mode === 'trek' ? 'Journée' : 'Trek'}
           </button>
@@ -195,6 +201,42 @@ export function KitPage({ user, memberName }: KitPageProps) {
           )
         })}
       </div>
+
+      {emailOpen && (
+        <Modal title="Recevoir mon kit" onClose={() => setEmailOpen(false)}>
+          <div style={{ marginBottom: 10 }}>
+            <label className="form-lbl">Email</label>
+            <input
+              className="form-input"
+              type="email"
+              placeholder="prenom@email.com"
+              value={emailAddr}
+              onChange={(e) => setEmailAddr(e.target.value)}
+            />
+          </div>
+          <div style={{ marginBottom: 12 }}>
+            <label className="form-lbl" style={{ marginBottom: 5 }}>
+              Aperçu
+            </label>
+            <div className="email-preview">
+              {buildKitEmailLines(mode, profile.checked ?? {}, memberName).map((l, i) => (
+                <div key={i} style={EMAIL_SECTION_LABELS.includes(l) ? { fontWeight: 500, marginTop: 6 } : undefined}>
+                  {l || ' '}
+                </div>
+              ))}
+            </div>
+          </div>
+          <button
+            className="btn btn-full"
+            onClick={() => {
+              window.location.href = kitMailtoUrl(emailAddr, mode, profile.checked ?? {}, memberName)
+              setEmailOpen(false)
+            }}
+          >
+            Ouvrir messagerie
+          </button>
+        </Modal>
+      )}
 
       {info && infoId && (
         <Modal title={findGearItem(infoId)?.name ?? 'Conseils'} onClose={() => setInfoId(null)}>

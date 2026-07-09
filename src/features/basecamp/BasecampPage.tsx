@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import type { User } from 'firebase/auth'
 import { randosCol } from '../../core/firebase/collections'
-import { GEAR, LVLS } from '../../core/constants/gear'
+import { GEAR, LVLS, type Level } from '../../core/constants/gear'
 import { jMinus } from '../../core/services/dates'
 import { useCollection } from '../../hooks/useCollection'
-import { useUserProfile } from '../../hooks/useUserProfile'
+import { useUserProfile, type Profile } from '../../hooks/useUserProfile'
+import { Modal } from '../../components/Modal'
 
 interface BasecampPageProps {
   user: User
@@ -12,8 +14,9 @@ interface BasecampPageProps {
 }
 
 export function BasecampPage({ user, memberName, onGoKit }: BasecampPageProps) {
-  const { profile, loading } = useUserProfile(user)
+  const { profile, loading, update } = useUserProfile(user)
   const { data: randos } = useCollection(randosCol)
+  const [editing, setEditing] = useState(false)
 
   if (loading) {
     return (
@@ -177,6 +180,103 @@ export function BasecampPage({ user, memberName, onGoKit }: BasecampPageProps) {
           </div>
         </div>
       </div>
+
+      <div className="bc-section">
+        <button className="btn btn-sm" onClick={() => setEditing(true)}>
+          Modifier profil
+        </button>
+      </div>
+
+      {editing && (
+        <EditProfileModal
+          profile={profile}
+          memberName={memberName}
+          onSave={(patch) => {
+            void update(patch)
+            setEditing(false)
+          }}
+          onClose={() => setEditing(false)}
+        />
+      )}
     </div>
+  )
+}
+
+// Modal d'édition du profil : nom, niveau et stats de saison.
+function EditProfileModal({
+  profile,
+  memberName,
+  onSave,
+  onClose,
+}: {
+  profile: Profile | null
+  memberName: string
+  onSave: (patch: Partial<Profile>) => void
+  onClose: () => void
+}) {
+  const [name, setName] = useState(profile?.name ?? memberName)
+  const [level, setLevel] = useState<Level>(profile?.level ?? 'newbie')
+  const [stats, setStats] = useState({
+    km: String(profile?.km ?? 0),
+    dplus: String(profile?.dplus ?? 0),
+    sorties: String(profile?.sorties ?? 0),
+    bestKm: String(profile?.bestKm ?? 0),
+    bestDplus: String(profile?.bestDplus ?? 0),
+  })
+
+  const STAT_FIELDS: { k: keyof typeof stats; l: string }[] = [
+    { k: 'km', l: 'Km saison' },
+    { k: 'dplus', l: 'D+ saison' },
+    { k: 'sorties', l: 'Sorties' },
+    { k: 'bestKm', l: 'Best km' },
+    { k: 'bestDplus', l: 'Best D+' },
+  ]
+
+  const save = () => {
+    onSave({
+      name: name.trim() || memberName,
+      level,
+      km: parseInt(stats.km) || 0,
+      dplus: parseInt(stats.dplus) || 0,
+      sorties: parseInt(stats.sorties) || 0,
+      bestKm: parseInt(stats.bestKm) || 0,
+      bestDplus: parseInt(stats.bestDplus) || 0,
+    })
+  }
+
+  return (
+    <Modal title="Modifier profil" onClose={onClose}>
+      <div style={{ marginBottom: 10 }}>
+        <label className="form-lbl">Nom</label>
+        <input className="form-input" value={name} onChange={(e) => setName(e.target.value)} />
+      </div>
+      <div style={{ marginBottom: 10 }}>
+        <label className="form-lbl">Niveau</label>
+        <select className="form-input" value={level} onChange={(e) => setLevel(e.target.value as Level)}>
+          {(Object.keys(LVLS) as Level[]).map((k) => (
+            <option key={k} value={k}>
+              {LVLS[k].l}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
+        {STAT_FIELDS.map(({ k, l }) => (
+          <div key={k}>
+            <label className="form-lbl">{l}</label>
+            <input
+              className="form-input"
+              type="number"
+              min={0}
+              value={stats[k]}
+              onChange={(e) => setStats({ ...stats, [k]: e.target.value })}
+            />
+          </div>
+        ))}
+      </div>
+      <button className="btn btn-primary btn-full" onClick={save}>
+        Enregistrer
+      </button>
+    </Modal>
   )
 }

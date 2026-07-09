@@ -9,7 +9,7 @@ import { db } from './app'
 import { randosCol } from './collections'
 import { applyVote } from '../services/votes'
 import { formatDateLabel, durationLabel } from '../services/dates'
-import type { Difficulty, Rando, VoteValue } from '../types'
+import type { Difficulty, Rando, RandoTrace, VoteValue } from '../types'
 
 export interface NewRandoInput {
   name: string
@@ -70,4 +70,75 @@ export async function voteRando(
 
 export async function deleteRando(docId: string): Promise<void> {
   await deleteDoc(doc(db, 'randos', docId))
+}
+
+export interface EditRandoInput {
+  name: string
+  region: string
+  diff: Difficulty
+  dateStart?: string
+  dateEnd?: string
+  km?: number
+  dplus?: number
+  komoot?: string
+}
+
+/**
+ * Édition des champs du formulaire (équivalent saveEditRando de l'ancienne app) :
+ * update ciblé, recalcule dur/date, met à jour l'URL de la trace principale.
+ */
+export async function updateRando(rando: Rando & { docId: string }, input: EditRandoInput): Promise<void> {
+  const fields: Record<string, unknown> = {
+    name: input.name,
+    region: input.region || rando.region || 'France',
+    diff: input.diff,
+    km: input.km ?? null,
+    dplus: input.dplus ?? null,
+    dur: durationLabel(input.dateStart, input.dateEnd),
+    date: formatDateLabel(input.dateStart, input.dateEnd),
+    dateStart: input.dateStart ?? null,
+    dateEnd: input.dateEnd ?? null,
+  }
+  if (input.komoot) {
+    const coords = parseKomootCoords(input.komoot)
+    if (coords) Object.assign(fields, coords)
+    const traces = [...(rando.traces ?? [])]
+    if (traces.length > 0) traces[0] = { ...traces[0], url: input.komoot }
+    else traces.push({ id: Date.now(), label: 'Trace principale', url: input.komoot, votes: [] })
+    fields.traces = traces
+  }
+  await updateDoc(doc(db, 'randos', rando.docId), fields)
+}
+
+/** Ajoute une variante de trace ; renseigne lat/lon si la rando n'en a pas encore. */
+export async function addTrace(rando: Rando & { docId: string }, label: string, url: string): Promise<void> {
+  const traces: RandoTrace[] = [...(rando.traces ?? []), { id: Date.now(), label, url, votes: [] }]
+  const fields: Record<string, unknown> = { traces }
+  if (rando.lat == null || rando.lon == null) {
+    const coords = parseKomootCoords(url)
+    if (coords) Object.assign(fields, coords)
+  }
+  await updateDoc(doc(db, 'randos', rando.docId), fields)
+}
+
+export async function removeTrace(rando: Rando & { docId: string }, index: number): Promise<void> {
+  const traces = (rando.traces ?? []).filter((_, i) => i !== index)
+  await updateDoc(doc(db, 'randos', rando.docId), { traces })
+}
+
+/** Toggle du vote "Je préfère" d'un membre sur une trace. */
+export async function voteTrace(
+  rando: Rando & { docId: string },
+  index: number,
+  memberName: string,
+): Promise<void> {
+  const traces = (rando.traces ?? []).map((t, i) => {
+    if (i !== index) return t
+    const votes = t.votes ?? []
+    return {
+      ...t,
+      votes: votes.includes(memberName) ? votes.filter((v) => v !== memberName) : [...votes, memberName],
+    }
+  })
+  await updateDoc(doc(db, 'randos', rando.docId), { traces })
 }

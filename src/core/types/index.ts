@@ -12,7 +12,8 @@ export interface RandoTrace {
   id: number
   label: string
   url: string
-  votes: unknown[]
+  /** prénoms des membres qui préfèrent cette trace */
+  votes: string[]
 }
 
 export interface Rando {
@@ -109,5 +110,51 @@ export interface UserProfile {
 }
 
 export interface AppConfig {
-  allowedEmails: string[]
+  /** doc config/allowedEmails : whitelist des emails autorisés */
+  emails?: string[]
 }
+
+// ── Ravito / Hydratation (docs partagés ravito/shared et hydra/shared) ──
+
+export type RavitoDepart = 'matin' | 'midi' | 'apresmidi'
+export type RavitoRetour = 'midi' | 'apresmidi' | 'soir'
+export type MealId = 'petitdej' | 'lunch' | 'snack' | 'diner'
+
+/** Stock lyophilisé d'un membre : nb de repas par catégorie */
+export type RavitoStock = Record<MealId, number>
+
+export interface RavitoEntry {
+  config: { depart: RavitoDepart; retour: RavitoRetour }
+  /** clé = prénom du membre */
+  stocks: Record<string, RavitoStock>
+}
+
+/** Doc ravito/shared : clé = id métier de la rando (String) */
+export type RavitoDoc = Record<string, RavitoEntry>
+
+export type WaterSourceId = 'refuge' | 'ruisseau' | 'aucun'
+
+export interface HydraSegment {
+  id: number
+  label: string
+  source: WaterSourceId
+  km?: number
+}
+
+export interface HydraEntry {
+  /** ml/h/personne */
+  conso: number
+  /** heures de marche/jour */
+  heures: number
+  /** ml/personne/soir si bivouac */
+  cuisine: number
+  /** ml/personne/jour optionnel */
+  toilette: number
+  /** ml capacité totale contenants/personne */
+  capacite: number
+  filtreDisponible: boolean
+  segments: HydraSegment[]
+}
+
+/** Doc hydra/shared : clé = id métier de la rando (String) */
+export type HydraDoc = Record<string, HydraEntry>

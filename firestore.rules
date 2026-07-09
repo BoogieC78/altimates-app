@@ -1,0 +1,45 @@
+rules_version = '2';
+
+// Règles de sécurité Firestore — projet altimates-4c37f.
+// À déployer depuis la console Firebase (Firestore > Règles) ou via `firebase deploy --only firestore:rules`.
+// Le contrôle d'accès réel est ICI, pas dans le code client.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isMember() {
+      return request.auth != null
+        && request.auth.token.email in [
+          'hammadou.nordine@gmail.com',
+          'mrbouchemoua.ismail@gmail.com',
+          'wacil78@gmail.com',
+          'ousa.chac@gmail.com',
+          'david.agbodjanprince@gmail.com'
+        ];
+    }
+
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == 'hammadou.nordine@gmail.com';
+    }
+
+    // Chaque membre ne peut écrire que son propre document utilisateur.
+    match /users/{userId} {
+      allow read: if isMember();
+      allow write: if isMember()
+        && (request.auth.uid == userId || isAdmin());
+    }
+
+    // La config n'est modifiable que par l'admin.
+    match /config/{doc} {
+      allow read: if isMember();
+      allow write: if isAdmin();
+    }
+
+    // Collections collaboratives : lecture/écriture pour tous les membres.
+    match /{collection}/{doc} {
+      allow read, write: if isMember()
+        && collection in ['randos', 'messages', 'feedbacks', 'departItems', 'ravito', 'hydra'];
+    }
+  }
+}

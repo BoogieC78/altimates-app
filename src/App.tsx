@@ -5,6 +5,9 @@ import { signInWithGoogle, signOut, isAdmin } from './core/firebase/auth'
 import { SommetsPage } from './features/sommets/SommetsPage'
 import { RadioPage } from './features/radio/RadioPage'
 import { KitPage } from './features/kit/KitPage'
+import { IdeesPage } from './features/idees/IdeesPage'
+import { CordeePage } from './features/cordee/CordeePage'
+import { BasecampPage } from './features/basecamp/BasecampPage'
 import { TopoBackground } from './components/TopoBackground'
 import { LogoIcon, NAV_ICONS } from './components/icons'
 
@@ -101,6 +104,12 @@ export default function App() {
           <RadioPage memberName={memberName} />
         ) : tab === 'kit' ? (
           <KitPage user={user} memberName={memberName} />
+        ) : tab === 'idees' ? (
+          <IdeesPage memberName={memberName} />
+        ) : tab === 'cordee' ? (
+          <CordeePage memberName={memberName} />
+        ) : tab === 'basecamp' ? (
+          <BasecampPage user={user} memberName={memberName} onGoKit={() => setTab('kit')} />
         ) : (
           <div className="tab active">
             <div className="sec">{tabs.find((t) => t.key === tab)?.label}</div>

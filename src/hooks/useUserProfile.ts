@@ -16,6 +16,8 @@ export interface Profile {
   km?: number
   dplus?: number
   sorties?: number
+  bestKm?: number
+  bestDplus?: number
 }
 
 interface UserProfileState {

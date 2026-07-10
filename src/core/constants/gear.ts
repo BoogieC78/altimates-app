@@ -31,13 +31,20 @@ export const GEAR: Record<'trek' | 'journee', GearMode> = {
       {id:'tshirt',name:'T-shirt Merinos',note:'Sèche vite · ne sent pas mauvais',price:'25–60€',links:[{l:'Merinos resist',u:'https://www.decathlon.fr/p/t-shirt-manches-courtes-en-laine-merinos-homme-merino-resist-kaki/_/R-p-356413'}]},
       {id:'serviette',name:'Serviette microfibre',note:null,price:'8–20€',links:[]},
       {id:'cuillere',name:'Cuillère trek pliable',note:null,price:'5–15€',links:[]},
+      {id:'chaisecamp',name:'Chaise de camping pliante ultra-compacte MH500',note:'Confort au bivouac · compacte',price:'30–50€',links:[{l:'Decathlon',u:'https://www.decathlon.fr/p/chaise-basse-de-camping-pliante-et-ultra-compacte-500-m-vert/375910/c311c1m8975150'}]},
+      {id:'spraysolaire',name:'Spray solaire Active SPF50 150ml',note:'Application rapide · UV altitude',price:'8–15€',links:[{l:'Decathlon',u:'https://www.decathlon.fr/p/spray-solaire-active-spf-50-150-ml/351956/m8862018'}]},
     ],
     facultatif:[
+      {id:'pochefiltre',name:'Poche à eau filtrante par gravité 6L',note:'Filtre 0,1µm · idéale bivouac',price:'25–45€',links:[{l:'Amazon',u:'https://www.amazon.fr/dp/B08ZYMXLMH'}]},
       {id:'oreiller',name:'Oreiller gonflable',note:null,price:'15–35€',links:[{l:'MT500',u:'https://www.decathlon.fr/p/oreiller-de-trekking-gonflable-mt500/_/R-p-343604'}]},
       {id:'pantpluie',name:'Pantalon de pluie',note:null,price:'20–60€',links:[]},
       {id:'solaire',name:'Stick solaire SPF50',note:'Altitude = UV x2',price:'5–15€',links:[]},
       {id:'sacetanche',name:'Sac étanche 13L',note:null,price:'20–40€',links:[{l:'Sea to Summit',u:'https://www.decathlon.fr/p/mp/sea-to-summit/sac-etanche-ultra-leger-sea-to-summit-13l/_/R-p-1a4f06ca'}]},
       {id:'crampons',name:'Crampons',note:'Début/fin de saison uniquement',price:'15–40€',links:[{l:'Amazon',u:'https://www.amazon.fr/s?k=crampons+randonn%C3%A9e+neige'}]},
+      {id:'savon',name:'Savon multi-usages (camping)',note:'Corps · vaisselle · linge',price:'3–8€',links:[{l:'Decathlon',u:'https://www.decathlon.fr/p/savon-multi-usages-pour-le-camping/X8598405/m8598405'}]},
+      {id:'rondelles',name:'Rondelles hiver pour bâtons (x2)',note:'Neige profonde · évite l’enfoncement',price:'3–8€',links:[{l:'Decathlon',u:'https://www.decathlon.fr/p/2-rondelles-hiver-de-baton-randonnee/346054/c1m8796724'}]},
+      {id:'adaptgazcampingaz',name:'Adaptateur recharge gaz (Campingaz → vis 7/16")',note:'Recharge cartouches à valve',price:'8–15€',links:[{l:'Amazon',u:'https://www.amazon.fr/dp/B08PZ8X5N2'}]},
+      {id:'adaptgazlindal',name:'Adaptateur recharge gaz (valve Lindal · Z15)',note:'Transfert entre cartouches',price:'8–15€',links:[{l:'Amazon',u:'https://www.amazon.fr/dp/B07SZLM17Y'}]},
     ]
   },
   journee:{
@@ -212,6 +219,34 @@ export const GEAR_INFO: Record<string, GearInfo> = {
   carte: {
     tip: "Carte IGN 1:25000 de la zone. Indispensable en complément du GPS — en cas de panne de batterie, une carte papier peut sauver la mise. Se prépare à l'avance, les zones blanches n'existent pas sur une carte IGN.",
     links: [{'label':'IGN Boutique','url':'https://boutique.ign.fr/cartes-randonnee','favicon':'https://www.google.com/s2/favicons?domain=ign.fr&sz=16'},{'label':'Amazon','url':'https://www.amazon.fr/s?k=carte+IGN+25000+randonnee','favicon':'https://www.google.com/s2/favicons?domain=amazon.fr&sz=16'},{'label':'LeBonCoin','url':'https://www.leboncoin.fr/recherche?text=carte+IGN+randonnee+topo','favicon':'https://www.google.com/s2/favicons?domain=leboncoin.fr&sz=16'}]
+  },
+  pochefiltre: {
+    tip: "Poche à eau souple avec filtre par gravité : on remplit à la source, on suspend, et l'eau se filtre seule sans effort ni pompage. Filtration à 0,1µm qui élimine bactéries et parasites. Idéale au bivouac pour filtrer plusieurs litres d'un coup (cuisine, gourdes) sans transporter toute son eau.",
+    links: [{'label':'Amazon','url':'https://www.amazon.fr/dp/B08ZYMXLMH','favicon':'https://www.google.com/s2/favicons?domain=amazon.fr&sz=16'},{'label':'Decathlon','url':'https://www.decathlon.fr/search?query=filtre+eau+gravite+randonnee','favicon':'https://www.google.com/s2/favicons?domain=decathlon.fr&sz=16'}]
+  },
+  savon: {
+    tip: "Savon biodégradable multi-usages : corps, cheveux, vaisselle et linge avec un seul produit. Toujours se laver et rincer à au moins 60m des lacs et cours d'eau (principe Leave No Trace), même avec un savon biodégradable. Un petit format suffit pour un trek de plusieurs jours.",
+    links: [{'label':'Decathlon','url':'https://www.decathlon.fr/p/savon-multi-usages-pour-le-camping/X8598405/m8598405','favicon':'https://www.google.com/s2/favicons?domain=decathlon.fr&sz=16'},{'label':'Amazon','url':'https://www.amazon.fr/s?k=savon+biodegradable+camping+multi+usages','favicon':'https://www.google.com/s2/favicons?domain=amazon.fr&sz=16'}]
+  },
+  rondelles: {
+    tip: "Rondelles larges qui se clipsent au bout des bâtons pour éviter qu'ils ne s'enfoncent dans la neige profonde ou la boue. Indispensables pour la rando hivernale et les raquettes. Vérifier le diamètre de pointe compatible avec tes bâtons avant d'acheter.",
+    links: [{'label':'Decathlon','url':'https://www.decathlon.fr/p/2-rondelles-hiver-de-baton-randonnee/346054/c1m8796724','favicon':'https://www.google.com/s2/favicons?domain=decathlon.fr&sz=16'},{'label':'Amazon','url':'https://www.amazon.fr/s?k=rondelles+hiver+baton+randonnee+neige','favicon':'https://www.google.com/s2/favicons?domain=amazon.fr&sz=16'}]
+  },
+  adaptgazcampingaz: {
+    tip: "Adaptateur qui permet de recharger une cartouche à valve (7/16\") depuis une bouteille de gaz Campingaz à fermeture baïonnette. Économise beaucoup sur le long terme en évitant de racheter des cartouches jetables. À manipuler à l'extérieur, à l'écart de toute flamme, et sans dépasser le remplissage de la cartouche.",
+    links: [{'label':'Amazon','url':'https://www.amazon.fr/dp/B08PZ8X5N2','favicon':'https://www.google.com/s2/favicons?domain=amazon.fr&sz=16'}]
+  },
+  adaptgazlindal: {
+    tip: "Adaptateur à valve Lindal pour transférer du gaz d'une grosse cartouche vers une petite (ou recharger une cartouche à valve). Compatible avec la plupart des cartouches à visser de camping. Recharger toujours à froid, à l'extérieur et loin de toute source de chaleur ou d'étincelle.",
+    links: [{'label':'Amazon','url':'https://www.amazon.fr/dp/B07SZLM17Y','favicon':'https://www.google.com/s2/favicons?domain=amazon.fr&sz=16'}]
+  },
+  chaisecamp: {
+    tip: "Chaise pliante ultra-compacte pour le confort au bivouac : se replie à la taille d'une gourde et pèse ~500g. Un vrai luxe léger après une longue journée de marche. Vérifier le poids et le volume replié — à réserver aux treks où le confort prime sur l'ultralight.",
+    links: [{'label':'Decathlon','url':'https://www.decathlon.fr/p/chaise-basse-de-camping-pliante-et-ultra-compacte-500-m-vert/375910/c311c1m8975150','favicon':'https://www.google.com/s2/favicons?domain=decathlon.fr&sz=16'},{'label':'Amazon','url':'https://www.amazon.fr/s?k=chaise+camping+pliante+ultra+compacte+legere','favicon':'https://www.google.com/s2/favicons?domain=amazon.fr&sz=16'}]
+  },
+  spraysolaire: {
+    tip: "En altitude les UV sont multipliés : +10% tous les 1000m. Le format spray s'applique vite et facilement, y compris sur les zones difficiles. SPF50 minimum, à renouveler toutes les 2h. Ne pas oublier les lèvres, les oreilles et le dessous du menton (réverbération de la neige).",
+    links: [{'label':'Decathlon','url':'https://www.decathlon.fr/p/spray-solaire-active-spf-50-150-ml/351956/m8862018','favicon':'https://www.google.com/s2/favicons?domain=decathlon.fr&sz=16'},{'label':'Amazon','url':'https://www.amazon.fr/s?k=spray+solaire+spf50+sport+montagne','favicon':'https://www.google.com/s2/favicons?domain=amazon.fr&sz=16'}]
   }
 };
 

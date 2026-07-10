@@ -25,6 +25,8 @@ interface UserProfileState {
   loading: boolean
   /** Fusionne des champs dans profile (+ maintient kitChecked en miroir, comme l'ancienne app). */
   update: (patch: Partial<Profile>) => Promise<void>
+  /** Réinitialise le profil (efface profile + kitChecked), équivalent de resetUser(). */
+  reset: () => Promise<void>
 }
 
 export function useUserProfile(user: User | null): UserProfileState {
@@ -49,5 +51,10 @@ export function useUserProfile(user: User | null): UserProfileState {
     )
   }
 
-  return { profile, loading, update }
+  const reset = async () => {
+    if (!user) return
+    await setDoc(doc(db, 'users', user.uid), { profile: null, kitChecked: {} }, { merge: true })
+  }
+
+  return { profile, loading, update, reset }
 }

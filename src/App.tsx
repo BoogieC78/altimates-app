@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from './hooks/useAuth'
 import { useMemberName } from './hooks/useMemberName'
-import { signInWithGoogle, signOut, isAdmin } from './core/firebase/auth'
+import { signInWithGoogle, isAdmin } from './core/firebase/auth'
 import { SommetsPage } from './features/sommets/SommetsPage'
 import { RadioPage } from './features/radio/RadioPage'
 import { KitPage } from './features/kit/KitPage'
@@ -100,7 +100,12 @@ export default function App() {
               <div className="logo-sub">GROUPE · 5 MEMBRES</div>
             </div>
           </div>
-          <button className="av-btn" onClick={() => void signOut()} title="Déconnexion">
+          <button
+            className="av-btn"
+            onClick={() => setTab('basecamp')}
+            title="Mon Base Camp"
+            aria-label="Mon Base Camp"
+          >
             {memberName.slice(0, 2).toUpperCase()}
           </button>
         </div>

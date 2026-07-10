@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import type { User } from 'firebase/auth'
 import { GEAR } from '../../core/constants/gear'
 import type { Rando } from '../../core/types'
@@ -11,12 +11,16 @@ const profileState = {
   profile: null as Profile | null,
   loading: false,
   update: vi.fn(() => Promise.resolve()),
+  reset: vi.fn(() => Promise.resolve()),
 }
 const randosState = { data: [] as WithDocId<Rando>[], loading: false, error: null }
 
 vi.mock('../../core/firebase/collections', () => ({ randosCol: {} }))
 vi.mock('../../hooks/useUserProfile', () => ({ useUserProfile: () => profileState }))
 vi.mock('../../hooks/useCollection', () => ({ useCollection: () => randosState }))
+// La modale de détail (ouverte au clic sur le hero) n'est pas testée ici et tire
+// des dépendances Firestore non mockées → on la neutralise.
+vi.mock('../sommets/RandoDetailModal', () => ({ RandoDetailModal: () => null }))
 
 import { BasecampPage } from './BasecampPage'
 
@@ -56,6 +60,37 @@ describe('BasecampPage', () => {
     randosState.data = [makeRando({ docId: 'a', name: 'Pas votée', dateStart: '2999-01-01' })]
     render(<BasecampPage user={user} memberName="Wacil" onGoKit={() => {}} />)
     expect(screen.queryByText('Prochaine sortie')).toBeNull()
+  })
+
+  it('affiche l\'état vide et le bouton Configurer sans profil', () => {
+    profileState.profile = null
+    render(<BasecampPage user={user} memberName="Wacil" onGoKit={() => {}} />)
+    expect(screen.getByText('Installe ton Base Camp')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Configurer' })).toBeTruthy()
+  })
+
+  it('Réinitialiser appelle reset() après confirmation', () => {
+    profileState.profile = { name: 'Wacil', level: 'expert', mode: 'trek' }
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
+    render(<BasecampPage user={user} memberName="Wacil" onGoKit={() => {}} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Réinitialiser' }))
+    expect(profileState.reset).toHaveBeenCalledOnce()
+    confirmSpy.mockRestore()
+  })
+
+  it('Réinitialiser ne fait rien si l\'utilisateur annule', () => {
+    profileState.profile = { name: 'Wacil', level: 'expert', mode: 'trek' }
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    render(<BasecampPage user={user} memberName="Wacil" onGoKit={() => {}} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Réinitialiser' }))
+    expect(profileState.reset).not.toHaveBeenCalled()
+    confirmSpy.mockRestore()
+  })
+
+  it('expose un bouton Déconnexion', () => {
+    profileState.profile = { name: 'Wacil', level: 'expert', mode: 'trek' }
+    render(<BasecampPage user={user} memberName="Wacil" onGoKit={() => {}} />)
+    expect(screen.getByRole('button', { name: 'Déconnexion' })).toBeTruthy()
   })
 
   it('calcule le pourcentage de kit complété', () => {

@@ -20,7 +20,10 @@ service cloud.firestore {
 
     function isAdmin() {
       return request.auth != null
-        && request.auth.token.email == 'hammadou.nordine@gmail.com';
+        && request.auth.token.email in [
+          'hammadou.nordine@gmail.com',
+          'wacil78@gmail.com'
+        ];
     }
 
     // Chaque membre ne peut écrire que son propre document utilisateur.

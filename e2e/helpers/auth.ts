@@ -54,3 +54,13 @@ export async function login(page: Page, opts: LoginOptions = {}): Promise<void> 
 
   await expect(page.getByRole('button', { name: /Proposer une rando/i })).toBeVisible()
 }
+
+/**
+ * Déconnexion + attente de l'écran de login. Indispensable avant un re-login :
+ * Firebase persiste la session (IndexedDB), il faut donc que le signOut soit
+ * pleinement effectif avant de recharger la page.
+ */
+export async function logout(page: Page): Promise<void> {
+  await page.getByTitle('Déconnexion').click()
+  await expect(page.getByRole('button', { name: /Continuer avec Google/i })).toBeVisible()
+}

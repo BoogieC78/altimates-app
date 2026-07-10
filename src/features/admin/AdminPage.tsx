@@ -3,13 +3,14 @@ import {
   FLUSHABLE_COLLECTIONS,
   addAllowedEmail,
   countCollection,
+  ensureAllowedEmailsSeeded,
   flushCollection,
   getAllowedEmails,
   listUsers,
   removeAllowedEmail,
   type FlushableCollection,
 } from '../../core/firebase/admin'
-import { isAdminEmail } from '../../core/firebase/auth'
+import { ADMIN_EMAILS, DEFAULT_ALLOWED_EMAILS, isAdminEmail } from '../../core/firebase/auth'
 import type { UserProfile } from '../../core/types'
 
 // Libellés des collections, repris de l'ancienne app (adminFlush).
@@ -57,7 +58,10 @@ export function AdminPage({ memberName }: AdminPageProps) {
         setUsersError(false)
       })
       .catch(() => setUsersError(true))
-    void getAllowedEmails()
+    // Amorce la whitelist si elle n'existe pas encore (migration), puis la charge.
+    void ensureAllowedEmailsSeeded(DEFAULT_ALLOWED_EMAILS)
+      .catch(() => {})
+      .then(() => getAllowedEmails())
       .then(setAllowedEmails)
       .catch(() => {})
   }, [])
@@ -328,7 +332,8 @@ export function AdminPage({ memberName }: AdminPageProps) {
             lineHeight: 1.5,
           }}
         >
-          Note : pense à aussi mettre à jour ALLOWED_EMAILS dans le code et les règles Firestore.
+          Ajout/retrait effectifs immédiatement (contrôle appliqué par les règles Firestore).
+          Les admins ({ADMIN_EMAILS.join(', ')}) gardent toujours accès.
         </div>
       </div>
 

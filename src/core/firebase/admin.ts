@@ -61,6 +61,19 @@ export async function getAllowedEmails(): Promise<string[]> {
   return snap.data()?.emails ?? []
 }
 
+/**
+ * Amorce la whitelist si le document n'existe pas encore (migration vers la
+ * whitelist dynamique). Ne touche à rien si le doc existe déjà — même vide —
+ * pour ne pas ré-ajouter des membres volontairement retirés. Renvoie true si
+ * un seed a eu lieu. Réservé à l'admin (règles Firestore).
+ */
+export async function ensureAllowedEmailsSeeded(defaults: string[]): Promise<boolean> {
+  const snap = await getDoc(allowedEmailsDoc)
+  if (snap.exists()) return false
+  await setDoc(allowedEmailsDoc, { emails: defaults })
+  return true
+}
+
 export async function addAllowedEmail(email: string): Promise<void> {
   await setDoc(allowedEmailsDoc, { emails: arrayUnion(email) }, { merge: true })
 }

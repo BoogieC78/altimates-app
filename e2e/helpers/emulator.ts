@@ -29,6 +29,20 @@ export async function resetEmulators(): Promise<void> {
   })
 }
 
+/** Membres autorisés par défaut, seedés avant chaque test (whitelist dynamique). */
+export const DEFAULT_MEMBERS = [
+  'hammadou.nordine@gmail.com',
+  'mrbouchemoua.ismail@gmail.com',
+  'wacil78@gmail.com',
+  'ousa.chac@gmail.com',
+  'david.agbodjanprince@gmail.com',
+]
+
+/** Écrit la whitelist dynamique config/allowedEmails. */
+export async function seedAllowedEmails(emails: string[] = DEFAULT_MEMBERS): Promise<void> {
+  await db().collection('config').doc('allowedEmails').set({ emails })
+}
+
 /** Ajoute un document dans une collection ; renvoie son docId. */
 export async function seedDoc(collection: string, data: Record<string, unknown>): Promise<string> {
   const ref = await db()

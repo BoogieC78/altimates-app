@@ -1,7 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useAuth } from './hooks/useAuth'
 import { useMemberName } from './hooks/useMemberName'
-import { signInWithGoogle, isAdmin } from './core/firebase/auth'
+import {
+  signInWithGoogle,
+  isAdmin,
+  sendEmailSignInLink,
+  completeEmailSignIn,
+} from './core/firebase/auth'
 import { SommetsPage } from './features/sommets/SommetsPage'
 import { RadioPage } from './features/radio/RadioPage'
 import { KitPage } from './features/kit/KitPage'
@@ -27,7 +32,29 @@ export default function App() {
   const memberName = useMemberName(user)
   const [tab, setTab] = useState('sommets')
   const [loginError, setLoginError] = useState('')
+  const [email, setEmail] = useState('')
+  const [emailSent, setEmailSent] = useState(false)
   const [showTour, setShowTour] = useState(shouldShowTour)
+
+  // Si on revient d'un lien de connexion e-mail, on termine la connexion au chargement.
+  useEffect(() => {
+    completeEmailSignIn(() => window.prompt('Confirme ton e-mail pour terminer la connexion')).catch(
+      (e: Error) => setLoginError(e.message),
+    )
+  }, [])
+
+  const submitEmail = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const addr = email.trim()
+    if (!/^\S+@\S+\.\S+$/.test(addr)) {
+      setLoginError('Entre une adresse e-mail valide.')
+      return
+    }
+    setLoginError('')
+    sendEmailSignInLink(addr)
+      .then(() => setEmailSent(true))
+      .catch((err: Error) => setLoginError(err.message))
+  }
 
   if (loading) return null
 
@@ -67,11 +94,49 @@ export default function App() {
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
             Continuer avec Google
           </button>
+
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              margin: '14px 0',
+              color: 'var(--ink4)',
+              fontSize: 10,
+              fontFamily: 'var(--mono)',
+            }}
+          >
+            <div style={{ flex: 1, height: 1, background: 'var(--border2)' }} />
+            OU
+            <div style={{ flex: 1, height: 1, background: 'var(--border2)' }} />
+          </div>
+
+          {emailSent ? (
+            <div className="auth-sub" style={{ textAlign: 'center', lineHeight: 1.6 }}>
+              📧 Lien de connexion envoyé à <b>{email}</b>.
+              <br />
+              Ouvre-le sur cet appareil pour te connecter.
+            </div>
+          ) : (
+            <form onSubmit={submitEmail}>
+              <input
+                className="form-input"
+                type="email"
+                name="email"
+                placeholder="ton@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+              />
+              <button className="btn btn-primary btn-full" style={{ marginTop: 8 }} type="submit">
+                Recevoir un lien de connexion
+              </button>
+            </form>
+          )}
+
           {loginError && (
             <div className="auth-error" style={{ display: 'block' }}>
-              Accès réservé à la cordée ALTImates.
-              <br />
-              Contacte Nordine pour être ajouté.
+              {loginError}
             </div>
           )}
         </div>

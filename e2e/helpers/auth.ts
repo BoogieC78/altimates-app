@@ -48,7 +48,7 @@ export async function login(page: Page, opts: LoginOptions = {}): Promise<void> 
   await signInWithEmulator(page, opts)
 
   if (opts.expectRejected) {
-    await expect(page.getByText(/Accès réservé à la cordée/i)).toBeVisible()
+    await expect(page.getByText(/Email non autorisé/i)).toBeVisible()
     return
   }
 

@@ -1,5 +1,8 @@
 import {
   GoogleAuthProvider,
+  isSignInWithEmailLink,
+  sendSignInLinkToEmail,
+  signInWithEmailLink,
   signInWithPopup,
   signOut as fbSignOut,
   type User,
@@ -61,15 +64,63 @@ export async function isMemberEmail(email: string | null | undefined): Promise<b
   return false
 }
 
-export async function signInWithGoogle(): Promise<User> {
-  const result = await signInWithPopup(auth, new GoogleAuthProvider())
-  if (!(await isMemberEmail(result.user.email))) {
+/** Vérifie l'appartenance et déconnecte + throw si l'email n'est pas autorisé. */
+async function enforceMembership(user: User): Promise<User> {
+  if (!(await isMemberEmail(user.email))) {
     await fbSignOut(auth)
     throw new Error('Email non autorisé. Demande un accès à la cordée.')
   }
-  return result.user
+  return user
+}
+
+export async function signInWithGoogle(): Promise<User> {
+  const result = await signInWithPopup(auth, new GoogleAuthProvider())
+  return enforceMembership(result.user)
 }
 
 export function signOut(): Promise<void> {
   return fbSignOut(auth)
+}
+
+// ── Connexion par e-mail (lien magique, sans mot de passe) ──────────────────
+// Gratuit chez Firebase. L'utilisateur reçoit un lien par mail ; en cliquant, il
+// revient sur l'app qui termine la connexion. Nécessite d'activer "Email link
+// (passwordless sign-in)" dans la console Firebase (Authentication > Sign-in method).
+
+const EMAIL_STORAGE_KEY = 'altimates-email-signin'
+
+/** Envoie un lien de connexion à `email` et mémorise l'adresse pour la reprise. */
+export async function sendEmailSignInLink(email: string): Promise<void> {
+  await sendSignInLinkToEmail(auth, email, {
+    // Le lien renvoie vers l'app (même origine) ; le domaine doit être autorisé
+    // dans Firebase (Authentication > Settings > Authorized domains).
+    url: window.location.origin,
+    handleCodeInApp: true,
+  })
+  window.localStorage.setItem(EMAIL_STORAGE_KEY, email)
+}
+
+/** L'URL courante est-elle un lien de connexion e-mail ? */
+export function isEmailSignInLink(): boolean {
+  return isSignInWithEmailLink(auth, window.location.href)
+}
+
+/**
+ * Termine la connexion si l'URL courante est un lien e-mail. Renvoie l'utilisateur,
+ * ou null si aucun lien n'est présent. Throw si l'email n'est pas autorisé.
+ * `promptEmail` sert de secours quand l'adresse n'est plus en localStorage
+ * (lien ouvert sur un autre appareil/navigateur).
+ */
+export async function completeEmailSignIn(
+  promptEmail?: () => string | null,
+): Promise<User | null> {
+  if (!isEmailSignInLink()) return null
+  const email = window.localStorage.getItem(EMAIL_STORAGE_KEY) ?? promptEmail?.() ?? ''
+  if (!email) throw new Error('Adresse e-mail requise pour terminer la connexion.')
+
+  const result = await signInWithEmailLink(auth, email, window.location.href)
+  window.localStorage.removeItem(EMAIL_STORAGE_KEY)
+  // Retire les paramètres du lien de l'URL (propreté + évite de rejouer le lien).
+  window.history.replaceState(null, '', window.location.origin)
+  return enforceMembership(result.user)
 }

@@ -29,6 +29,19 @@ export async function resetEmulators(): Promise<void> {
   })
 }
 
+/**
+ * Récupère le dernier lien de connexion e-mail généré pour `email`. L'émulateur
+ * Auth n'envoie pas de vrai mail : il expose les codes via /oobCodes.
+ */
+export async function getLatestEmailSignInLink(email: string): Promise<string> {
+  const res = await fetch(`http://${AUTH_HOST}/emulator/v1/projects/${PROJECT_ID}/oobCodes`)
+  const data = (await res.json()) as { oobCodes?: { email: string; oobLink: string }[] }
+  const match = (data.oobCodes ?? []).filter((c) => c.email === email)
+  const last = match[match.length - 1]
+  if (!last) throw new Error(`Aucun lien de connexion trouvé pour ${email}`)
+  return last.oobLink
+}
+
 /** Membres autorisés par défaut, seedés avant chaque test (whitelist dynamique). */
 export const DEFAULT_MEMBERS = [
   'hammadou.nordine@gmail.com',

@@ -32,3 +32,6 @@ firebase-debug.log
 firestore-debug.log
 ui-debug.log
 .firebase
+
+# Identifiants locaux (jamais commités — voir skill trello-kanban)
+.claude/*.local.json

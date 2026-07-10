@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import type { Rando } from '../../core/types'
 import type { WithDocId } from '../../hooks/useCollection'
+import { makeRando } from '../../test/factories'
 
 const state = {
   data: [] as WithDocId<Rando>[],
@@ -19,14 +20,13 @@ vi.mock('./AddRandoModal', () => ({ AddRandoModal: () => null }))
 import { SommetsPage } from './SommetsPage'
 
 afterEach(() => {
-  cleanup()
   state.data = []
   state.loading = false
   state.error = null
 })
 
 function rando(name: string, dateStart: string | null): WithDocId<Rando> {
-  return { docId: name, id: 1, name, region: 'Alpes', votes: { oui: 0, peut: 0 }, dateStart }
+  return makeRando({ docId: name, name, dateStart })
 }
 
 describe('SommetsPage', () => {
@@ -56,5 +56,13 @@ describe('SommetsPage', () => {
     const { container } = render(<SommetsPage memberName="Wacil" />)
     expect(container.querySelector('.spinner')).toBeTruthy()
     expect(screen.getByText('CHARGEMENT…')).toBeTruthy()
+  })
+
+  it("affiche le message d'erreur sans aucune carte en cas d'erreur", () => {
+    state.data = [rando('Future sortie', '2999-01-01')]
+    state.error = new Error('boom')
+    render(<SommetsPage memberName="Wacil" />)
+    expect(screen.getByText('boom')).toBeTruthy()
+    expect(screen.queryAllByTestId('rando')).toHaveLength(0)
   })
 })

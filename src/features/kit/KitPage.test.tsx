@@ -1,8 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import type { User } from 'firebase/auth'
 import type { KitStatus } from '../../core/constants/gear'
-import { budgetRange, kitStats } from '../../core/services/kit'
 import type { Profile } from '../../hooks/useUserProfile'
 
 const state = {
@@ -19,8 +18,6 @@ import { KitPage } from './KitPage'
 const user = { uid: 'u1' } as User
 
 afterEach(() => {
-  cleanup()
-  vi.clearAllMocks()
   state.profile = null
   state.loading = false
 })
@@ -43,17 +40,17 @@ describe('KitPage', () => {
   })
 
   it('affiche les stats budget correspondant au kitStatus', () => {
+    // Mode journée (14 articles) : 2 'have' (chaussures, batons), 1 'skip' (sac20)
+    // → 11 manquants, 14 %, budget 161–410 € (sommes des fourchettes de gear.ts).
     const kitStatus: Record<string, KitStatus> = { chaussures: 'have', batons: 'have', sac20: 'skip' }
     state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus }
     render(<KitPage user={user} memberName="Wacil" />)
-    const stats = kitStats('journee', kitStatus)
-    const { min, max } = budgetRange(stats.missing)
-    expect(screen.getByText(`${stats.done}/${stats.total}`)).toBeTruthy()
-    expect(screen.getByText(String(stats.missing.length))).toBeTruthy()
-    expect(screen.getByText(`${stats.pct}%`)).toBeTruthy()
+    expect(screen.getByText('2/14')).toBeTruthy()
+    expect(screen.getByText('11')).toBeTruthy()
+    expect(screen.getByText('14%')).toBeTruthy()
     const total = document.querySelector('.budget-total')!.textContent
-    expect(total).toContain(`${min}€`)
-    expect(total).toContain(`${max}€`)
+    expect(total).toContain('161€')
+    expect(total).toContain('410€')
   })
 
   it("un clic sur un statut appelle update avec le kitStatus modifié", () => {

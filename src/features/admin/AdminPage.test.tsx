@@ -1,9 +1,10 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/react'
 import type { UserProfile } from '../../core/types'
 
-vi.mock('../../core/firebase/admin', () => ({
-  FLUSHABLE_COLLECTIONS: ['randos', 'messages', 'feedbacks', 'departItems'],
+vi.mock('../../core/firebase/admin', async (importOriginal) => ({
+  // Garde les exports réels (FLUSHABLE_COLLECTIONS…), ne stubbe que les fonctions.
+  ...(await importOriginal<typeof import('../../core/firebase/admin')>()),
   countCollection: vi.fn((name: string) => Promise.resolve(name === 'randos' ? 4 : 2)),
   flushCollection: vi.fn(() => Promise.resolve()),
   getAllowedEmails: vi.fn(() => Promise.resolve(['wacil@example.com'])),
@@ -12,6 +13,7 @@ vi.mock('../../core/firebase/admin', () => ({
   listUsers: vi.fn(() =>
     Promise.resolve([
       { docId: 'u1', email: 'hammadou.nordine@gmail.com', profile: { name: 'Nordine' } },
+      { docId: 'u2', email: 'wacil@example.com', profile: { name: 'Wacil' } },
     ] as (UserProfile & { docId: string })[]),
   ),
 }))
@@ -19,11 +21,6 @@ vi.mock('../../core/firebase/auth', () => ({ ADMIN_EMAIL: 'hammadou.nordine@gmai
 
 import { addAllowedEmail } from '../../core/firebase/admin'
 import { AdminPage } from './AdminPage'
-
-afterEach(() => {
-  cleanup()
-  vi.clearAllMocks()
-})
 
 describe('AdminPage', () => {
   it('rend les sections principales', async () => {
@@ -40,16 +37,18 @@ describe('AdminPage', () => {
     expect((await screen.findAllByText('2 entrées')).length).toBe(3)
   })
 
-  it("marque l'utilisateur admin avec le badge ADMIN", async () => {
+  it("marque uniquement l'utilisateur admin avec le badge ADMIN", async () => {
     render(<AdminPage memberName="Wacil" />)
     await screen.findByText('Nordine')
-    // Un badge dans le bandeau + un sur le membre admin
+    await screen.findByText('Wacil (toi)')
+    // Un badge dans le bandeau + un sur le membre admin, aucun sur le membre non-admin.
     expect(screen.getAllByText('ADMIN')).toHaveLength(2)
   })
 
   it("l'ajout d'un email appelle addAllowedEmail (normalisé en minuscules)", async () => {
     render(<AdminPage memberName="Wacil" />)
-    await screen.findByText('wacil@example.com')
+    await screen.findAllByText('wacil@example.com')
+    await screen.findByText('Nordine')
     fireEvent.change(screen.getByPlaceholderText('Ajouter un email…'), {
       target: { value: '  Nouveau@Mail.com ' },
     })
@@ -57,9 +56,11 @@ describe('AdminPage', () => {
     expect(addAllowedEmail).toHaveBeenCalledWith('nouveau@mail.com')
   })
 
-  it("refuse un email invalide sans appeler addAllowedEmail", async () => {
+  it('refuse un email invalide sans appeler addAllowedEmail', async () => {
     const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {})
     render(<AdminPage memberName="Wacil" />)
+    await screen.findAllByText('wacil@example.com')
+    await screen.findByText('Nordine')
     fireEvent.change(screen.getByPlaceholderText('Ajouter un email…'), { target: { value: 'pasunemail' } })
     fireEvent.click(screen.getByText('Ajouter'))
     expect(alertSpy).toHaveBeenCalled()

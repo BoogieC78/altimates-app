@@ -1,8 +1,6 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { Modal } from './Modal'
-
-afterEach(cleanup)
 
 describe('Modal', () => {
   it('affiche le titre et le contenu', () => {

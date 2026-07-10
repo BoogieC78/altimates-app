@@ -3,9 +3,11 @@ import type { User } from 'firebase/auth'
 import { randosCol } from '../../core/firebase/collections'
 import { GEAR, LVLS, type Level } from '../../core/constants/gear'
 import { jMinus, todayLocalISO } from '../../core/services/dates'
+import { signOut } from '../../core/firebase/auth'
 import { useCollection } from '../../hooks/useCollection'
 import { useUserProfile, type Profile } from '../../hooks/useUserProfile'
 import { Modal } from '../../components/Modal'
+import { RandoDetailModal } from '../sommets/RandoDetailModal'
 
 interface BasecampPageProps {
   user: User
@@ -14,9 +16,10 @@ interface BasecampPageProps {
 }
 
 export function BasecampPage({ user, memberName, onGoKit }: BasecampPageProps) {
-  const { profile, loading, update } = useUserProfile(user)
+  const { profile, loading, update, reset } = useUserProfile(user)
   const { data: randos } = useCollection(randosCol)
   const [editing, setEditing] = useState(false)
+  const [showNext, setShowNext] = useState(false)
 
   if (loading) {
     return (
@@ -24,6 +27,48 @@ export function BasecampPage({ user, memberName, onGoKit }: BasecampPageProps) {
         <div className="spinner-wrap">
           <div className="spinner" />
         </div>
+      </div>
+    )
+  }
+
+  // État vide (profil non configuré) : équivalent de renderBaseCamp() sans user.
+  if (!profile?.level) {
+    return (
+      <div className="tab active">
+        <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--ink3)' }}>
+          <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2D2D2A" strokeWidth="1.5" strokeLinecap="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9,22 9,12 15,12 15,22" />
+            </svg>
+          </div>
+          <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 6, color: 'var(--ink)' }}>
+            Installe ton Base Camp
+          </p>
+          <p style={{ fontSize: 11, marginBottom: 16, fontFamily: 'var(--mono)', lineHeight: 1.6 }}>
+            Ton QG perso — stats, kit, prochaine sortie
+          </p>
+          <button className="btn btn-primary" onClick={() => setEditing(true)}>
+            Configurer
+          </button>
+          <div style={{ marginTop: 18 }}>
+            <button className="btn btn-sm" onClick={() => void signOut()}>
+              Déconnexion
+            </button>
+          </div>
+        </div>
+
+        {editing && (
+          <EditProfileModal
+            profile={profile}
+            memberName={memberName}
+            onSave={(patch) => {
+              void update(patch)
+              setEditing(false)
+            }}
+            onClose={() => setEditing(false)}
+          />
+        )}
       </div>
     )
   }
@@ -43,9 +88,23 @@ export function BasecampPage({ user, memberName, onGoKit }: BasecampPageProps) {
     .sort((a, b) => (a.dateStart ?? '').localeCompare(b.dateStart ?? ''))[0]
   const jx = next ? jMinus(next.dateStart, today) : null
 
+  const openNext = () => {
+    if (next) setShowNext(true)
+  }
+
+  const handleReset = () => {
+    if (window.confirm('Réinitialiser ton profil ? Tes stats et ta configuration kit seront effacées.')) {
+      void reset()
+    }
+  }
+
   return (
     <div className="tab active">
-      <div className="bc-hero">
+      <div
+        className="bc-hero"
+        onClick={openNext}
+        style={next ? { cursor: 'pointer' } : undefined}
+      >
         <div className="bc-hero-bg">
           <svg width="100%" height="100%" viewBox="0 0 440 160" preserveAspectRatio="xMidYMid slice">
             <g fill="none" stroke="#fff" strokeWidth="0.8">
@@ -56,7 +115,7 @@ export function BasecampPage({ user, memberName, onGoKit }: BasecampPageProps) {
           </svg>
         </div>
         <div className="bc-hero-content">
-          <div className="bc-name">{memberName}</div>
+          <div className="bc-name">{profile?.name ?? memberName}</div>
           <div className="bc-meta">
             <span className={`tag ${lv.cls}`}>{lv.l}</span>
             <span style={{ fontSize: 9, color: 'rgba(255,255,255,.3)', fontFamily: 'var(--mono)' }}>
@@ -182,8 +241,20 @@ export function BasecampPage({ user, memberName, onGoKit }: BasecampPageProps) {
       </div>
 
       <div className="bc-section">
-        <button className="btn btn-sm" onClick={() => setEditing(true)}>
-          Modifier profil
+        <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+          <button className="btn btn-sm" onClick={() => setEditing(true)}>
+            Modifier profil
+          </button>
+          <button className="btn btn-sm btn-danger" onClick={handleReset}>
+            Réinitialiser
+          </button>
+        </div>
+        <button
+          className="btn btn-sm"
+          onClick={() => void signOut()}
+          style={{ marginTop: 10, width: '100%', justifyContent: 'center' }}
+        >
+          Déconnexion
         </button>
       </div>
 
@@ -197,6 +268,10 @@ export function BasecampPage({ user, memberName, onGoKit }: BasecampPageProps) {
           }}
           onClose={() => setEditing(false)}
         />
+      )}
+
+      {showNext && next && (
+        <RandoDetailModal rando={next} memberName={memberName} onClose={() => setShowNext(false)} />
       )}
     </div>
   )

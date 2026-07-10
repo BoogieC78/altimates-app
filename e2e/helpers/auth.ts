@@ -56,11 +56,13 @@ export async function login(page: Page, opts: LoginOptions = {}): Promise<void> 
 }
 
 /**
- * Déconnexion + attente de l'écran de login. Indispensable avant un re-login :
- * Firebase persiste la session (IndexedDB), il faut donc que le signOut soit
- * pleinement effectif avant de recharger la page.
+ * Déconnexion + attente de l'écran de login. La déconnexion se fait via l'écran
+ * Base Camp (ouvert par l'avatar), présent dans les deux états (vide/configuré).
+ * Indispensable avant un re-login : Firebase persiste la session (IndexedDB),
+ * il faut donc que le signOut soit pleinement effectif avant de recharger la page.
  */
 export async function logout(page: Page): Promise<void> {
-  await page.getByTitle('Déconnexion').click()
+  await page.locator('.av-btn').click()
+  await page.getByRole('button', { name: 'Déconnexion' }).click()
   await expect(page.getByRole('button', { name: /Continuer avec Google/i })).toBeVisible()
 }

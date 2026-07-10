@@ -5,16 +5,24 @@ import { NON_ADMIN_EMAIL, UNAUTHORIZED_EMAIL } from '../helpers/auth'
 // Connexion sans mot de passe par lien e-mail (gratuit). L'émulateur capture le
 // lien (pas de vrai mail) ; on le suit pour terminer la connexion.
 test.describe('Connexion par e-mail (lien magique)', () => {
-  test('un membre reçoit un lien et se connecte', async ({ page }) => {
+  test('un membre reçoit un lien et se connecte (sans pop-up, cross-device)', async ({ page }) => {
+    // Toute pop-up (prompt) fait échouer le test : la connexion ne doit rien demander.
+    page.on('dialog', (d) => {
+      throw new Error(`Pop-up inattendue: ${d.message()}`)
+    })
+
     await page.goto('/')
     await page.getByPlaceholder('ton@email.com').fill(NON_ADMIN_EMAIL)
     await page.getByRole('button', { name: 'Recevoir un lien de connexion' }).click()
     await expect(page.getByText(/Lien de connexion envoyé/i)).toBeVisible()
 
+    // Simule un autre appareil/navigateur : l'adresse n'est plus en local.
+    await page.evaluate(() => localStorage.removeItem('altimates-email-signin'))
+
     const link = await getLatestEmailSignInLink(NON_ADMIN_EMAIL)
     await page.goto(link)
 
-    // Connexion terminée → l'app s'affiche.
+    // Connexion terminée via l'adresse embarquée dans le lien → l'app s'affiche.
     await expect(page.getByRole('button', { name: /Proposer une rando/i })).toBeVisible()
   })
 
@@ -29,6 +37,22 @@ test.describe('Connexion par e-mail (lien magique)', () => {
 
     await expect(page.getByText(/Email non autorisé/i)).toBeVisible()
     await expect(page.getByRole('button', { name: /Proposer une rando/i })).toHaveCount(0)
+  })
+
+  test.describe('nouveau membre', () => {
+    test.use({ skipTour: false }) // on veut voir le tour guidé
+    test('après le lien, arrive sur le tour guidé de bienvenue', async ({ page }) => {
+      await page.goto('/')
+      await page.getByPlaceholder('ton@email.com').fill(NON_ADMIN_EMAIL)
+      await page.getByRole('button', { name: 'Recevoir un lien de connexion' }).click()
+      await expect(page.getByText(/Lien de connexion envoyé/i)).toBeVisible()
+
+      const link = await getLatestEmailSignInLink(NON_ADMIN_EMAIL)
+      await page.goto(link)
+
+      // Connecté ET tour guidé affiché (première visite).
+      await expect(page.getByRole('button', { name: /Passer/i })).toBeVisible()
+    })
   })
 
   test('adresse e-mail invalide : message d\'erreur', async ({ page }) => {

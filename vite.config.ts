@@ -20,6 +20,9 @@ export default defineConfig({
     },
   },
   test: {
+    // Tests unitaires/composants Vitest uniquement (src/). Les specs Playwright
+    // (e2e/) ont leur propre runner et ne doivent pas être ramassés ici.
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
     environment: 'jsdom',
     globals: true,
     clearMocks: true,

@@ -8,7 +8,7 @@ Réécriture de [l'app d'origine](https://github.com/hammadounordine/Altimates) 
 
 - **Vite + React 19 + TypeScript**
 - **Firebase** (Auth Google + Firestore temps réel), projet `altimates-4c37f`
-- **Vitest** (tests unitaires), **oxlint** (lint)
+- **Vitest** (tests unitaires), **Playwright** (E2E), **oxlint** (lint)
 - Déploiement **Vercel** (framework preset : Vite)
 
 ## Démarrer
@@ -20,6 +20,26 @@ npm test           # tests unitaires
 npm run lint
 npm run build
 ```
+
+## Tests E2E (Playwright + émulateurs Firebase)
+
+Les tests de bout en bout tournent contre les **émulateurs Firebase** (Auth + Firestore),
+jamais la prod : chaque test part d'une base vierge et se connecte via un compte Google
+factice servi par l'émulateur (aucun OAuth réel). Ils couvrent login/whitelist, proposer une
+rando, voter, éditer/supprimer, radio, kit, idées, cordée, base camp, admin, navigation et tour guidé.
+
+Prérequis : un **JDK ≥ 21** sur le PATH (requis par l'émulateur Firestore).
+
+```bash
+npx playwright install chromium   # une fois
+npm run test:e2e                  # build "e2e" + émulateurs + Playwright (headless)
+npm run test:e2e:ui               # mode interactif Playwright UI
+npm run emulators                 # (optionnel) lancer les émulateurs seuls
+```
+
+Détails : `src/core/firebase/app.ts` bascule sur les émulateurs quand `VITE_USE_EMULATOR=1`
+(fichier `.env.e2e`, activé par `--mode e2e`). Les specs vivent dans `e2e/`. La CI exécute
+cette suite à chaque push/PR (job `e2e` de [`.github/workflows/ci.yml`](.github/workflows/ci.yml)).
 
 ## Architecture
 

@@ -8,6 +8,7 @@ vi.mock('../../core/firebase/admin', async (importOriginal) => ({
   countCollection: vi.fn((name: string) => Promise.resolve(name === 'randos' ? 4 : 2)),
   flushCollection: vi.fn(() => Promise.resolve()),
   getAllowedEmails: vi.fn(() => Promise.resolve(['wacil@example.com'])),
+  ensureAllowedEmailsSeeded: vi.fn(() => Promise.resolve(false)),
   addAllowedEmail: vi.fn(() => Promise.resolve()),
   removeAllowedEmail: vi.fn(() => Promise.resolve()),
   listUsers: vi.fn(() =>
@@ -19,6 +20,7 @@ vi.mock('../../core/firebase/admin', async (importOriginal) => ({
 }))
 vi.mock('../../core/firebase/auth', () => ({
   ADMIN_EMAILS: ['hammadou.nordine@gmail.com', 'wacil78@gmail.com'],
+  DEFAULT_ALLOWED_EMAILS: ['hammadou.nordine@gmail.com', 'wacil78@gmail.com'],
   isAdminEmail: (email: string | null | undefined) =>
     !!email && ['hammadou.nordine@gmail.com', 'wacil78@gmail.com'].includes(email),
 }))

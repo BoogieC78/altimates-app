@@ -7,23 +7,27 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isMember() {
-      return request.auth != null
-        && request.auth.token.email in [
-          'hammadou.nordine@gmail.com',
-          'mrbouchemoua.ismail@gmail.com',
-          'wacil78@gmail.com',
-          'ousa.chac@gmail.com',
-          'david.agbodjanprince@gmail.com'
-        ];
-    }
-
+    // Admins : codés en dur À DESSEIN (ancre de sécurité). Toujours membres,
+    // même si la whitelist dynamique est vide → jamais de lockout total.
     function isAdmin() {
       return request.auth != null
         && request.auth.token.email in [
           'hammadou.nordine@gmail.com',
           'wacil78@gmail.com'
         ];
+    }
+
+    // Whitelist dynamique des membres, éditable depuis le panneau Admin.
+    // Source de vérité : config/allowedEmails.emails (string[]).
+    function allowedEmails() {
+      return exists(/databases/$(database)/documents/config/allowedEmails)
+        ? get(/databases/$(database)/documents/config/allowedEmails).data.get('emails', [])
+        : [];
+    }
+
+    function isMember() {
+      return request.auth != null
+        && (isAdmin() || request.auth.token.email in allowedEmails());
     }
 
     // Chaque membre ne peut écrire que son propre document utilisateur.
@@ -33,7 +37,14 @@ service cloud.firestore {
         && (request.auth.uid == userId || isAdmin());
     }
 
-    // La config n'est modifiable que par l'admin.
+    // La whitelist doit être lisible par tout utilisateur authentifié : c'est elle
+    // qui détermine l'appartenance (éviter la dépendance circulaire isMember→config).
+    match /config/allowedEmails {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    // Autres docs de config : lecture membres, écriture admin.
     match /config/{doc} {
       allow read: if isMember();
       allow write: if isAdmin();

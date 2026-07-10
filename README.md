@@ -25,8 +25,9 @@ npm run build
 
 Les tests de bout en bout tournent contre les **émulateurs Firebase** (Auth + Firestore),
 jamais la prod : chaque test part d'une base vierge et se connecte via un compte Google
-factice servi par l'émulateur (aucun OAuth réel). Ils couvrent login/whitelist, proposer une
-rando, voter, éditer/supprimer, radio, kit, idées, cordée, base camp, admin, navigation et tour guidé.
+factice servi par l'émulateur (aucun OAuth réel). Ils couvrent login/whitelist, gestion des
+accès (portail Admin), proposer une rando, voter, éditer/supprimer, radio, kit, idées, cordée,
+base camp, admin, navigation et tour guidé.
 
 Prérequis : un **JDK ≥ 21** sur le PATH (requis par l'émulateur Firestore).
 

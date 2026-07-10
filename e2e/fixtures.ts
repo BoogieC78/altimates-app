@@ -1,5 +1,5 @@
 import { test as base } from '@playwright/test'
-import { resetEmulators } from './helpers/emulator'
+import { resetEmulators, seedAllowedEmails } from './helpers/emulator'
 
 // Test de base commun à tous les specs E2E :
 //  - remet les émulateurs à zéro avant chaque test (isolation)
@@ -24,6 +24,8 @@ export const test = base.extend<{ skipTour: boolean }>({
 
 test.beforeEach(async () => {
   await resetEmulators()
+  // Whitelist dynamique : sans elle, les membres non-admin seraient rejetés.
+  await seedAllowedEmails()
 })
 
 export { expect } from '@playwright/test'

@@ -29,10 +29,17 @@ factice servi par l'émulateur (aucun OAuth réel). Ils couvrent login Google + 
 whitelist, gestion des accès (portail Admin), proposer une rando, voter, éditer/supprimer,
 radio, kit, idées, cordée, base camp (écran compte via l'avatar), admin, navigation et tour guidé.
 
-> **Connexion par e-mail (lien magique)** : en prod, activer *Authentication → Sign-in method →
+> **Connexion par e-mail (lien magique)** : activer *Authentication → Sign-in method →
 > Email/Password → Email link (passwordless sign-in)* dans la console Firebase, et vérifier que
 > le domaine (`altimates-app.vercel.app`) est dans *Authentication → Settings → Authorized domains*.
 > En local, l'émulateur ne l'exige pas et capture le lien via son endpoint `/oobCodes`.
+>
+> **E-mail personnalisé (design cordée)** : le mail est envoyé par la fonction serverless
+> [`api/send-signin-link.ts`](api/send-signin-link.ts) (SDK Admin + SMTP Gmail via nodemailer,
+> template [`api/_email.ts`](api/_email.ts)). Variables d'environnement Vercel requises :
+> `FIREBASE_SERVICE_ACCOUNT` (JSON de la clé de compte de service), `GMAIL_USER`,
+> `GMAIL_APP_PASSWORD` (mot de passe d'application Google). Si la fonction est absente/en erreur,
+> l'app **retombe** automatiquement sur le mail Firebase par défaut (aucun login cassé).
 
 Prérequis : un **JDK ≥ 21** sur le PATH (requis par l'émulateur Firestore).
 

@@ -89,16 +89,37 @@ export function signOut(): Promise<void> {
 
 const EMAIL_STORAGE_KEY = 'altimates-email-signin'
 
-/** Envoie un lien de connexion à `email` et mémorise l'adresse pour la reprise. */
-export async function sendEmailSignInLink(email: string): Promise<void> {
-  await sendSignInLinkToEmail(auth, email, {
-    // On embarque l'adresse dans le lien (param `e`) pour terminer la connexion
-    // SANS redemander l'e-mail, même si le lien est ouvert sur un autre appareil.
-    // Sûr : le oobCode n'est valable que pour cette adresse (vérifié côté serveur).
-    // Le domaine doit être autorisé (Authentication > Settings > Authorized domains).
+/** Envoi via le SDK client (mail Firebase par défaut) — émulateur E2E + repli prod. */
+function clientSendLink(email: string): Promise<void> {
+  return sendSignInLinkToEmail(auth, email, {
+    // Adresse embarquée dans le lien (param `e`) → reprise sans redemander l'e-mail.
     url: `${window.location.origin}/?e=${encodeURIComponent(email)}`,
     handleCodeInApp: true,
   })
+}
+
+/**
+ * Envoie un lien de connexion à `email` et mémorise l'adresse pour la reprise.
+ * - En prod : via notre fonction serverless (/api/send-signin-link) qui envoie un
+ *   e-mail au design ALTImates par SMTP Gmail (meilleure délivrabilité).
+ * - Repli automatique (fonction absente/non configurée, ou mode émulateur E2E) :
+ *   le SDK client envoie le mail Firebase par défaut → jamais de login e-mail cassé.
+ */
+export async function sendEmailSignInLink(email: string): Promise<void> {
+  if (import.meta.env.VITE_USE_EMULATOR === '1') {
+    await clientSendLink(email)
+  } else {
+    try {
+      const res = await fetch('/api/send-signin-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      if (!res.ok) throw new Error(String(res.status))
+    } catch {
+      await clientSendLink(email) // repli : mail Firebase par défaut
+    }
+  }
   window.localStorage.setItem(EMAIL_STORAGE_KEY, email)
 }
 

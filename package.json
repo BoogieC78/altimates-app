@@ -18,7 +18,9 @@
   },
   "dependencies": {
     "firebase": "^12.16.0",
+    "firebase-admin": "^14.1.0",
     "jspdf": "^4.2.1",
+    "nodemailer": "^9.0.3",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },
@@ -27,10 +29,11 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^24.13.2",
+    "@types/nodemailer": "^8.0.1",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "@vercel/node": "^5.8.23",
     "@vitejs/plugin-react": "^6.0.3",
-    "firebase-admin": "^14.1.0",
     "firebase-tools": "^15.23.0",
     "jsdom": "^28.1.0",
     "oxlint": "^1.71.0",

@@ -92,9 +92,11 @@ const EMAIL_STORAGE_KEY = 'altimates-email-signin'
 /** Envoie un lien de connexion à `email` et mémorise l'adresse pour la reprise. */
 export async function sendEmailSignInLink(email: string): Promise<void> {
   await sendSignInLinkToEmail(auth, email, {
-    // Le lien renvoie vers l'app (même origine) ; le domaine doit être autorisé
-    // dans Firebase (Authentication > Settings > Authorized domains).
-    url: window.location.origin,
+    // On embarque l'adresse dans le lien (param `e`) pour terminer la connexion
+    // SANS redemander l'e-mail, même si le lien est ouvert sur un autre appareil.
+    // Sûr : le oobCode n'est valable que pour cette adresse (vérifié côté serveur).
+    // Le domaine doit être autorisé (Authentication > Settings > Authorized domains).
+    url: `${window.location.origin}/?e=${encodeURIComponent(email)}`,
     handleCodeInApp: true,
   })
   window.localStorage.setItem(EMAIL_STORAGE_KEY, email)
@@ -115,7 +117,10 @@ export async function completeEmailSignIn(
   promptEmail?: () => string | null,
 ): Promise<User | null> {
   if (!isEmailSignInLink()) return null
-  const email = window.localStorage.getItem(EMAIL_STORAGE_KEY) ?? promptEmail?.() ?? ''
+  // Ordre : adresse embarquée dans le lien (param `e`) → mémorisée en local →
+  // en dernier recours seulement, on demande (secours, ne devrait plus arriver).
+  const fromUrl = new URLSearchParams(window.location.search).get('e')
+  const email = fromUrl ?? window.localStorage.getItem(EMAIL_STORAGE_KEY) ?? promptEmail?.() ?? ''
   if (!email) throw new Error('Adresse e-mail requise pour terminer la connexion.')
 
   const result = await signInWithEmailLink(auth, email, window.location.href)

@@ -17,6 +17,9 @@ export const app = initializeApp(firebaseConfig)
 export const auth = getAuth(app)
 export const db = getFirestore(app)
 
+// Les e-mails Firebase (lien de connexion, etc.) sont envoyés en français.
+auth.languageCode = 'fr'
+
 // Mode E2E : on branche l'app sur les émulateurs Firebase locaux au lieu de la prod.
 // Activé uniquement quand VITE_USE_EMULATOR=1 au build/dev (jamais en prod).
 // Voir e2e/ et la doc émulateurs pour le seed et les tests Playwright.

@@ -25,9 +25,14 @@ npm run build
 
 Les tests de bout en bout tournent contre les **émulateurs Firebase** (Auth + Firestore),
 jamais la prod : chaque test part d'une base vierge et se connecte via un compte Google
-factice servi par l'émulateur (aucun OAuth réel). Ils couvrent login/whitelist, gestion des
-accès (portail Admin), proposer une rando, voter, éditer/supprimer, radio, kit, idées, cordée,
-base camp, admin, navigation et tour guidé.
+factice servi par l'émulateur (aucun OAuth réel). Ils couvrent login Google + **lien e-mail**,
+whitelist, gestion des accès (portail Admin), proposer une rando, voter, éditer/supprimer,
+radio, kit, idées, cordée, base camp (écran compte via l'avatar), admin, navigation et tour guidé.
+
+> **Connexion par e-mail (lien magique)** : en prod, activer *Authentication → Sign-in method →
+> Email/Password → Email link (passwordless sign-in)* dans la console Firebase, et vérifier que
+> le domaine (`altimates-app.vercel.app`) est dans *Authentication → Settings → Authorized domains*.
+> En local, l'émulateur ne l'exige pas et capture le lien via son endpoint `/oobCodes`.
 
 Prérequis : un **JDK ≥ 21** sur le PATH (requis par l'émulateur Firestore).
 

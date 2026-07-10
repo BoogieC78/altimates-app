@@ -42,6 +42,6 @@ test.describe('Portail Admin — gestion des accès', () => {
     // L'email retiré est désormais rejeté à la connexion.
     await logout(page)
     await signInWithEmulator(page, { email: TO_REVOKE, name: 'Retiré' })
-    await expect(page.getByText(/Accès réservé à la cordée/i)).toBeVisible()
+    await expect(page.getByText(/Email non autorisé/i)).toBeVisible()
   })
 })

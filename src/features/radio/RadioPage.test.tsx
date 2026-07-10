@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import type { RadioMessage, UserProfile } from '../../core/types'
 import type { WithDocId } from '../../hooks/useCollection'
 
@@ -20,20 +20,19 @@ vi.mock('../../hooks/useCollection', () => ({
     error: null,
   }),
 }))
-vi.mock('../../core/firebase/messages', () => ({
-  initials: (name: string) => name.slice(0, 2).toUpperCase(),
+vi.mock('../../core/firebase/messages', async (importOriginal) => ({
+  // Garde le vrai `initials`, ne stubbe que les écritures Firestore.
+  ...(await importOriginal<typeof import('../../core/firebase/messages')>()),
   sendMessage: vi.fn(() => Promise.resolve()),
   markRead: vi.fn(() => Promise.resolve()),
   togglePin: vi.fn(() => Promise.resolve()),
   deleteMessage: vi.fn(() => Promise.resolve()),
 }))
 
-import { sendMessage } from '../../core/firebase/messages'
+import { markRead, sendMessage } from '../../core/firebase/messages'
 import { RadioPage } from './RadioPage'
 
 afterEach(() => {
-  cleanup()
-  vi.clearAllMocks()
   state.messages = []
   state.users = []
 })
@@ -71,6 +70,16 @@ describe('RadioPage', () => {
     fireEvent.change(screen.getByPlaceholderText('Ton message...'), { target: { value: 'Orage en vue' } })
     fireEvent.click(screen.getByLabelText('Envoyer'))
     expect(sendMessage).toHaveBeenCalledWith('Wacil', 'Orage en vue', 'alerte')
+  })
+
+  it("marque comme lus uniquement les messages où mes initiales manquent", () => {
+    state.messages = [
+      msg({ docId: 'a', id: 1, text: 'Non lu', reads: ['NO'] }),
+      msg({ docId: 'b', id: 2, text: 'Déjà lu', reads: ['WA'] }),
+    ]
+    render(<RadioPage memberName="Wacil" />)
+    expect(markRead).toHaveBeenCalledTimes(1)
+    expect(markRead).toHaveBeenCalledWith('a', 'WA')
   })
 
   it('affiche la pastille du type de message', () => {

@@ -1,10 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import type { User } from 'firebase/auth'
 import { GEAR } from '../../core/constants/gear'
 import type { Rando } from '../../core/types'
 import type { Profile } from '../../hooks/useUserProfile'
 import type { WithDocId } from '../../hooks/useCollection'
+import { makeRando } from '../../test/factories'
 
 const profileState = {
   profile: null as Profile | null,
@@ -22,33 +23,29 @@ import { BasecampPage } from './BasecampPage'
 const user = { uid: 'u1' } as User
 
 afterEach(() => {
-  cleanup()
-  vi.clearAllMocks()
   profileState.profile = null
   randosState.data = []
 })
 
-function rando(over: Partial<Rando> & { docId: string; name: string }): WithDocId<Rando> {
-  return { id: 1, region: 'Alpes', votes: { oui: 0, peut: 0 }, ...over }
-}
-
 describe('BasecampPage', () => {
   it('affiche les stats du hero (km, D+, sorties)', () => {
     profileState.profile = { name: 'Wacil', level: 'expert', mode: 'trek', km: 120, dplus: 4500, sorties: 8 }
-    render(<BasecampPage user={user} memberName="Wacil" onGoKit={() => {}} />)
+    const { container } = render(<BasecampPage user={user} memberName="Wacil" onGoKit={() => {}} />)
     expect(screen.getByText('120')).toBeTruthy()
-    expect(screen.getByText(`+${(4500).toLocaleString()}`)).toBeTruthy()
-    expect(screen.getAllByText('8').length).toBeGreaterThan(0)
+    // Séparateur de milliers dépendant de la locale : espace, point, virgule…
+    expect(screen.getByText(/^\+4[\s.,  ]?500$/)).toBeTruthy()
+    const heroStats = [...container.querySelectorAll('.bc-stat-val')].map((e) => e.textContent)
+    expect(heroStats[2]).toBe('8')
     expect(screen.getByText('Wacil').className).toBe('bc-name')
   })
 
   it('affiche la prochaine sortie : vote oui + date future la plus proche', () => {
     profileState.profile = { name: 'Wacil', level: 'expert', mode: 'trek' }
     randosState.data = [
-      rando({ docId: 'a', name: 'Pas votée', dateStart: '2999-01-01' }),
-      rando({ docId: 'b', name: 'Votée lointaine', dateStart: '2999-06-01', memberVotes: { Wacil: 'oui' } }),
-      rando({ docId: 'c', name: 'Votée proche', dateStart: '2999-02-01', memberVotes: { Wacil: 'oui' } }),
-      rando({ docId: 'd', name: 'Votée passée', dateStart: '2020-01-01', memberVotes: { Wacil: 'oui' } }),
+      makeRando({ docId: 'a', name: 'Pas votée', dateStart: '2999-01-01' }),
+      makeRando({ docId: 'b', name: 'Votée lointaine', dateStart: '2999-06-01', memberVotes: { Wacil: 'oui' } }),
+      makeRando({ docId: 'c', name: 'Votée proche', dateStart: '2999-02-01', memberVotes: { Wacil: 'oui' } }),
+      makeRando({ docId: 'd', name: 'Votée passée', dateStart: '2020-01-01', memberVotes: { Wacil: 'oui' } }),
     ]
     const { container } = render(<BasecampPage user={user} memberName="Wacil" onGoKit={() => {}} />)
     expect(container.querySelector('.bc-next-title')!.textContent).toBe('Votée proche')
@@ -56,7 +53,7 @@ describe('BasecampPage', () => {
 
   it("n'affiche pas de prochaine sortie sans vote oui à venir", () => {
     profileState.profile = { name: 'Wacil', level: 'expert', mode: 'trek' }
-    randosState.data = [rando({ docId: 'a', name: 'Pas votée', dateStart: '2999-01-01' })]
+    randosState.data = [makeRando({ docId: 'a', name: 'Pas votée', dateStart: '2999-01-01' })]
     render(<BasecampPage user={user} memberName="Wacil" onGoKit={() => {}} />)
     expect(screen.queryByText('Prochaine sortie')).toBeNull()
   })

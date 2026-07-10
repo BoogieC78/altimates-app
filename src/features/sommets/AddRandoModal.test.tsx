@@ -1,15 +1,10 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 vi.mock('../../core/firebase/randos', () => ({ addRando: vi.fn(() => Promise.resolve()) }))
 
 import { addRando } from '../../core/firebase/randos'
 import { AddRandoModal } from './AddRandoModal'
-
-afterEach(() => {
-  cleanup()
-  vi.clearAllMocks()
-})
 
 describe('AddRandoModal', () => {
   it('soumet le formulaire et appelle addRando avec les bons champs', async () => {

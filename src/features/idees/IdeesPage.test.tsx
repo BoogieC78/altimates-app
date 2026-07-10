@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import type { Feedback } from '../../core/types'
 import type { WithDocId } from '../../hooks/useCollection'
 
@@ -16,12 +16,10 @@ vi.mock('../../core/firebase/feedbacks', () => ({
   voteFeedback: vi.fn(() => Promise.resolve()),
 }))
 
-import { addFeedback, setFeedbackStatus } from '../../core/firebase/feedbacks'
+import { addFeedback, deleteFeedback, setFeedbackStatus, voteFeedback } from '../../core/firebase/feedbacks'
 import { IdeesPage } from './IdeesPage'
 
 afterEach(() => {
-  cleanup()
-  vi.clearAllMocks()
   state.data = []
 })
 
@@ -55,6 +53,29 @@ describe('IdeesPage', () => {
     render(<IdeesPage memberName="Wacil" />)
     fireEvent.click(screen.getAllByText('In progress').pop()!)
     expect(setFeedbackStatus).toHaveBeenCalledWith('a', 'inprogress')
+  })
+
+  it('le clic sur le pouce appelle voteFeedback avec le feedback, le membre et le sens', () => {
+    const idea = fb({ docId: 'a', votes: { up: 2, down: 0 } })
+    state.data = [idea]
+    const { container } = render(<IdeesPage memberName="Wacil" />)
+    const [up, down] = container.querySelectorAll('.vote-chip')
+    fireEvent.click(up)
+    expect(voteFeedback).toHaveBeenCalledWith(idea, 'Wacil', 'up')
+    fireEvent.click(down)
+    expect(voteFeedback).toHaveBeenCalledWith(idea, 'Wacil', 'down')
+  })
+
+  it("supprimer une idée n'appelle deleteFeedback qu'après confirmation", () => {
+    state.data = [fb({ docId: 'a', votes: { up: 0, down: 0 } })]
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    render(<IdeesPage memberName="Wacil" />)
+    fireEvent.click(screen.getByTitle('Supprimer'))
+    expect(deleteFeedback).not.toHaveBeenCalled()
+    confirmSpy.mockReturnValue(true)
+    fireEvent.click(screen.getByTitle('Supprimer'))
+    expect(deleteFeedback).toHaveBeenCalledWith('a')
+    confirmSpy.mockRestore()
   })
 
   it("soumettre une idée appelle addFeedback avec l'auteur, le texte et la catégorie", () => {

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import type { DepartItem, UserProfile } from '../../core/types'
 import type { WithDocId } from '../../hooks/useCollection'
 
@@ -31,8 +31,6 @@ import { assignDepartItem, toggleDepartDone } from '../../core/firebase/depart'
 import { CordeePage } from './CordeePage'
 
 afterEach(() => {
-  cleanup()
-  vi.clearAllMocks()
   state.users = []
   state.departItems = []
 })
@@ -43,12 +41,14 @@ describe('CordeePage', () => {
       {
         docId: 'u1',
         email: 'wacil@example.com',
-        profile: { name: 'Wacil', level: 2, km: 120, dplus: 4500, sorties: 8 },
+        profile: { name: 'Wacil', level: 'expert', km: 120, dplus: 4500, sorties: 8 },
       } as unknown as WithDocId<UserProfile>,
     ]
     render(<CordeePage memberName="Wacil" />)
     expect(screen.getByText('Wacil')).toBeTruthy()
-    expect(screen.getByText(/120KM · \+4[\s ,]?500M · 8 sorties/)).toBeTruthy()
+    // Séparateur de milliers dépendant de la locale : espace, point, virgule…
+    expect(screen.getByText(/120KM · \+4[\s.,]?500M · 8 sorties/)).toBeTruthy()
+    expect(screen.getByText('Expert')).toBeTruthy()
   })
 
   it('le toggle de la checklist départ appelle toggleDepartDone', () => {
@@ -64,11 +64,11 @@ describe('CordeePage', () => {
       { docId: 'd2', id: 2, name: 'Réchaud', done: false, assignee: 'Wacil' },
     ]
     render(<CordeePage memberName="Wacil" />)
+    expect(screen.getByText('Pris en charge par Wacil')).toBeTruthy()
     fireEvent.click(screen.getByText('Prendre en charge'))
     expect(assignDepartItem).toHaveBeenCalledWith('d1', 'Wacil')
     fireEvent.click(screen.getByText('Me retirer'))
     expect(assignDepartItem).toHaveBeenCalledWith('d2', null)
-    expect(screen.getByText('Pris en charge par Wacil')).toBeTruthy()
   })
 
   it('affiche AUCUN ARTICLE quand la checklist est vide', () => {

@@ -17,7 +17,11 @@ vi.mock('../../core/firebase/admin', async (importOriginal) => ({
     ] as (UserProfile & { docId: string })[]),
   ),
 }))
-vi.mock('../../core/firebase/auth', () => ({ ADMIN_EMAIL: 'hammadou.nordine@gmail.com' }))
+vi.mock('../../core/firebase/auth', () => ({
+  ADMIN_EMAILS: ['hammadou.nordine@gmail.com', 'wacil78@gmail.com'],
+  isAdminEmail: (email: string | null | undefined) =>
+    !!email && ['hammadou.nordine@gmail.com', 'wacil78@gmail.com'].includes(email),
+}))
 
 import { addAllowedEmail } from '../../core/firebase/admin'
 import { AdminPage } from './AdminPage'

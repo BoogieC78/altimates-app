@@ -9,7 +9,7 @@ import {
   removeAllowedEmail,
   type FlushableCollection,
 } from '../../core/firebase/admin'
-import { ADMIN_EMAIL } from '../../core/firebase/auth'
+import { isAdminEmail } from '../../core/firebase/auth'
 import type { UserProfile } from '../../core/types'
 
 // Libellés des collections, repris de l'ancienne app (adminFlush).
@@ -237,7 +237,7 @@ export function AdminPage({ memberName }: AdminPageProps) {
           const name = u.profile?.name || u.displayName || 'Inconnu'
           const email = u.email || '—'
           const isMe = name === memberName
-          const isAdminUser = email === ADMIN_EMAIL
+          const isAdminUser = isAdminEmail(email)
           const initials = name.slice(0, 2).toUpperCase()
           const color = AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length]
           return (

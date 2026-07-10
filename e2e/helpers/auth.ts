@@ -1,8 +1,10 @@
 import { expect, type Page } from '@playwright/test'
 
 // Emails de la whitelist (voir src/core/firebase/auth.ts).
-export const MEMBER_EMAIL = 'wacil78@gmail.com'
+export const MEMBER_EMAIL = 'wacil78@gmail.com' // membre ET admin
 export const ADMIN_EMAIL = 'hammadou.nordine@gmail.com'
+// Membre whitelisté mais NON admin (pour tester le gating de l'onglet Admin).
+export const NON_ADMIN_EMAIL = 'ousa.chac@gmail.com'
 export const UNAUTHORIZED_EMAIL = 'intrus@gmail.com'
 
 export interface SignInOptions {

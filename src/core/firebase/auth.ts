@@ -16,14 +16,21 @@ export const ALLOWED_EMAILS = [
   'david.agbodjanprince@gmail.com',
 ]
 
-export const ADMIN_EMAIL = 'hammadou.nordine@gmail.com'
+// Administrateurs (gestion des accès + panneau Admin). Doit rester synchronisé
+// avec la fonction isAdmin() de firestore.rules : c'est elle qui applique
+// réellement le contrôle côté serveur (le code client n'est que de l'UX).
+export const ADMIN_EMAILS = ['hammadou.nordine@gmail.com', 'wacil78@gmail.com']
 
 export function isAllowed(email: string | null | undefined): boolean {
   return !!email && ALLOWED_EMAILS.includes(email)
 }
 
+export function isAdminEmail(email: string | null | undefined): boolean {
+  return !!email && ADMIN_EMAILS.includes(email)
+}
+
 export function isAdmin(user: User | null): boolean {
-  return user?.email === ADMIN_EMAIL
+  return isAdminEmail(user?.email)
 }
 
 export async function signInWithGoogle(): Promise<User> {

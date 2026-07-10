@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures'
-import { login, MEMBER_EMAIL, ADMIN_EMAIL, UNAUTHORIZED_EMAIL } from '../helpers/auth'
+import { login, MEMBER_EMAIL, ADMIN_EMAIL, NON_ADMIN_EMAIL, UNAUTHORIZED_EMAIL } from '../helpers/auth'
 
 test.describe('Login / contrôle d\'accès', () => {
   test('un membre autorisé se connecte et accède à l\'app', async ({ page }) => {
@@ -16,13 +16,18 @@ test.describe('Login / contrôle d\'accès', () => {
     await expect(page.getByRole('button', { name: /Proposer une rando/i })).toHaveCount(0)
   })
 
-  test('l\'admin voit l\'onglet Admin', async ({ page }) => {
+  test('un admin voit l\'onglet Admin', async ({ page }) => {
     await login(page, { email: ADMIN_EMAIL, name: 'Nordine' })
     await expect(page.getByRole('button', { name: 'Admin' })).toBeVisible()
   })
 
-  test('un membre non-admin ne voit pas l\'onglet Admin', async ({ page }) => {
+  test('wacil78 (admin) voit l\'onglet Admin', async ({ page }) => {
     await login(page, { email: MEMBER_EMAIL, name: 'Wacil' })
+    await expect(page.getByRole('button', { name: 'Admin' })).toBeVisible()
+  })
+
+  test('un membre non-admin ne voit pas l\'onglet Admin', async ({ page }) => {
+    await login(page, { email: NON_ADMIN_EMAIL, name: 'Ousa' })
     await expect(page.getByRole('button', { name: 'Admin' })).toHaveCount(0)
   })
 })

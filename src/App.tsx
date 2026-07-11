@@ -18,6 +18,25 @@ import { GuidedTour, shouldShowTour } from './components/GuidedTour'
 import { TopoBackground } from './components/TopoBackground'
 import { LogoIcon, NAV_ICONS } from './components/icons'
 
+// Traduit les erreurs Firebase Auth (codes bruts type "Firebase: Error
+// (auth/popup-closed-by-user)") en messages lisibles pour l'utilisateur.
+function friendlyAuthError(err: Error): string {
+  const msg = err.message || ''
+  if (msg.includes('auth/popup-closed-by-user') || msg.includes('auth/cancelled-popup-request')) {
+    return 'Connexion annulée : la fenêtre Google a été fermée avant la fin.'
+  }
+  if (msg.includes('auth/popup-blocked')) {
+    return "Ton navigateur a bloqué la fenêtre de connexion Google. Autorise les popups pour ce site et réessaie."
+  }
+  if (msg.includes('auth/network-request-failed')) {
+    return 'Problème de connexion internet. Vérifie ton réseau et réessaie.'
+  }
+  if (msg.includes('Email non autorisé')) {
+    return msg
+  }
+  return msg || 'Connexion impossible pour le moment. Réessaie dans un instant.'
+}
+
 const TABS = [
   { key: 'sommets', label: 'Sommets' },
   { key: 'kit', label: 'Kit' },
@@ -53,7 +72,7 @@ export default function App() {
     setLoginError('')
     sendEmailSignInLink(addr)
       .then(() => setEmailSent(true))
-      .catch((err: Error) => setLoginError(err.message))
+      .catch((err: Error) => setLoginError(friendlyAuthError(err)))
   }
 
   if (loading) return null
@@ -89,7 +108,7 @@ export default function App() {
           <div className="auth-sub">Connecte-toi pour accéder à l'app et rejoindre ton groupe</div>
           <button
             className="auth-google-btn"
-            onClick={() => signInWithGoogle().catch((e: Error) => setLoginError(e.message))}
+            onClick={() => signInWithGoogle().catch((e: Error) => setLoginError(friendlyAuthError(e)))}
           >
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
             Continuer avec Google

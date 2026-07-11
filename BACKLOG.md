@@ -42,8 +42,9 @@ avec **repli automatique** sur le mail Firebase par défaut tant que ce n'est pa
 - [ ] **`useMemberName` réactif** ([src/hooks/useMemberName.ts](src/hooks/useMemberName.ts)) : actuellement
   un `getDoc` unique → le prénom ne se met pas à jour après édition du profil. Passer en `onSnapshot`.
   Impacte aussi la section « Prochaine sortie » du Base Camp (clé de vote = `memberName` vs `profile.name`).
-- [ ] **Gate CI → déploiement Vercel** : aujourd'hui Vercel déploie à chaque push **même si la CI échoue**.
-  Configurer Vercel pour attendre les checks GitHub (ou required status checks) avant de promouvoir en prod.
+- [x] **Gate CI → déploiement Vercel** — fait (juillet 2026) : auto-deploy Vercel désactivé sur `main`,
+  pipeline GitHub Actions ci+e2e → staging (https://altimates-app-staging.vercel.app, SSO Vercel) →
+  smoke E2E → approbation manuelle (environnement GitHub `production`) → prod. Voir skill `mise-en-prod`.
 - [x] **Rate-limiting** basique sur [api/send-signin-link.ts](api/send-signin-link.ts) (anti-abus d'envoi) —
   fait à l'audit pré-prod 2026-07 via [api/_ratelimit.ts](api/_ratelimit.ts) (3/15 min par e-mail, 10/h par IP).
 - [x] **Revue de sécurité** sur le flux d'auth et la fonction serverless — audit complet pré-prod 2026-07 :

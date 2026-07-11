@@ -27,6 +27,7 @@ dist-ssr
 # Playwright / E2E
 /test-results
 /playwright-report
+/playwright-report-smoke
 /playwright/.cache
 firebase-debug.log
 firestore-debug.log

@@ -5,6 +5,26 @@ description: Checklist de mise en production d'ALTImates (Vercel + Firebase) —
 
 # Mise en production ALTImates
 
+## Pipeline staging → prod (depuis juillet 2026)
+
+Le déploiement passe par la CI GitHub Actions (`.github/workflows/ci.yml`), plus JAMAIS par l'auto-deploy Vercel (désactivé pour `main` dans `vercel.json > git.deploymentEnabled`) :
+
+1. **push sur `main`** → jobs `ci` + `e2e` (émulateurs)
+2. verts → **deploy-staging** : build env "preview" + alias stable **https://altimates-app-staging.vercel.app** (protégé par SSO Vercel — se connecter avec le compte Vercel pour y accéder en humain)
+3. **smoke-staging** : Playwright contre le staging réel (`playwright.smoke.config.ts`, `e2e/smoke/`) — page login, headers sécurité, validation API ; traverse le SSO via le secret `VERCEL_AUTOMATION_BYPASS_SECRET`
+4. **deploy-production** : BLOQUÉ en "Waiting" jusqu'à approbation manuelle (onglet Actions > Review deployments > Approve) — c'est le "go" ; puis rebuild du même commit avec l'env "production" et déploiement prod
+
+QA manuelle : tester sur l'URL staging AVANT d'approuver. Rejeter = bouton "Reject" (le commit reste en staging).
+
+Secrets GitHub Actions requis (Settings > Secrets and variables > Actions) : `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `VERCEL_AUTOMATION_BYPASS_SECRET` (Vercel > Settings > Deployment Protection > Protection Bypass for Automation). Environnement GitHub `production` = required reviewer (protection du go).
+
+Lancer les smoke en local contre n'importe quel environnement :
+```bash
+SMOKE_BASE_URL=https://altimates-app.vercel.app npx playwright test --config playwright.smoke.config.ts
+```
+
+## Checklist pré-release (avant d'approuver le go prod)
+
 Dérouler dans l'ordre. Un point rouge = STOP, corriger avant de déployer.
 
 ## 1. Qualité du code

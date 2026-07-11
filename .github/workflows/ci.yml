@@ -1,9 +1,26 @@
 name: CI
 
+# Pipeline complet :
+#   PR            → ci + e2e (émulateurs)
+#   push sur main → ci + e2e → déploiement STAGING (URL stable, protégée par SSO
+#                   Vercel) → smoke E2E contre le staging réel → attente
+#                   d'APPROBATION (environnement GitHub "production") → PROD.
+# L'auto-deploy Vercel sur main est désactivé (vercel.json > git.deploymentEnabled) :
+# la production ne bouge JAMAIS sans le "go" humain dans l'onglet Actions.
+#
+# Secrets requis (Settings > Secrets and variables > Actions) :
+#   VERCEL_TOKEN                       jeton d'accès Vercel (Account Settings > Tokens)
+#   VERCEL_ORG_ID / VERCEL_PROJECT_ID  identifiants du projet (cf .vercel/project.json)
+#   VERCEL_AUTOMATION_BYPASS_SECRET    "Protection Bypass for Automation" du projet
+#                                      (permet à la CI de traverser le SSO du staging)
+
 on:
   push:
     branches: [main]
   pull_request:
+
+env:
+  STAGING_ALIAS: altimates-app-staging.vercel.app
 
 jobs:
   ci:
@@ -44,3 +61,83 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 14
+
+  deploy-staging:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [ci, e2e]
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://altimates-app-staging.vercel.app
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - name: Vérifier les secrets Vercel
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error::Secret VERCEL_TOKEN manquant — à créer sur vercel.com (Account Settings > Tokens) puis à ajouter dans Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      # Build avec la config d'environnement "preview" de Vercel, puis déploiement
+      # préconstruit et alias sur l'URL stable de staging.
+      - run: npx vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
+      - run: npx vercel build --token="$VERCEL_TOKEN"
+      - name: Déployer et aliaser le staging
+        run: |
+          url=$(npx vercel deploy --prebuilt --token="$VERCEL_TOKEN")
+          echo "Déployé : $url"
+          npx vercel alias set "$url" "$STAGING_ALIAS" --token="$VERCEL_TOKEN"
+
+  smoke-staging:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      # Smoke E2E contre le staging fraîchement déployé (headers sécurité, page de
+      # login, validation API). Le bypass secret traverse le SSO Vercel.
+      - run: npx playwright test --config playwright.smoke.config.ts
+        env:
+          SMOKE_BASE_URL: https://altimates-app-staging.vercel.app
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report-smoke
+          path: playwright-report-smoke/
+          retention-days: 14
+
+  deploy-production:
+    # Bloqué par l'environnement GitHub "production" (required reviewer) :
+    # le job ne démarre qu'après approbation manuelle dans l'onglet Actions.
+    needs: smoke-staging
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://altimates-app.vercel.app
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      # Rebuild du MÊME commit avec la config d'environnement "production".
+      - run: npx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+      - run: npx vercel build --prod --token="$VERCEL_TOKEN"
+      - run: npx vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"

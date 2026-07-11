@@ -3,8 +3,11 @@ import { cert, getApps, initializeApp } from 'firebase-admin/app'
 import { getAuth } from 'firebase-admin/auth'
 import { getFirestore } from 'firebase-admin/firestore'
 import nodemailer from 'nodemailer'
-import { renderSignInEmail, SIGNIN_SUBJECT } from './_email'
-import { allowRequest, clientIp } from './_ratelimit'
+// Extensions .js OBLIGATOIRES : package.json est en "type": "module", le runtime
+// Vercel résout en ESM strict — './_email' sans extension = ERR_MODULE_NOT_FOUND
+// en prod (crash au chargement, silencieux car le client a un repli Firebase).
+import { renderSignInEmail, SIGNIN_SUBJECT } from './_email.js'
+import { allowRequest, clientIp } from './_ratelimit.js'
 
 // Envoie NOTRE e-mail de connexion (design cordée) au lieu du template Firebase.
 // - le lien magique est généré côté serveur par le SDK Admin (aucun e-mail Firebase)

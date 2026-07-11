@@ -9,6 +9,7 @@ import { db } from './app'
 import { randosCol } from './collections'
 import { applyVote } from '../services/votes'
 import { formatDateLabel, durationLabel } from '../services/dates'
+import { safeExternalUrl } from '../services/url'
 import type { Difficulty, Rando, RandoTrace, VoteValue } from '../types'
 
 export interface NewRandoInput {
@@ -30,7 +31,8 @@ export function parseKomootCoords(url: string): { lat: number; lon: number } | n
 }
 
 export async function addRando(input: NewRandoInput): Promise<void> {
-  const coords = input.komoot ? parseKomootCoords(input.komoot) : null
+  const komoot = safeExternalUrl(input.komoot)
+  const coords = komoot ? parseKomootCoords(komoot) : null
   const rando: Omit<Rando, 'createdAt'> = {
     id: Date.now(),
     name: input.name,
@@ -44,8 +46,8 @@ export async function addRando(input: NewRandoInput): Promise<void> {
     dateEnd: input.dateEnd ?? null,
     desc: `Proposé par ${input.proposedBy}.`,
     proposedBy: input.proposedBy,
-    traces: input.komoot
-      ? [{ id: Date.now(), label: 'Trace principale', url: input.komoot, votes: [] }]
+    traces: komoot
+      ? [{ id: Date.now(), label: 'Trace principale', url: komoot, votes: [] }]
       : [],
     ...(coords ?? {}),
     alert: null,
@@ -99,12 +101,13 @@ export async function updateRando(rando: Rando & { docId: string }, input: EditR
     dateStart: input.dateStart ?? null,
     dateEnd: input.dateEnd ?? null,
   }
-  if (input.komoot) {
-    const coords = parseKomootCoords(input.komoot)
+  const komoot = safeExternalUrl(input.komoot)
+  if (komoot) {
+    const coords = parseKomootCoords(komoot)
     if (coords) Object.assign(fields, coords)
     const traces = [...(rando.traces ?? [])]
-    if (traces.length > 0) traces[0] = { ...traces[0], url: input.komoot }
-    else traces.push({ id: Date.now(), label: 'Trace principale', url: input.komoot, votes: [] })
+    if (traces.length > 0) traces[0] = { ...traces[0], url: komoot }
+    else traces.push({ id: Date.now(), label: 'Trace principale', url: komoot, votes: [] })
     fields.traces = traces
   }
   await updateDoc(doc(db, 'randos', rando.docId), fields)
@@ -112,10 +115,12 @@ export async function updateRando(rando: Rando & { docId: string }, input: EditR
 
 /** Ajoute une variante de trace ; renseigne lat/lon si la rando n'en a pas encore. */
 export async function addTrace(rando: Rando & { docId: string }, label: string, url: string): Promise<void> {
-  const traces: RandoTrace[] = [...(rando.traces ?? []), { id: Date.now(), label, url, votes: [] }]
+  const safeUrl = safeExternalUrl(url)
+  if (!safeUrl) throw new Error('URL de trace invalide (http/https attendu)')
+  const traces: RandoTrace[] = [...(rando.traces ?? []), { id: Date.now(), label, url: safeUrl, votes: [] }]
   const fields: Record<string, unknown> = { traces }
   if (rando.lat == null || rando.lon == null) {
-    const coords = parseKomootCoords(url)
+    const coords = parseKomootCoords(safeUrl)
     if (coords) Object.assign(fields, coords)
   }
   await updateDoc(doc(db, 'randos', rando.docId), fields)

@@ -4,6 +4,7 @@ import { getAuth } from 'firebase-admin/auth'
 import { getFirestore } from 'firebase-admin/firestore'
 import nodemailer from 'nodemailer'
 import { renderSignInEmail, SIGNIN_SUBJECT } from './_email'
+import { allowRequest, clientIp } from './_ratelimit'
 
 // Envoie NOTRE e-mail de connexion (design cordée) au lieu du template Firebase.
 // - le lien magique est généré côté serveur par le SDK Admin (aucun e-mail Firebase)
@@ -60,6 +61,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
   try {
     initAdmin()
+    // Rate-limiting anti-abus : bombardement d'e-mails d'un membre + épuisement
+    // du quota Gmail (~500 mails/jour → DoS du login). Réponse 200 générique même
+    // quand la limite est atteinte : pas d'oracle pour un attaquant.
+    const ip = clientIp(req.headers)
+    const allowed =
+      (await allowRequest(`email:${email}`, 3, 15 * 60_000)) && // 3 / 15 min / adresse
+      (await allowRequest(`ip:${ip}`, 10, 60 * 60_000)) // 10 / heure / IP
+    if (!allowed) {
+      console.warn('send-signin-link: rate limited', { ip })
+      res.status(200).json({ ok: true })
+      return
+    }
     // Réponse générique dans tous les cas → ni spam, ni énumération des membres.
     if (await isMember(email)) {
       const link = await getAuth().generateSignInWithEmailLink(email, {

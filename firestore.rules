@@ -37,10 +37,13 @@ service cloud.firestore {
         && (request.auth.uid == userId || isAdmin());
     }
 
-    // La whitelist doit être lisible par tout utilisateur authentifié : c'est elle
-    // qui détermine l'appartenance (éviter la dépendance circulaire isMember→config).
+    // Whitelist lisible par les MEMBRES uniquement (pas par tout compte Google :
+    // sinon n'importe qui d'authentifié pourrait énumérer les e-mails membres).
+    // Pas de dépendance circulaire : le get() de allowedEmails() dans isMember()
+    // s'exécute côté serveur et ignore les règles de lecture. Côté client, un
+    // non-membre reçoit permission-denied → isMemberEmail() conclut "non autorisé".
     match /config/allowedEmails {
-      allow read: if request.auth != null;
+      allow read: if isMember();
       allow write: if isAdmin();
     }
 

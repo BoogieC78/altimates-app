@@ -44,9 +44,12 @@ avec **repli automatique** sur le mail Firebase par défaut tant que ce n'est pa
   Impacte aussi la section « Prochaine sortie » du Base Camp (clé de vote = `memberName` vs `profile.name`).
 - [ ] **Gate CI → déploiement Vercel** : aujourd'hui Vercel déploie à chaque push **même si la CI échoue**.
   Configurer Vercel pour attendre les checks GitHub (ou required status checks) avant de promouvoir en prod.
-- [ ] **Rate-limiting** basique sur [api/send-signin-link.ts](api/send-signin-link.ts) (anti-abus d'envoi).
-- [ ] **Revue de sécurité** (`/security-review`) sur le flux d'auth (email-link, whitelist dynamique)
-  et la fonction serverless (gestion de la clé de service, endpoint public).
+- [x] **Rate-limiting** basique sur [api/send-signin-link.ts](api/send-signin-link.ts) (anti-abus d'envoi) —
+  fait à l'audit pré-prod 2026-07 via [api/_ratelimit.ts](api/_ratelimit.ts) (3/15 min par e-mail, 10/h par IP).
+- [x] **Revue de sécurité** sur le flux d'auth et la fonction serverless — audit complet pré-prod 2026-07 :
+  lecture `config/allowedEmails` restreinte aux membres, `safeExternalUrl()` sur les URLs de traces,
+  headers sécurité (CSP/HSTS) dans [vercel.json](vercel.json). Invariants documentés dans le skill `security-check`,
+  checklist de déploiement dans le skill `mise-en-prod`.
 - [ ] **`isMemberEmail` retry** ([src/core/firebase/auth.ts](src/core/firebase/auth.ts)) : le retry sur échec
   de lecture `config/allowedEmails` est un contournement — revoir si une meilleure approche existe.
 

@@ -13,6 +13,7 @@ import {
   defaultRavitoEntry,
   parseJours,
 } from '../../core/services/ravito'
+import { safeExternalUrl } from '../../core/services/url'
 import { useCollection, type WithDocId } from '../../hooks/useCollection'
 import { useHydra, useRavito } from '../../hooks/useRavito'
 import type {
@@ -380,7 +381,7 @@ function TracesSection({ rando: r, memberName }: { rando: WithDocId<Rando>; memb
       setFormError('URL KOMOOT REQUISE')
       return
     }
-    if (!u.includes('komoot')) {
+    if (!u.includes('komoot') || !safeExternalUrl(u)) {
       setFormError('LIEN KOMOOT INVALIDE')
       return
     }
@@ -413,9 +414,9 @@ function TracesSection({ rando: r, memberName }: { rando: WithDocId<Rando>; memb
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)', marginBottom: 2 }}>{t.label}</div>
               <a
-                href={t.url}
+                href={safeExternalUrl(t.url) ?? undefined}
                 target="_blank"
-                rel="noopener"
+                rel="noopener noreferrer"
                 style={{
                   fontSize: 10,
                   color: 'var(--ink3)',

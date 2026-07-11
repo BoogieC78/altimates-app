@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { onAuthStateChanged, type User } from 'firebase/auth'
 import { auth } from '../core/firebase/app'
-import { isMemberEmail, signOut } from '../core/firebase/auth'
+import { devAutoSignIn, isDevAutoLoginEnabled, isMemberEmail, signOut } from '../core/firebase/auth'
 
 interface AuthState {
   user: User | null
@@ -18,6 +18,12 @@ export function useAuth(): AuthState {
     const unsub = onAuthStateChanged(auth, (user) => {
       const my = ++seq
       if (!user) {
+        // Dev/QA local uniquement (voir isDevAutoLoginEnabled) : pas de login manuel,
+        // onAuthStateChanged se redéclenche automatiquement une fois connecté.
+        if (import.meta.env.DEV && isDevAutoLoginEnabled()) {
+          devAutoSignIn().catch((e) => console.error('devAutoSignIn:', e))
+          return
+        }
         if (mounted) setState({ user: null, loading: false })
         return
       }

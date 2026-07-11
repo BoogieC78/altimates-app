@@ -4,6 +4,7 @@ import { useMemberName } from './hooks/useMemberName'
 import {
   signInWithGoogle,
   isAdmin,
+  isDevAutoLoginEnabled,
   sendEmailSignInLink,
   completeEmailSignIn,
 } from './core/firebase/auth'
@@ -171,6 +172,26 @@ export default function App() {
 
   return (
     <>
+      {import.meta.env.DEV && isDevAutoLoginEnabled() && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 9999,
+            textAlign: 'center',
+            fontFamily: 'var(--mono)',
+            fontSize: 10,
+            letterSpacing: '.08em',
+            padding: '3px 0',
+            background: '#e6c356',
+            color: '#23221e',
+          }}
+        >
+          MODE DEV · AUTO-LOGIN ÉMULATEUR — jamais en production
+        </div>
+      )}
       <TopoBackground />
       <div className="app">
         <div className="header">

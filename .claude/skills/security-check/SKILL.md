@@ -42,13 +42,19 @@ Passer chaque point. Signaler toute violation avec fichier:ligne et gravité (cr
 
 - `npm audit --omit=dev` — signaler critique/high. Moderate connues : chaîne firebase-admin (retry-request/teeny-request), à re-vérifier à chaque bump.
 
-## 6. Headers HTTP (vercel.json)
+## 6. Bypass de login dev-only (`isDevAutoLoginEnabled` / `devAutoSignIn`)
+
+- `src/core/firebase/auth.ts` : auto-login sur l'émulateur Auth, gaté par `import.meta.env.DEV && VITE_USE_EMULATOR==='1' && VITE_DEV_AUTOLOGIN==='1'`. `import.meta.env.DEV` est figé à `false` par Vite pour tout `vite build` (donc pour le build Vercel), quelle que soit la config d'env — c'est l'ancre qui garantit que ce bypass ne peut jamais s'activer en prod, même par erreur de config.
+- Vérifier à chaque changement touchant ce fichier ou `useAuth.ts`/`App.tsx` : les call-sites gardent bien le double-check `import.meta.env.DEV && isDevAutoLoginEnabled()` (permet l'élimination complète du code au build, pas juste son inaccessibilité) — `grep -c "devAutoSignIn" dist/assets/*.js` après un `npm run build` doit renvoyer 0 partout.
+- Ne jamais faire dépendre ce bypass uniquement d'une variable d'env sans le `import.meta.env.DEV` en garde — une var mal placée dans Vercel serait alors le seul rempart.
+
+## 7. Headers HTTP (vercel.json)
 
 - `vercel.json` doit exister et définir : `Content-Security-Policy`, `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security`.
 - La CSP est une liste blanche stricte : toute nouvelle origine externe (API, CDN, font, image) doit y être ajoutée EXPLICITEMENT dans la bonne directive — jamais élargir avec `*` ni ajouter `unsafe-inline` à `script-src`.
 - Origines actuellement autorisées : Firebase (firestore/identitytoolkit/securetoken/googleapis), open-meteo (connect-src), fonts.googleapis/gstatic, gstatic + google.com + lh3.googleusercontent (img), firebaseapp.com + accounts.google.com (frame-src, popup/iframe auth).
 
-## 7. Émulateurs / E2E
+## 8. Émulateurs / E2E
 
 - Le branchement émulateur (`VITE_USE_EMULATOR === '1'`) ne doit jamais être actif dans un build prod (Vercel ne définit pas cette variable — vérifier qu'aucun changement de config ne l'introduit).
 

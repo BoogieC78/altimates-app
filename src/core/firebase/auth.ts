@@ -1,7 +1,9 @@
 import {
   GoogleAuthProvider,
+  createUserWithEmailAndPassword,
   isSignInWithEmailLink,
   sendSignInLinkToEmail,
+  signInWithEmailAndPassword,
   signInWithEmailLink,
   signInWithPopup,
   signOut as fbSignOut,
@@ -34,6 +36,33 @@ export function isAdminEmail(email: string | null | undefined): boolean {
 
 export function isAdmin(user: User | null): boolean {
   return isAdminEmail(user?.email)
+}
+
+// ── Bypass de login pour le dev local (JAMAIS en prod) ──────────────────────
+// `import.meta.env.DEV` est figé par Vite au moment du build : toujours `false`
+// pour `vite build` (ce que Vercel exécute), quelle que soit la config d'env —
+// donc aucune variable mal configurée ne peut activer ceci en production.
+// Actif uniquement quand DEV + émulateurs + opt-in explicite (voir .env.dev-bypass).
+// Mot de passe non-sensible : valide uniquement dans l'émulateur Auth local,
+// jamais un compte réel.
+const DEV_BYPASS_EMAIL = ADMIN_EMAILS[0]
+const DEV_BYPASS_PASSWORD = 'dev-bypass-emulator-only'
+
+export function isDevAutoLoginEnabled(): boolean {
+  return (
+    import.meta.env.DEV &&
+    import.meta.env.VITE_USE_EMULATOR === '1' &&
+    import.meta.env.VITE_DEV_AUTOLOGIN === '1'
+  )
+}
+
+/** Connecte (ou crée) l'admin de dev sur l'émulateur Auth — jamais sur le vrai projet Firebase. */
+export async function devAutoSignIn(): Promise<User> {
+  try {
+    return (await signInWithEmailAndPassword(auth, DEV_BYPASS_EMAIL, DEV_BYPASS_PASSWORD)).user
+  } catch {
+    return (await createUserWithEmailAndPassword(auth, DEV_BYPASS_EMAIL, DEV_BYPASS_PASSWORD)).user
+  }
 }
 
 const allowedEmailsRef = doc(db, 'config', 'allowedEmails')

@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "dev:e2e": "vite --mode e2e",
+    "dev:bypass": "vite --mode dev-bypass",
     "build:e2e": "vite build --mode e2e",
     "preview:e2e": "vite preview --mode e2e --port 4173 --strictPort --host 127.0.0.1",
     "emulators": "firebase emulators:start --only auth,firestore --project altimates-4c37f",

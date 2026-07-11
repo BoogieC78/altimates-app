@@ -35,3 +35,6 @@ ui-debug.log
 
 # Identifiants locaux (jamais commités — voir skill trello-kanban)
 .claude/*.local.json
+
+# CodeGraph (index local)
+.codegraph/

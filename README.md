@@ -35,10 +35,11 @@ radio, kit, idées, cordée, base camp (écran compte via l'avatar), admin, navi
 > En local, l'émulateur ne l'exige pas et capture le lien via son endpoint `/oobCodes`.
 >
 > **E-mail personnalisé (design cordée)** : le mail est envoyé par la fonction serverless
-> [`api/send-signin-link.ts`](api/send-signin-link.ts) (SDK Admin + SMTP Gmail via nodemailer,
+> [`api/send-signin-link.ts`](api/send-signin-link.ts) via l'**API Brevo** (pas de 2FA/App
+> Password Gmail requis, pas de domaine nécessaire — juste vérifier l'expéditeur dans Brevo),
 > template [`api/_email.ts`](api/_email.ts)). Variables d'environnement Vercel requises :
-> `FIREBASE_SERVICE_ACCOUNT` (JSON de la clé de compte de service), `GMAIL_USER`,
-> `GMAIL_APP_PASSWORD` (mot de passe d'application Google). Si la fonction est absente/en erreur,
+> `FIREBASE_SERVICE_ACCOUNT` (JSON de la clé de compte de service), `BREVO_API_KEY`,
+> `BREVO_SENDER_EMAIL` (adresse vérifiée dans Brevo). Si la fonction est absente/en erreur,
 > l'app **retombe** automatiquement sur le mail Firebase par défaut (aucun login cassé).
 
 Prérequis : un **JDK ≥ 21** sur le PATH (requis par l'émulateur Firestore).

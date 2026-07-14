@@ -2,7 +2,6 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { cert, getApps, initializeApp } from 'firebase-admin/app'
 import { getAuth } from 'firebase-admin/auth'
 import { getFirestore } from 'firebase-admin/firestore'
-import nodemailer from 'nodemailer'
 // Extensions .js OBLIGATOIRES : package.json est en "type": "module", le runtime
 // Vercel résout en ESM strict — './_email' sans extension = ERR_MODULE_NOT_FOUND
 // en prod (crash au chargement, silencieux car le client a un repli Firebase).
@@ -11,12 +10,14 @@ import { allowRequest, clientIp } from './_ratelimit.js'
 
 // Envoie NOTRE e-mail de connexion (design cordée) au lieu du template Firebase.
 // - le lien magique est généré côté serveur par le SDK Admin (aucun e-mail Firebase)
-// - l'e-mail part via le SMTP Gmail (SPF/DKIM alignés → bonne délivrabilité, gratuit)
+// - l'e-mail part via l'API Brevo (ex-Sendinblue) : gratuit (300/jour), pas de 2FA
+//   requise (contrairement à un Gmail App Password), pas de domaine requis (simple
+//   vérification de l'expéditeur par clic sur un lien reçu par mail).
 //
 // Variables d'environnement (Vercel > Settings > Environment Variables) :
 //   FIREBASE_SERVICE_ACCOUNT  clé de compte de service Firebase (JSON en une ligne)
-//   GMAIL_USER                adresse Gmail expéditrice (ex. wacil78@gmail.com)
-//   GMAIL_APP_PASSWORD        "mot de passe d'application" Google (16 caractères)
+//   BREVO_API_KEY             clé API Brevo (Settings > SMTP & API > API Keys)
+//   BREVO_SENDER_EMAIL        adresse expéditrice vérifiée dans Brevo (Senders)
 
 // Admins codés en dur — miroir de src/core/firebase/auth.ts (toujours autorisés).
 const ADMIN_EMAILS = ['hammadou.nordine@gmail.com', 'wacil78@gmail.com']
@@ -37,16 +38,24 @@ async function isMember(email: string): Promise<boolean> {
 }
 
 async function sendMail(to: string, link: string): Promise<void> {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
+  const apiKey = process.env.BREVO_API_KEY
+  const sender = process.env.BREVO_SENDER_EMAIL
+  if (!apiKey || !sender) throw new Error('BREVO_API_KEY / BREVO_SENDER_EMAIL manquant')
+
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: { 'api-key': apiKey, 'Content-Type': 'application/json', accept: 'application/json' },
+    body: JSON.stringify({
+      sender: { name: 'ALTImates', email: sender },
+      to: [{ email: to }],
+      subject: SIGNIN_SUBJECT,
+      htmlContent: renderSignInEmail(link, to),
+    }),
   })
-  await transporter.sendMail({
-    from: `"ALTImates" <${process.env.GMAIL_USER}>`,
-    to,
-    subject: SIGNIN_SUBJECT,
-    html: renderSignInEmail(link, to),
-  })
+  if (!res.ok) {
+    const body = await res.text().catch(() => '')
+    throw new Error(`Brevo ${res.status}: ${body}`)
+  }
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {

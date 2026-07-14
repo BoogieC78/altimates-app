@@ -11,14 +11,19 @@ Dernière mise à jour : 2026-07-10.
 Le code est en prod ([api/send-signin-link.ts](api/send-signin-link.ts) + [api/_email.ts](api/_email.ts)),
 avec **repli automatique** sur le mail Firebase par défaut tant que ce n'est pas configuré.
 
-- [ ] **Créer une adresse e-mail dédiée** à l'envoi (ex. `cordee.altimates@gmail.com`) — ne pas utiliser d'adresse perso.
-- [ ] Activer la **validation en 2 étapes** sur ce compte Google.
-- [ ] Générer un **mot de passe d'application** Gmail (https://myaccount.google.com/apppasswords).
+Envoi via **API Brevo** (pas SMTP Gmail — 2FA refusée par Wacil, App Password Gmail impossible
+sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
+
+- [x] Créer une adresse e-mail dédiée à l'envoi — `Contact.altimates@gmail.com`.
+- [ ] Créer un compte **Brevo** (https://www.brevo.com) avec cette adresse.
+- [ ] Vérifier l'expéditeur dans Brevo (Settings → Senders, e-mail de confirmation à cliquer —
+  pas de 2FA, pas de domaine requis).
+- [ ] Récupérer la **clé API** Brevo (Settings → SMTP & API → API Keys → Generate a new API key).
 - [ ] Générer la **clé de compte de service Firebase** (Console → Paramètres → Comptes de service → Générer une clé privée).
 - [ ] Ajouter les **3 variables d'env Vercel** (Production + Preview) puis **redéployer** :
   - `FIREBASE_SERVICE_ACCOUNT` = le JSON complet de la clé de service
-  - `GMAIL_USER` = l'adresse dédiée
-  - `GMAIL_APP_PASSWORD` = les 16 caractères
+  - `BREVO_API_KEY` = la clé API Brevo
+  - `BREVO_SENDER_EMAIL` = `Contact.altimates@gmail.com`
 - [ ] Test de bout en bout : demander un lien depuis l'app → vérifier réception du **mail ALTImates stylé** en boîte de réception.
 
 ### Firebase / divers

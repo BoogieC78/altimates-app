@@ -11,7 +11,11 @@ import {
   type FlushableCollection,
 } from '../../core/firebase/admin'
 import { ADMIN_EMAILS, DEFAULT_ALLOWED_EMAILS, isAdminEmail } from '../../core/firebase/auth'
-import type { UserProfile } from '../../core/types'
+import { randosCol } from '../../core/firebase/collections'
+import { deleteRando } from '../../core/firebase/randos'
+import { useCollection, type WithDocId } from '../../hooks/useCollection'
+import { EditRandoModal } from '../sommets/EditRandoModal'
+import type { Rando, UserProfile } from '../../core/types'
 
 // Libellés des collections, repris de l'ancienne app (adminFlush).
 const COLLECTION_LABELS: Record<FlushableCollection, string> = {
@@ -44,6 +48,8 @@ export function AdminPage({ memberName }: AdminPageProps) {
   const [allowedEmails, setAllowedEmails] = useState<string[]>([])
   const [newEmail, setNewEmail] = useState('')
   const [busy, setBusy] = useState(false)
+  const { data: randos } = useCollection(randosCol)
+  const [editRando, setEditRando] = useState<WithDocId<Rando> | null>(null)
 
   // Recharge compteurs, membres et whitelist (équivalent de renderAdmin).
   const refresh = useCallback(() => {
@@ -194,6 +200,41 @@ export function AdminPage({ memberName }: AdminPageProps) {
             Reset tout
           </button>
         </div>
+      </div>
+
+      <div className="admin-section">
+        <div className="admin-section-title">Randos</div>
+        {randos.length === 0 && (
+          <div style={{ fontSize: 11, color: 'var(--ink3)', fontFamily: 'var(--mono)', textAlign: 'center', padding: 12 }}>
+            Aucune rando
+          </div>
+        )}
+        {randos.map((r) => (
+          <div className="admin-row" key={r.docId}>
+            <div>
+              <div className="admin-label">{r.name}</div>
+              <div className="admin-sub">
+                {r.region}
+                {r.date ? ` · ${r.date}` : ''}
+                {r.proposedBy ? ` · par ${r.proposedBy}` : ''}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+              <button className="btn btn-sm" onClick={() => setEditRando(r)}>
+                Modifier
+              </button>
+              <button
+                className="admin-btn-danger"
+                onClick={() => {
+                  if (window.confirm(`Supprimer "${r.name}" ? Cette action est irréversible.`))
+                    void deleteRando(r.docId).catch((e) => console.warn('adminDeleteRando:', e))
+                }}
+              >
+                Supprimer
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="admin-section">
@@ -352,6 +393,7 @@ export function AdminPage({ memberName }: AdminPageProps) {
           </div>
         </div>
       </div>
+      {editRando && <EditRandoModal rando={editRando} onClose={() => setEditRando(null)} />}
     </div>
   )
 }

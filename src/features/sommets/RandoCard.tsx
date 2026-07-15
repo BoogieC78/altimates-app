@@ -138,7 +138,7 @@ export function RandoCard({ rando: r, memberName }: RandoCardProps) {
                 vote('non')
               }}
             >
-              🈚🇨🇳 PAS PARTANT
+              🇨🇳 PAS PARTANT
             </button>
             <span className="vtally">
               {r.votes?.oui ?? 0}✓ {r.votes?.peut ?? 0}? {r.votes?.non ?? 0}✗

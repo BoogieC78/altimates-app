@@ -72,6 +72,8 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
 - [ ] **Version riche du mail de connexion** : une fois le domaine pris, remplacer le bandeau texte par le
   design topographique complet (image hébergée). Aperçu de référence déjà conçu (bandeau topo + ligne de crête).
 - [ ] **Audit accessibilité / responsive** de l'app (contrastes, focus clavier, mobile).
+- [ ] **Staging isolé** : projet Firebase dédié (données de test seedées) + auto-login compte de test
+  en preview uniquement — permet de tester sans connexion, sans risque prod. Carte Trello détaillée.
 - [ ] **Rando : option « Pas partant »** (emoji lettre chinoise + 🇨🇳) sur les cartes sortie.
 - [ ] **Rando : emoji pour « Peut-être »** sur les cartes sortie.
 - [ ] **Rando : emoji ✅ pour « Partant »** sur les cartes sortie.

@@ -9,7 +9,6 @@ import { defineConfig, devices } from '@playwright/test'
 // VERCEL_AUTOMATION_BYPASS_SECRET traverse le SSO Vercel qui protège le staging
 
 const BASE_URL = process.env.SMOKE_BASE_URL ?? 'https://altimates-app-staging.vercel.app'
-const BYPASS = process.env.VERCEL_AUTOMATION_BYPASS_SECRET
 
 export default defineConfig({
   testDir: './e2e/smoke',
@@ -26,8 +25,10 @@ export default defineConfig({
     baseURL: BASE_URL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-    // S'applique à toutes les requêtes du contexte (navigation comprise).
-    extraHTTPHeaders: BYPASS ? { 'x-vercel-protection-bypass': BYPASS } : {},
+    // Pas de header de bypass global : posé sur le contexte, il s'appliquerait
+    // aussi aux requêtes cross-origin (fonts Google), dont le preflight CORS
+    // rejette tout header custom → erreurs console qui cassent le smoke. On
+    // passe le bypass via query param (scopé à l'origine), voir e2e/smoke/.
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
 })

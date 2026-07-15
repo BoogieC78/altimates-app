@@ -26,14 +26,15 @@ describe('Modal', () => {
 
   it('ferme via un clic sur l\'overlay mais pas sur le contenu', () => {
     const onClose = vi.fn()
-    const { container } = render(
+    render(
       <Modal title="T" onClose={onClose}>
         <p>Contenu</p>
       </Modal>,
     )
     fireEvent.click(screen.getByText('Contenu'))
     expect(onClose).not.toHaveBeenCalled()
-    fireEvent.click(container.querySelector('.modal-wrap')!)
+    // La modale est rendue en portal sur <body>, pas dans le container de render().
+    fireEvent.click(document.querySelector('.modal-wrap')!)
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 })

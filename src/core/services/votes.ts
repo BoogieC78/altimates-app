@@ -2,7 +2,7 @@ import type { Rando, VoteValue } from '../types'
 
 export interface VoteTransition {
   memberVotes: Record<string, VoteValue>
-  votes: { oui: number; peut: number }
+  votes: { oui: number; peut: number; non: number }
   /** null si le membre vient de retirer son vote */
   myVote: VoteValue | null
 }
@@ -15,7 +15,7 @@ export interface VoteTransition {
  */
 export function applyVote(rando: Rando, memberName: string, value: VoteValue): VoteTransition {
   const memberVotes: Record<string, VoteValue> = { ...(rando.memberVotes ?? {}) }
-  const votes = { oui: rando.votes?.oui ?? 0, peut: rando.votes?.peut ?? 0 }
+  const votes = { oui: rando.votes?.oui ?? 0, peut: rando.votes?.peut ?? 0, non: rando.votes?.non ?? 0 }
   const current = memberVotes[memberName] ?? null
 
   if (current === value) {

@@ -51,7 +51,7 @@ export async function addRando(input: NewRandoInput): Promise<void> {
       : [],
     ...(coords ?? {}),
     alert: null,
-    votes: { oui: 1, peut: 0 },
+    votes: { oui: 1, peut: 0, non: 0 },
     memberVotes: { [input.proposedBy]: 'oui' },
   }
   await addDoc(randosCol, { ...rando, createdAt: serverTimestamp() } as Rando)

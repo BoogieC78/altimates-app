@@ -35,7 +35,7 @@ test.describe('Sommets — proposer / voter / supprimer', () => {
     const card = page.locator('.rcard', { hasText: 'Lac Blanc' })
     await expect(card).toBeVisible()
 
-    const partant = card.getByRole('button', { name: /PARTANT|VOTÉ/i })
+    const partant = card.getByRole('button', { name: /^✅ (PARTANT|VOTÉ)$/i })
     await expect(partant).toHaveText(/PARTANT/i)
 
     // Voter partant
@@ -54,12 +54,16 @@ test.describe('Sommets — proposer / voter / supprimer', () => {
     await login(page, { email: MEMBER_EMAIL, name: 'Wacil' })
 
     const card = page.locator('.rcard', { hasText: 'Mont Aiguille' })
-    await card.getByRole('button', { name: /PARTANT/i }).click()
+    await card.getByRole('button', { name: /^✅ PARTANT$/i }).click()
     await expect(card).toContainText('2✓ 0?')
 
     // Basculer sur peut-être : oui repasse à 1, peut passe à 1
     await card.getByRole('button', { name: /PEUT-ÊTRE/i }).click()
     await expect(card).toContainText('1✓ 1?')
+
+    // Basculer sur pas partant : peut repasse à 0, non passe à 1
+    await card.getByRole('button', { name: /PAS PARTANT/i }).click()
+    await expect(card).toContainText('1✓ 0? 1✗')
   })
 
   test('le proposeur peut supprimer sa rando', async ({ page }) => {

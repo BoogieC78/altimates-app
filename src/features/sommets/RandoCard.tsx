@@ -10,9 +10,7 @@ import {
   DplusIcon,
   DurIcon,
   KmIcon,
-  MaybeIcon,
   PinIcon,
-  ThumbIcon,
   TrashIcon,
 } from '../../components/icons'
 
@@ -122,8 +120,7 @@ export function RandoCard({ rando: r, memberName }: RandoCardProps) {
                 vote('oui')
               }}
             >
-              <ThumbIcon />
-              {myVote === 'oui' ? '✓ VOTÉ' : 'PARTANT'}
+              ✅ {myVote === 'oui' ? 'VOTÉ' : 'PARTANT'}
             </button>
             <button
               className={myVote === 'peut' ? 'vbtn vmay' : 'vbtn'}
@@ -132,11 +129,19 @@ export function RandoCard({ rando: r, memberName }: RandoCardProps) {
                 vote('peut')
               }}
             >
-              <MaybeIcon />
-              PEUT-ÊTRE
+              🤔 PEUT-ÊTRE
+            </button>
+            <button
+              className={myVote === 'non' ? 'vbtn vno' : 'vbtn'}
+              onClick={(e) => {
+                e.stopPropagation()
+                vote('non')
+              }}
+            >
+              🈚🇨🇳 PAS PARTANT
             </button>
             <span className="vtally">
-              {r.votes?.oui ?? 0}✓ {r.votes?.peut ?? 0}?
+              {r.votes?.oui ?? 0}✓ {r.votes?.peut ?? 0}? {r.votes?.non ?? 0}✗
             </span>
             {r.proposedBy === memberName && (
               <button

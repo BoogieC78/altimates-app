@@ -29,22 +29,24 @@ describe('RandoCard', () => {
     expect(screen.getByText('+850m')).toBeTruthy()
   })
 
-  it('affiche « ✓ VOTÉ » si le membre a déjà voté oui, sinon PARTANT', () => {
+  it('affiche « ✅ VOTÉ » si le membre a déjà voté oui, sinon ✅ PARTANT', () => {
     const { rerender } = render(
       <RandoCard rando={makeRando({ memberVotes: { Wacil: 'oui' } })} memberName="Wacil" />,
     )
-    expect(screen.getByText('✓ VOTÉ')).toBeTruthy()
+    expect(screen.getByRole('button', { name: '✅ VOTÉ' })).toBeTruthy()
     rerender(<RandoCard rando={makeRando({ memberVotes: { Nordine: 'oui' } })} memberName="Wacil" />)
-    expect(screen.getByText('PARTANT')).toBeTruthy()
+    expect(screen.getByRole('button', { name: '✅ PARTANT' })).toBeTruthy()
   })
 
-  it('PARTANT vote « oui » et PEUT-ÊTRE vote « peut »', () => {
+  it('PARTANT vote « oui », PEUT-ÊTRE vote « peut », PAS PARTANT vote « non »', () => {
     const rando = makeRando()
     render(<RandoCard rando={rando} memberName="Wacil" />)
-    fireEvent.click(screen.getByText('PARTANT'))
+    fireEvent.click(screen.getByRole('button', { name: '✅ PARTANT' }))
     expect(voteRando).toHaveBeenCalledWith(rando, 'Wacil', 'oui')
-    fireEvent.click(screen.getByText('PEUT-ÊTRE'))
+    fireEvent.click(screen.getByRole('button', { name: '🤔 PEUT-ÊTRE' }))
     expect(voteRando).toHaveBeenCalledWith(rando, 'Wacil', 'peut')
+    fireEvent.click(screen.getByRole('button', { name: '🈚🇨🇳 PAS PARTANT' }))
+    expect(voteRando).toHaveBeenCalledWith(rando, 'Wacil', 'non')
   })
 
   it("Supprimer n'appelle deleteRando qu'après confirmation", () => {

@@ -17,27 +17,33 @@ describe('applyVote', () => {
   it('ajoute un nouveau vote et incrémente le compteur', () => {
     const t = applyVote(rando(), 'Wacil', 'oui')
     expect(t.memberVotes.Wacil).toBe('oui')
-    expect(t.votes).toEqual({ oui: 3, peut: 1 })
+    expect(t.votes).toEqual({ oui: 3, peut: 1, non: 0 })
     expect(t.myVote).toBe('oui')
   })
 
   it('retire le vote quand on reclique sur le même', () => {
     const t = applyVote(rando(), 'Nordine', 'oui')
     expect(t.memberVotes.Nordine).toBeUndefined()
-    expect(t.votes).toEqual({ oui: 1, peut: 1 })
+    expect(t.votes).toEqual({ oui: 1, peut: 1, non: 0 })
     expect(t.myVote).toBeNull()
   })
 
   it('bascule oui -> peut en ajustant les deux compteurs', () => {
     const t = applyVote(rando(), 'Nordine', 'peut')
     expect(t.memberVotes.Nordine).toBe('peut')
-    expect(t.votes).toEqual({ oui: 1, peut: 2 })
+    expect(t.votes).toEqual({ oui: 1, peut: 2, non: 0 })
+  })
+
+  it('vote « non » (pas partant) compté séparément', () => {
+    const t = applyVote(rando(), 'Wacil', 'non')
+    expect(t.memberVotes.Wacil).toBe('non')
+    expect(t.votes).toEqual({ oui: 2, peut: 1, non: 1 })
   })
 
   it('gère une rando sans memberVotes ni compteurs', () => {
     const t = applyVote(rando({ memberVotes: undefined, votes: undefined as never }), 'Wacil', 'peut')
     expect(t.memberVotes).toEqual({ Wacil: 'peut' })
-    expect(t.votes).toEqual({ oui: 0, peut: 1 })
+    expect(t.votes).toEqual({ oui: 0, peut: 1, non: 0 })
   })
 
   it('ne descend jamais un compteur sous zéro', () => {

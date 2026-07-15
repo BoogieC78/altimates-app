@@ -5,7 +5,7 @@
 
 import type { Timestamp } from 'firebase/firestore'
 
-export type VoteValue = 'oui' | 'peut'
+export type VoteValue = 'oui' | 'peut' | 'non'
 export type Difficulty = 'Facile' | 'Moyen' | 'Difficile'
 
 export interface RandoTrace {
@@ -39,7 +39,7 @@ export interface Rando {
   traces?: RandoTrace[]
   alert?: { text: string; src?: string } | null
   /** compteurs affichés, maintenus en miroir de memberVotes */
-  votes: { oui: number; peut: number }
+  votes: { oui: number; peut: number; non?: number }
   /** vote par membre : clé = prénom du membre (profile.name) */
   memberVotes?: Record<string, VoteValue>
   createdAt?: Timestamp

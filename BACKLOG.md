@@ -1,7 +1,7 @@
 # Backlog ALTImates
 
 Tâches reportées et pistes d'optimisation. Cochez au fur et à mesure.
-Dernière mise à jour : 2026-07-10.
+Dernière mise à jour : 2026-07-15.
 
 ---
 
@@ -36,6 +36,10 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
 
 - [ ] **Bugs Base Camp** — signalés (« il y a des bugs ») mais pas encore détaillés.
   → À faire : lister précisément les symptômes (captures) puis corriger.
+- [ ] **Kit : popup info article tronquée** — la bottom sheet du (i) n'affiche pas tout le contenu.
+- [ ] **Barre de navigation : position instable** — change de position selon l'onglet ; doit rester fixée en bas.
+- [ ] **Sommets : popup détail trek tronquée** — infos coupées (trace, boutons…).
+- [ ] **Sommets : popup hydratation tronquée** — même troncature dans l'onglet Hydratation.
 
 ---
 
@@ -68,6 +72,14 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
 - [ ] **Version riche du mail de connexion** : une fois le domaine pris, remplacer le bandeau texte par le
   design topographique complet (image hébergée). Aperçu de référence déjà conçu (bandeau topo + ligne de crête).
 - [ ] **Audit accessibilité / responsive** de l'app (contrastes, focus clavier, mobile).
+- [ ] **Rando : option « Pas partant »** (emoji lettre chinoise + 🇨🇳) sur les cartes sortie.
+- [ ] **Rando : emoji pour « Peut-être »** sur les cartes sortie.
+- [ ] **Rando : emoji ✅ pour « Partant »** sur les cartes sortie.
+- [ ] **Idées : supprimer la vue Kanban** (remplacée par le board Trello).
+- [x] **Trello : une carte par idée de l'onglet Idées** — fait 2026-07-15 (7 idées importées depuis Firestore).
+- Idées du groupe (importées sur Trello 2026-07-15) : filtrer randos par dénivelé max (Thomas ▲3),
+  électrolytes/minéraux (Wacil), ravito qui-ramène-quoi (Wacil), anciennes sorties → XP (Wacil),
+  éditer une idée soumise (Wacil), cost simulator Tricount (Nordine), section photos (Sofia ▲5).
 
 ---
 

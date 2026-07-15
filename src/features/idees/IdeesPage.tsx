@@ -37,7 +37,6 @@ interface IdeesPageProps {
 
 export function IdeesPage({ memberName }: IdeesPageProps) {
   const { data: feedbacks, loading } = useCollection(feedbacksCol)
-  const [view, setView] = useState<'liste' | 'kanban'>('liste')
   const [text, setText] = useState('')
   const [cat, setCat] = useState('feature')
   const [openComments, setOpenComments] = useState<Record<string, boolean>>({})
@@ -68,43 +67,7 @@ export function IdeesPage({ memberName }: IdeesPageProps) {
         <p>Propose des améliorations pour ALTImates. Les idées les plus votées seront intégrées.</p>
       </div>
 
-      <div className="view-toggle">
-        <button className={view === 'liste' ? 'view-btn active' : 'view-btn'} onClick={() => setView('liste')}>
-          Liste
-        </button>
-        <button className={view === 'kanban' ? 'view-btn active' : 'view-btn'} onClick={() => setView('kanban')}>
-          Kanban
-        </button>
-      </div>
-
-      {view === 'kanban' ? (
-        <div className="kanban-wrap">
-          {STATUSES.map((s) => {
-            const cards = sorted.filter((f) => (f.status ?? 'backlog') === s)
-            return (
-              <div className="kanban-col" data-col={s} key={s}>
-                <div className="kanban-col-header">
-                  {STATUS_LABELS[s]} <span className="kanban-col-count">{cards.length}</span>
-                </div>
-                <div className="kanban-cards">
-                  {cards.map((f) => (
-                    <div className="card" key={f.docId} style={{ marginBottom: 0, padding: '9px 11px' }}>
-                      <div style={{ display: 'flex', gap: 4, marginBottom: 5 }}>
-                        <span className={`tag ${CATCLS[f.cat] ?? 'tb'}`}>{CATL[f.cat] ?? f.cat}</span>
-                      </div>
-                      <div style={{ fontSize: 11, lineHeight: 1.5 }}>{f.text}</div>
-                      <div style={{ fontSize: 9, color: 'var(--ink4)', fontFamily: 'var(--mono)', marginTop: 5 }}>
-                        {f.author} · ▲{f.votes?.up ?? 0}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      ) : (
-        <>
+      <>
           <div className="sec">Nouvelle idée</div>
           <div className="card" style={{ marginBottom: 14 }}>
             <div style={{ marginBottom: 9 }}>
@@ -269,8 +232,7 @@ export function IdeesPage({ memberName }: IdeesPageProps) {
               </div>
             )
           })}
-        </>
-      )}
+      </>
     </div>
   )
 }

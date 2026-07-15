@@ -14,15 +14,4 @@ test.describe('Idées — feedbacks', () => {
 
     await expect(page.getByText('Ajouter un filtre par difficulté')).toBeVisible()
   })
-
-  test('bascule entre les vues Liste et Kanban', async ({ page }) => {
-    await login(page, { name: 'Wacil' })
-    await page.getByRole('button', { name: 'Idées' }).click()
-
-    await page.getByRole('button', { name: 'Kanban' }).click()
-    await expect(page.getByText('Backlog')).toBeVisible()
-
-    await page.getByRole('button', { name: 'Liste', exact: true }).click()
-    await expect(page.getByPlaceholder('ex: Filtrer par dénivelé max...')).toBeVisible()
-  })
 })

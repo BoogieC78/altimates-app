@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { DateField } from '../../components/DateField'
 import { Modal } from '../../components/Modal'
 import { updateRando } from '../../core/firebase/randos'
 import type { Difficulty, Rando } from '../../core/types'
@@ -94,17 +95,17 @@ export function EditRandoModal({ rando: r, onClose }: EditRandoModalProps) {
           {!isTrek ? (
             <div>
               <label className="form-lbl">Date</label>
-              <input className="form-input" name="dateStart" type="date" defaultValue={r.dateStart ?? ''} />
+              <DateField name="dateStart" defaultValue={r.dateStart ?? ''} />
             </div>
           ) : (
             <div className="form-row2">
               <div>
                 <label className="form-lbl">Du</label>
-                <input className="form-input" name="dateStart" type="date" defaultValue={r.dateStart ?? ''} />
+                <DateField name="dateStart" defaultValue={r.dateStart ?? ''} />
               </div>
               <div>
                 <label className="form-lbl">Au</label>
-                <input className="form-input" name="dateEnd" type="date" defaultValue={r.dateEnd ?? ''} />
+                <DateField name="dateEnd" defaultValue={r.dateEnd ?? ''} />
               </div>
             </div>
           )}

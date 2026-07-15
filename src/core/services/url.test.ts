@@ -1,5 +1,27 @@
 import { describe, expect, it } from 'vitest'
-import { safeExternalUrl } from './url'
+import { safeExternalUrl, tourSearchUrl } from './url'
+
+describe('tourSearchUrl', () => {
+  it('ouvre la page discover Komoot quand la rando a des coordonnées', () => {
+    expect(tourSearchUrl({ name: 'Lac Blanc', region: 'Chamonix', lat: 45.9581, lon: 6.8489 })).toBe(
+      'https://www.komoot.com/fr-fr/discover/Lac%20Blanc/@45.9581,6.8489/tours?sport=hike&map=true&max_distance=15000',
+    )
+  })
+
+  it('gère les coordonnées négatives', () => {
+    expect(tourSearchUrl({ name: 'X', region: 'Y', lat: -12.5, lon: -3.25 })).toContain('/@-12.5,-3.25/')
+  })
+
+  it("replie sur une recherche Google quand il n'y a pas de coordonnées", () => {
+    expect(tourSearchUrl({ name: 'Lac Blanc', region: 'Chamonix' })).toBe(
+      'https://www.google.com/search?q=Lac%20Blanc%20Chamonix%20komoot',
+    )
+  })
+
+  it('replie aussi quand une seule coordonnée manque', () => {
+    expect(tourSearchUrl({ name: 'X', region: 'Y', lat: 45 })).toContain('google.com/search')
+  })
+})
 
 describe('safeExternalUrl', () => {
   it('accepte http et https', () => {

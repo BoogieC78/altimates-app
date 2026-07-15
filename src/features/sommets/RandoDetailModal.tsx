@@ -13,7 +13,7 @@ import {
   defaultRavitoEntry,
   parseJours,
 } from '../../core/services/ravito'
-import { safeExternalUrl } from '../../core/services/url'
+import { safeExternalUrl, tourSearchUrl } from '../../core/services/url'
 import { useCollection, type WithDocId } from '../../hooks/useCollection'
 import { useHydra, useRavito } from '../../hooks/useRavito'
 import type {
@@ -277,9 +277,9 @@ function InfoTab({ rando: r, memberName, onClose }: RandoDetailModalProps) {
     onClose()
   }
 
-  // Port de downloadGPX : ouvre la recherche Komoot sur le nom + la région
+  // Port de downloadGPX : ouvre la recherche d'itinéraires (Komoot ou repli Google)
   const openGPX = () => {
-    window.open('https://www.komoot.com/search/' + encodeURIComponent(r.name + ' ' + r.region), '_blank')
+    window.open(tourSearchUrl(r), '_blank')
   }
 
   return (

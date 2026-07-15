@@ -73,6 +73,9 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
   arrivée en boîte principale garantie, et adresse d'envoi propre.
 - [ ] **Version riche du mail de connexion** : une fois le domaine pris, remplacer le bandeau texte par le
   design topographique complet (image hébergée). Aperçu de référence déjà conçu (bandeau topo + ligne de crête).
+- [~] **Onglet Fenêtre** : calendrier de disponibilités de la cordée (chacun renseigne ses jours ;
+  l'app calcule les meilleures fenêtres communes). Livré en **staging** le 2026-07-15 (commit 61ad023,
+  règles Firestore déployées) — en attente de validation avant prod. Carte Trello ZYp4GMYV.
 - [ ] **Audit accessibilité / responsive** de l'app (contrastes, focus clavier, mobile).
 - [ ] **Staging isolé** : projet Firebase dédié (données de test seedées) + auto-login compte de test
   en preview uniquement — permet de tester sans connexion, sans risque prod. Carte Trello détaillée.

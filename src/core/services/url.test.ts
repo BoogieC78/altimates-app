@@ -4,12 +4,16 @@ import { safeExternalUrl, tourSearchUrl } from './url'
 describe('tourSearchUrl', () => {
   it('ouvre la page discover Komoot quand la rando a des coordonnées', () => {
     expect(tourSearchUrl({ name: 'Lac Blanc', region: 'Chamonix', lat: 45.9581, lon: 6.8489 })).toBe(
-      'https://www.komoot.com/fr-fr/discover/Lac%20Blanc/@45.9581,6.8489/tours?sport=hike&map=true&max_distance=15000',
+      'https://www.komoot.com/fr-fr/discover/Lac%20Blanc/@45.9581000,6.8489000/tours?sport=hike&map=true&max_distance=15000',
     )
   })
 
   it('gère les coordonnées négatives', () => {
-    expect(tourSearchUrl({ name: 'X', region: 'Y', lat: -12.5, lon: -3.25 })).toContain('/@-12.5,-3.25/')
+    expect(tourSearchUrl({ name: 'X', region: 'Y', lat: -12.5, lon: -3.25 })).toContain('/@-12.5000000,-3.2500000/')
+  })
+
+  it('formate les coordonnées entières avec décimales (Komoot 404 sinon)', () => {
+    expect(tourSearchUrl({ name: 'X', region: 'Y', lat: 45.5, lon: 6 })).toContain('/@45.5000000,6.0000000/')
   })
 
   it("replie sur une recherche Google quand il n'y a pas de coordonnées", () => {

@@ -13,7 +13,8 @@ export function tourSearchUrl(r: { name: string; region: string; lat?: number; l
     return (
       'https://www.komoot.com/fr-fr/discover/' +
       encodeURIComponent(r.name) +
-      `/@${r.lat},${r.lon}/tours?sport=hike&map=true&max_distance=15000`
+      // toFixed obligatoire : Komoot 404 sur une coordonnée sans décimale (@45.5,6)
+      `/@${r.lat.toFixed(7)},${r.lon.toFixed(7)}/tours?sport=hike&map=true&max_distance=15000`
     )
   }
   return 'https://www.google.com/search?q=' + encodeURIComponent(r.name + ' ' + r.region + ' komoot')

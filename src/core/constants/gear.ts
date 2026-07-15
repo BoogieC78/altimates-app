@@ -50,7 +50,7 @@ export const GEAR: Record<'trek' | 'journee', GearMode> = {
     indispensable:[
       {id:'chaussures',name:'Chaussures de rando',note:'Gore-Tex si saison humide',price:'60–150€',links:[]},
       {id:'batons',name:'Bâtons de marche',note:null,price:'25–70€',links:[]},
-      {id:'sac20',name:'Sac à dos 20–30L',note:null,price:'25–80€',links:[]},
+      {id:'sac20',name:'Sac à dos 20–30L',note:'Pour plusieurs jours : plutôt un 50+10L (voir kit trek)',price:'25–80€',links:[]},
       {id:'coupevent',name:'Coupe-vent / imperméable',note:null,price:'30–80€',links:[]},
       {id:'camelbak',name:'Gourde / Camelbak 1.5–2L',note:null,price:'15–40€',links:[]},
       {id:'frontale',name:'Frontale',note:'Même en journée',price:'15–45€',links:[]},

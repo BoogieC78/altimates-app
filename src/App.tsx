@@ -12,6 +12,7 @@ import { SommetsPage } from './features/sommets/SommetsPage'
 import { RadioPage } from './features/radio/RadioPage'
 import { KitPage } from './features/kit/KitPage'
 import { IdeesPage } from './features/idees/IdeesPage'
+import { FenetrePage } from './features/fenetre/FenetrePage'
 import { CordeePage } from './features/cordee/CordeePage'
 import { BasecampPage } from './features/basecamp/BasecampPage'
 import { AdminPage } from './features/admin/AdminPage'
@@ -42,6 +43,7 @@ const TABS = [
   { key: 'sommets', label: 'Sommets' },
   { key: 'kit', label: 'Kit' },
   { key: 'radio', label: 'Radio' },
+  { key: 'fenetre', label: 'Fenêtre' },
   { key: 'idees', label: 'Idées' },
   { key: 'cordee', label: 'Cordée' },
   { key: 'basecamp', label: 'Base Camp' },
@@ -221,6 +223,8 @@ export default function App() {
           <RadioPage memberName={memberName} />
         ) : tab === 'kit' ? (
           <KitPage user={user} memberName={memberName} />
+        ) : tab === 'fenetre' ? (
+          <FenetrePage user={user} memberName={memberName} />
         ) : tab === 'idees' ? (
           <IdeesPage memberName={memberName} />
         ) : tab === 'cordee' ? (

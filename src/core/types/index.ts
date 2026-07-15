@@ -109,6 +109,26 @@ export interface UserProfile {
   createdAt?: Timestamp
 }
 
+// ── Fenêtre : disponibilités des membres (collection availability, 1 doc par uid) ──
+
+export type AvailabilityStatus =
+  /** 🟢 disponible */
+  | 'dispo'
+  /** 🟠 disponible mais retour impératif dimanche soir */
+  | 'retour'
+  /** 🔵 disponible et peut prolonger d'un jour */
+  | 'prolonge'
+  /** 🔴 indisponible */
+  | 'indispo'
+
+export interface AvailabilityDoc {
+  /** prénom affiché (profile.name), dupliqué ici pour éviter un join côté client */
+  name: string
+  /** clé = date ISO (yyyy-mm-dd), valeur = statut ; jour absent = non renseigné */
+  days: Record<string, AvailabilityStatus>
+  updatedAt?: Timestamp
+}
+
 export interface AppConfig {
   /** doc config/allowedEmails : whitelist des emails autorisés */
   emails?: string[]

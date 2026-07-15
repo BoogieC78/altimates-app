@@ -495,3 +495,15 @@ body:has(.modal-wrap.open) .propose-btn-wrap.visible{display:none}
 /* ── EDIT DUR TYPE ── */
 .edit-dur-tab{padding:6px 14px;border-radius:8px;border:.5px solid var(--border2);background:transparent;font-size:11px;font-family:var(--mono);color:var(--ink3);cursor:pointer;transition:all .15s}
 .edit-dur-tab.active{background:var(--ink);color:var(--gold);border-color:var(--ink)}
+/* ── FENÊTRE (calendrier de dispos) ── */
+.fen-brushes{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.fen-brush{padding:6px 10px;border-radius:20px;border:1.5px solid var(--brush);background:transparent;color:var(--brush);font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.04em;cursor:pointer;transition:all .15s}
+.fen-brush.active{background:var(--brush);color:#fff}
+.fen-nav{border:.5px solid var(--border2);background:transparent;border-radius:8px;padding:2px 10px;cursor:pointer;color:var(--ink2);font-size:13px}
+.fen-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.fen-wd{text-align:center;font-size:9px;font-family:var(--mono);color:var(--ink4);padding-bottom:2px}
+.fen-day{position:relative;aspect-ratio:1;border-radius:8px;border:.5px solid var(--border2);background:transparent;font-size:11px;font-family:var(--mono);color:var(--ink2);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:background .15s}
+.fen-day.we{background:rgba(232,200,74,.12);border-color:rgba(232,200,74,.4)}
+.fen-dots{display:flex;gap:2px;min-height:4px}
+.fen-dots i{width:4px;height:4px;border-radius:50%;display:block}
+.fen-window{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}

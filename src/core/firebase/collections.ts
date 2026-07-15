@@ -1,6 +1,16 @@
 import { collection, type CollectionReference } from 'firebase/firestore'
 import { db } from './app'
-import type { Rando, RadioMessage, Feedback, DepartItem, UserProfile, AppConfig, RavitoDoc, HydraDoc } from '../types'
+import type {
+  Rando,
+  RadioMessage,
+  Feedback,
+  DepartItem,
+  UserProfile,
+  AppConfig,
+  RavitoDoc,
+  HydraDoc,
+  AvailabilityDoc,
+} from '../types'
 
 // Références typées vers les collections existantes. Une seule source de vérité
 // pour les noms de collections : ne jamais écrire collection(db, '...') ailleurs.
@@ -17,3 +27,4 @@ export const usersCol = typedCollection<UserProfile>('users')
 export const configCol = typedCollection<AppConfig>('config')
 export const ravitoCol = typedCollection<RavitoDoc>('ravito')
 export const hydraCol = typedCollection<HydraDoc>('hydra')
+export const availabilityCol = typedCollection<AvailabilityDoc>('availability')

@@ -47,6 +47,13 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Disponibilités (onglet Fenêtre) : chacun ne peut écrire que son propre
+    // doc (id = uid) ; lecture par tous les membres pour voir les fenêtres communes.
+    match /availability/{userId} {
+      allow read: if isMember();
+      allow write: if isMember() && request.auth.uid == userId;
+    }
+
     // Autres docs de config : lecture membres, écriture admin.
     match /config/{doc} {
       allow read: if isMember();

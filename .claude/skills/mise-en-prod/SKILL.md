@@ -18,6 +18,8 @@ QA manuelle : tester sur l'URL staging AVANT d'approuver. Rejeter = bouton "Reje
 
 Secrets GitHub Actions requis (Settings > Secrets and variables > Actions) : `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `VERCEL_AUTOMATION_BYPASS_SECRET` (Vercel > Settings > Deployment Protection > Protection Bypass for Automation). Environnement GitHub `production` = required reviewer (protection du go).
 
+⚠️ **Tant que ces secrets ne sont pas configurés** (état 2026-07-15, carte Trello cgDN7iPJ), les jobs deploy-* échouent : déployer via la **CLI Vercel locale** — procédure exacte dans le skill `environnements` (§ "Déploiement via CLI Vercel locale"). Le "go" prod = validation humaine du staging par Wacil dans la conversation, à exiger avant `vercel deploy --prod`. Release v0.3.1 (2026-07-15) livrée ainsi.
+
 Lancer les smoke en local contre n'importe quel environnement :
 ```bash
 SMOKE_BASE_URL=https://altimates-app.vercel.app npx playwright test --config playwright.smoke.config.ts
@@ -66,8 +68,8 @@ npx firebase deploy --only firestore:rules --project altimates-4c37f
 Vérifier dans Vercel > Settings > Environment Variables (Production) :
 
 - `FIREBASE_SERVICE_ACCOUNT` — JSON du compte de service (une ligne)
-- `GMAIL_USER` — expéditeur des liens de connexion
-- `GMAIL_APP_PASSWORD` — mot de passe d'application Google (16 caractères)
+- `BREVO_API_KEY` — clé API Brevo (pivot Gmail SMTP → Brevo, commit 42c02b0 ; pas encore configurée, repli mail Firebase par défaut)
+- `BREVO_SENDER_EMAIL` — `Contact.altimates@gmail.com`
 - **JAMAIS** `VITE_USE_EMULATOR` en prod (branchement émulateurs)
 
 ## 5. Headers de sécurité

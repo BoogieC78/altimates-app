@@ -40,6 +40,23 @@ Protégé par le SSO Vercel ("Standard Protection") : un humain doit être conne
 ### GitHub (repo BoogieC78/altimates-app, public)
 - Environnements : `staging` (libre), `Production` (required reviewer = BoogieC78).
 - Secrets Actions requis : `VERCEL_TOKEN`, `VERCEL_ORG_ID` (`team_eN8LH1WWtK0aoku1wneXdPdM`), `VERCEL_PROJECT_ID` (`prj_e5C0TNRoPMjcTyQOGRl9TwFOo75n`), `VERCEL_AUTOMATION_BYPASS_SECRET`.
+- ⚠️ **État 2026-07-15 : AUCUN secret configuré** (`gh secret list` vide) → les jobs deploy-staging/deploy-production de la CI échouent. Carte Trello https://trello.com/c/cgDN7iPJ (action Wacil). En attendant, déployer via CLI Vercel locale (voir ci-dessous).
+
+### Déploiement via CLI Vercel locale (fallback tant que les secrets CI manquent)
+CLI loggée sur ce Mac (compte hammadounordine, projet lié via `.vercel/project.json`). Reproduit exactement les jobs CI :
+```bash
+# Staging (après push main + CI ci/e2e verts)
+npx vercel pull --yes --environment=preview
+npx vercel build
+url=$(npx vercel deploy --prebuilt 2>/dev/null | jq -r '.deployment.url // .url' | tail -1)
+npx vercel alias set "$url" altimates-app-staging.vercel.app
+
+# Production (après validation humaine du staging — équivalent du "Approve")
+npx vercel pull --yes --environment=production
+npx vercel build --prod
+npx vercel deploy --prebuilt --prod
+```
+`vercel deploy` sort du JSON : toujours extraire l'URL avec `jq`, ne jamais passer la sortie brute à `alias set`.
 
 ### Vercel (team `altimates`, projet `altimates-app`)
 - Env vars serverless à définir dans **Preview ET Production** : `FIREBASE_SERVICE_ACCOUNT`, `GMAIL_USER`, `GMAIL_APP_PASSWORD` (voir `api/send-signin-link.ts`).

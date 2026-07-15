@@ -36,10 +36,12 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
 
 - [ ] **Bugs Base Camp** — signalés (« il y a des bugs ») mais pas encore détaillés.
   → À faire : lister précisément les symptômes (captures) puis corriger.
-- [ ] **Kit : popup info article tronquée** — la bottom sheet du (i) n'affiche pas tout le contenu.
-- [ ] **Barre de navigation : position instable** — change de position selon l'onglet ; doit rester fixée en bas.
-- [ ] **Sommets : popup détail trek tronquée** — infos coupées (trace, boutons…).
-- [ ] **Sommets : popup hydratation tronquée** — même troncature dans l'onglet Hydratation.
+- [x] **Kit : popup info article tronquée** — livré prod v0.3.1 (2026-07-15).
+- [x] **Barre de navigation : position instable** — livré prod v0.3.1.
+- [x] **Sommets : popups détail trek / hydratation tronquées** — livré prod v0.3.1 (z-index, dvh, portal).
+- [x] **Popup rando délavée (sorties passées) + barre Proposer par-dessus** — livré prod v0.3.1 (portal + barre 480px masquée sous modale).
+- [x] **Kit : logos marchands absents (CSP)** — livré prod v0.3.1 (img-src *.gstatic.com).
+- [x] **Dates au format JJ/MM/AAAA** — livré prod v0.3.1 (composant DateField).
 
 ---
 
@@ -74,10 +76,9 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
 - [ ] **Audit accessibilité / responsive** de l'app (contrastes, focus clavier, mobile).
 - [ ] **Staging isolé** : projet Firebase dédié (données de test seedées) + auto-login compte de test
   en preview uniquement — permet de tester sans connexion, sans risque prod. Carte Trello détaillée.
-- [ ] **Rando : option « Pas partant »** (emoji lettre chinoise + 🇨🇳) sur les cartes sortie.
-- [ ] **Rando : emoji pour « Peut-être »** sur les cartes sortie.
-- [ ] **Rando : emoji ✅ pour « Partant »** sur les cartes sortie.
-- [ ] **Idées : supprimer la vue Kanban** (remplacée par le board Trello).
+- [x] **Rando : votes ✅ Partant / 🤔 Peut-être / 🇨🇳 Pas partant** — livré prod v0.3.1.
+- [x] **Idées : vue Kanban supprimée** (remplacée par le board Trello) — livré prod v0.3.1.
+- [x] **Admin : modifier/supprimer n'importe quelle rando** — livré prod v0.3.1.
 - [x] **Trello : une carte par idée de l'onglet Idées** — fait 2026-07-15 (7 idées importées depuis Firestore).
 - Idées du groupe (importées sur Trello 2026-07-15) : filtrer randos par dénivelé max (Thomas ▲3),
   électrolytes/minéraux (Wacil), ravito qui-ramène-quoi (Wacil), anciennes sorties → XP (Wacil),

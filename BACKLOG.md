@@ -34,6 +34,10 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
 
 ## 🐞 Bugs à corriger
 
+- [x] **Membres affichés « Anonyme »** — connexion lien e-mail sans displayName : fallback 'Anonyme'
+  persisté par l'onboarding Kit. Fix : modal prénom obligatoire au premier login, 'Anonyme' traité
+  comme absent, email/displayName persistés dans users/{uid}. Livré en staging (commit 46233db,
+  carte Trello FMl7ZRjm).
 - [ ] **Bugs Base Camp** — signalés (« il y a des bugs ») mais pas encore détaillés.
   → À faire : lister précisément les symptômes (captures) puis corriger.
 - [x] **Kit : popup info article tronquée** — livré prod v0.3.1 (2026-07-15).
@@ -50,8 +54,7 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
 - [ ] **Code-splitting `jspdf` + `html2canvas`** (~600 kB) : ne sont utiles que pour l'export PDF du kit.
   Les charger en `import()` dynamique à la demande → bundle initial nettement allégé.
   (Le build affiche déjà l'avertissement « chunks > 500 kB ».)
-- [ ] **`useMemberName` réactif** ([src/hooks/useMemberName.ts](src/hooks/useMemberName.ts)) : actuellement
-  un `getDoc` unique → le prénom ne se met pas à jour après édition du profil. Passer en `onSnapshot`.
+- [x] **`useMemberName` réactif** — passé en `onSnapshot` avec le fix « Anonyme » (commit 46233db).
   Impacte aussi la section « Prochaine sortie » du Base Camp (clé de vote = `memberName` vs `profile.name`).
 - [x] **Gate CI → déploiement Vercel** — fait (juillet 2026) : auto-deploy Vercel désactivé sur `main`,
   pipeline GitHub Actions ci+e2e → staging (https://altimates-app-staging.vercel.app, SSO Vercel) →

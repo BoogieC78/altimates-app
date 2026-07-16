@@ -20,13 +20,18 @@ function db() {
 
 /** Vide toutes les données Firestore ET tous les comptes Auth des émulateurs. */
 export async function resetEmulators(): Promise<void> {
-  await fetch(
+  // fetch ne rejette pas sur un statut HTTP d'erreur : un reset silencieusement
+  // raté laisse fuiter l'état du test précédent (flake vécu, données 'Ousmane'
+  // survivant au beforeEach). On vérifie donc explicitement chaque réponse.
+  const fs = await fetch(
     `http://${FIRESTORE_HOST}/emulator/v1/projects/${PROJECT_ID}/databases/(default)/documents`,
     { method: 'DELETE' },
   )
-  await fetch(`http://${AUTH_HOST}/emulator/v1/projects/${PROJECT_ID}/accounts`, {
+  if (!fs.ok) throw new Error(`Reset Firestore échoué: ${fs.status} ${await fs.text()}`)
+  const auth = await fetch(`http://${AUTH_HOST}/emulator/v1/projects/${PROJECT_ID}/accounts`, {
     method: 'DELETE',
   })
+  if (!auth.ok) throw new Error(`Reset Auth échoué: ${auth.status} ${await auth.text()}`)
 }
 
 /**

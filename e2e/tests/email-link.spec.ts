@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures'
-import { getLatestEmailSignInLink } from '../helpers/emulator'
+import { DEFAULT_MEMBERS, getLatestEmailSignInLink, seedAllowedEmails } from '../helpers/emulator'
 import { NON_ADMIN_EMAIL, UNAUTHORIZED_EMAIL } from '../helpers/auth'
 
 // Connexion sans mot de passe par lien e-mail (gratuit). L'émulateur capture le
@@ -22,7 +22,14 @@ test.describe('Connexion par e-mail (lien magique)', () => {
     const link = await getLatestEmailSignInLink(NON_ADMIN_EMAIL)
     await page.goto(link)
 
-    // Connexion terminée via l'adresse embarquée dans le lien → l'app s'affiche.
+    // Connexion terminée via l'adresse embarquée dans le lien. Pas de displayName
+    // sur un compte lien e-mail → la modal prénom (in-app, pas un dialog) s'affiche
+    // et masque la barre Proposer tant qu'un prénom n'est pas saisi.
+    await expect(page.getByText(/Comment doit-on t'appeler/i)).toBeVisible()
+    await page.getByPlaceholder('Ton prénom').fill('Ousmane')
+    await page.locator('input[name="firstname"]').press('Enter')
+
+    // → l'app s'affiche.
     await expect(page.getByRole('button', { name: /Proposer une rando/i })).toBeVisible()
   })
 
@@ -56,12 +63,17 @@ test.describe('Connexion par e-mail (lien magique)', () => {
   })
 
   test('sans displayName Google, demande le prénom et l\'utilise (pas d\'Anonyme)', async ({ page }) => {
+    // Identité jetable : NON_ADMIN_EMAIL est déjà utilisé (et nommé) par le test
+    // de connexion plus haut — la partager rendrait ce test dépendant de l'ordre.
+    const THROWAWAY_EMAIL = 'sans.displayname@gmail.com'
+    await seedAllowedEmails([...DEFAULT_MEMBERS, THROWAWAY_EMAIL])
+
     await page.goto('/')
-    await page.getByPlaceholder('ton@email.com').fill(NON_ADMIN_EMAIL)
+    await page.getByPlaceholder('ton@email.com').fill(THROWAWAY_EMAIL)
     await page.getByRole('button', { name: 'Recevoir un lien de connexion' }).click()
     await expect(page.getByText(/Lien de connexion envoyé/i)).toBeVisible()
 
-    const link = await getLatestEmailSignInLink(NON_ADMIN_EMAIL)
+    const link = await getLatestEmailSignInLink(THROWAWAY_EMAIL)
     await page.goto(link)
 
     // Aucun displayName sur un compte lien e-mail → la modal prénom est obligatoire.

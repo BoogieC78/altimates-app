@@ -279,7 +279,9 @@ export function AdminPage({ memberName }: AdminPageProps) {
           </div>
         )}
         {users?.map((u) => {
-          const name = u.profile?.name || u.displayName || 'Inconnu'
+          // 'Anonyme' = ancien fallback persisté par erreur (carte FMl7ZRjm) : on l'ignore
+          const name =
+            (u.profile?.name !== 'Anonyme' && u.profile?.name) || u.displayName || 'Inconnu'
           const email = u.email || '—'
           const isMe = name === memberName
           const isAdminUser = isAdminEmail(email)

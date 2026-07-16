@@ -42,7 +42,12 @@ export function CordeePage({ memberName }: CordeePageProps) {
 
   const members = users
     .map((u) => ({
-      name: u.profile?.name || u.displayName?.split(' ')[0] || u.email,
+      // 'Anonyme' = ancien fallback persisté par erreur (carte FMl7ZRjm) : on l'ignore
+      name:
+        (u.profile?.name !== 'Anonyme' && u.profile?.name) ||
+        u.displayName?.split(' ')[0] ||
+        u.email ||
+        'Inconnu',
       level: ((u.profile as { level?: Level } | undefined)?.level ?? 'newbie') as Level,
       km: u.profile?.km ?? 0,
       dplus: u.profile?.dplus ?? 0,

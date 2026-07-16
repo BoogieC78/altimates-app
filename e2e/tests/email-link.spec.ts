@@ -55,6 +55,25 @@ test.describe('Connexion par e-mail (lien magique)', () => {
     })
   })
 
+  test('sans displayName Google, demande le prénom et l\'utilise (pas d\'Anonyme)', async ({ page }) => {
+    await page.goto('/')
+    await page.getByPlaceholder('ton@email.com').fill(NON_ADMIN_EMAIL)
+    await page.getByRole('button', { name: 'Recevoir un lien de connexion' }).click()
+    await expect(page.getByText(/Lien de connexion envoyé/i)).toBeVisible()
+
+    const link = await getLatestEmailSignInLink(NON_ADMIN_EMAIL)
+    await page.goto(link)
+
+    // Aucun displayName sur un compte lien e-mail → la modal prénom est obligatoire.
+    await expect(page.getByText(/Comment doit-on t'appeler/i)).toBeVisible()
+    await page.getByPlaceholder('Ton prénom').fill('Ousmane')
+    await page.locator('input[name="firstname"]').press('Enter')
+
+    // Prénom enregistré : modal fermée, avatar aux initiales du prénom.
+    await expect(page.getByText(/Comment doit-on t'appeler/i)).toHaveCount(0)
+    await expect(page.locator('.av-btn')).toHaveText('OU')
+  })
+
   test('adresse e-mail invalide : message d\'erreur', async ({ page }) => {
     await page.goto('/')
     await page.getByPlaceholder('ton@email.com').fill('a@b')

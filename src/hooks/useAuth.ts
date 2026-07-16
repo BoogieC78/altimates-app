@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { onAuthStateChanged, type User } from 'firebase/auth'
-import { auth } from '../core/firebase/app'
+import { doc, setDoc } from 'firebase/firestore'
+import { auth, db } from '../core/firebase/app'
 import { devAutoSignIn, isDevAutoLoginEnabled, isMemberEmail, signOut } from '../core/firebase/auth'
 
 interface AuthState {
@@ -37,6 +38,14 @@ export function useAuth(): AuthState {
           return
         }
         setState({ user, loading: false })
+        // Identité de contact sur le document users : permet à l'Admin/Cordée
+        // d'identifier un membre même sans profil configuré (les comptes
+        // connectés par lien e-mail n'ont pas de displayName Google).
+        void setDoc(
+          doc(db, 'users', user.uid),
+          { email: user.email ?? null, displayName: user.displayName ?? null },
+          { merge: true },
+        ).catch((e) => console.warn('users identity:', e))
       })
     })
 

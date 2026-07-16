@@ -17,6 +17,7 @@ import { CordeePage } from './features/cordee/CordeePage'
 import { BasecampPage } from './features/basecamp/BasecampPage'
 import { AdminPage } from './features/admin/AdminPage'
 import { GuidedTour, shouldShowTour } from './components/GuidedTour'
+import { NamePromptModal } from './components/NamePromptModal'
 import { TopoBackground } from './components/TopoBackground'
 import { LogoIcon, NAV_ICONS } from './components/icons'
 
@@ -51,7 +52,7 @@ const TABS = [
 
 export default function App() {
   const { user, loading } = useAuth()
-  const memberName = useMemberName(user)
+  const { name: memberName, needsName, saveName } = useMemberName(user)
   const [tab, setTab] = useState('sommets')
   const [loginError, setLoginError] = useState('')
   const [email, setEmail] = useState('')
@@ -193,6 +194,9 @@ export default function App() {
         >
           MODE DEV · AUTO-LOGIN ÉMULATEUR — jamais en production
         </div>
+      )}
+      {needsName && (
+        <NamePromptModal onSave={(n) => void saveName(n).catch((e) => console.warn('saveName:', e))} />
       )}
       <TopoBackground />
       <div className="app">

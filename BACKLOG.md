@@ -36,7 +36,7 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
 
 - [x] **Membres affichés « Anonyme »** — connexion lien e-mail sans displayName : fallback 'Anonyme'
   persisté par l'onboarding Kit. Fix : modal prénom obligatoire au premier login, 'Anonyme' traité
-  comme absent, email/displayName persistés dans users/{uid}. Livré en staging (commit 46233db,
+  comme absent, email/displayName persistés dans users/{uid}. Livré prod v0.3.3 (2026-07-17,
   carte Trello FMl7ZRjm).
 - [ ] **Bugs Base Camp** — signalés (« il y a des bugs ») mais pas encore détaillés.
   → À faire : lister précisément les symptômes (captures) puis corriger.

@@ -96,6 +96,9 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
 
 ## ✅ Déjà fait (contexte)
 
+- **Modifier mon profil mis en avant** (v0.3.6) : le bouton était noyé en bas du Base Camp → bouton
+  primaire pleine largeur (ink/gold, icône crayon) sous les Personal Bests, Déconnexion/Réinitialiser
+  côte à côte en dessous. Option validée sur maquette visuelle. Carte Trello 6a5a84ab.
 - **Checklist départ clarifiée** (v0.3.5) : la checkbox nue se confondait avec la prise en charge
   (retour Adebola) → chip explicite "À préparer / ✓ Prêt", ligne d'état combinée ("Wacil s'en occupe ·
   pas encore prêt"), et "Me retirer" remet aussi l'article à préparer. Première spec E2E Cordée (3 cas).

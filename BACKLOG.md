@@ -96,6 +96,10 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
 
 ## ✅ Déjà fait (contexte)
 
+- **Proposer une rando : date + saisies durcies** (v0.3.4) : calendrier custom en français (le picker
+  natif suit la langue du navigateur, `lang` ignoré), saisie date au clavier avec masque JJ/MM/AAAA
+  (`frToIso` au submit, 31/02 rejeté), distance/dénivelé limités aux entiers positifs y compris au
+  collage (sanitize à l'input). Cartes Trello kVwK6JU5, C81LrmPc.
 - **Bouton GPX Komoot réparé** (v0.3.2) : Komoot a supprimé la recherche texte par URL → URL discover
   géographique construite depuis lat/lon (toFixed(7), Komoot 404 sans décimale), repli Google sans coords.
 - Suite de tests **Playwright E2E** + intégration CI (login Google/e-mail, propositions, votes, admin, Base Camp…).

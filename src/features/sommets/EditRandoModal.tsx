@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { DateField } from '../../components/DateField'
+import { positive } from './AddRandoModal'
 import { Modal } from '../../components/Modal'
 import { updateRando } from '../../core/firebase/randos'
 import type { Difficulty, Rando } from '../../core/types'
@@ -31,8 +32,8 @@ export function EditRandoModal({ rando: r, onClose }: EditRandoModalProps) {
         diff: (String(form.get('diff')) || 'Moyen') as Difficulty,
         dateStart: String(form.get('dateStart') ?? '') || undefined,
         dateEnd: isTrek ? String(form.get('dateEnd') ?? '') || undefined : undefined,
-        km: Number(form.get('km')) || undefined,
-        dplus: Number(form.get('dplus')) || undefined,
+        km: positive(form.get('km')),
+        dplus: positive(form.get('dplus')),
         komoot: String(form.get('komoot') ?? '').trim() || undefined,
       })
       onClose()
@@ -113,11 +114,11 @@ export function EditRandoModal({ rando: r, onClose }: EditRandoModalProps) {
         <div className="form-row2" style={{ marginBottom: 12 }}>
           <div>
             <label className="form-lbl">Distance (km)</label>
-            <input className="form-input" name="km" type="number" defaultValue={r.km ?? ''} placeholder="15" />
+            <input className="form-input" name="km" type="number" min="0" defaultValue={r.km ?? ''} placeholder="15" />
           </div>
           <div>
             <label className="form-lbl">Dénivelé (m D+)</label>
-            <input className="form-input" name="dplus" type="number" defaultValue={r.dplus ?? ''} placeholder="850" />
+            <input className="form-input" name="dplus" type="number" min="0" defaultValue={r.dplus ?? ''} placeholder="850" />
           </div>
         </div>
         {error && (

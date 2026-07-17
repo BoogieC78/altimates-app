@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 interface DateFieldProps {
   name: string
@@ -18,8 +18,20 @@ function frenchDate(iso: string): string {
 // ignorent l'attribut lang de la page pour le format des <input type="date">.
 export function DateField({ name, defaultValue, required }: DateFieldProps) {
   const [value, setValue] = useState(defaultValue ?? '')
+  const inputRef = useRef<HTMLInputElement>(null)
+  // Le clic n'ouvre le calendrier natif que sur la zone de l'indicateur de
+  // l'input (invisible ici) — showPicker() l'ouvre depuis toute la surface.
+  const openPicker = () => {
+    const input = inputRef.current
+    if (!input) return
+    try {
+      input.showPicker()
+    } catch {
+      input.focus()
+    }
+  }
   return (
-    <div className="date-field">
+    <div className="date-field" onClick={openPicker}>
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <rect x="3" y="4" width="18" height="18" rx="2" />
         <line x1="16" y1="2" x2="16" y2="6" />
@@ -32,6 +44,7 @@ export function DateField({ name, defaultValue, required }: DateFieldProps) {
         <span className="date-field-label">JJ/MM/AAAA</span>
       )}
       <input
+        ref={inputRef}
         type="date"
         name={name}
         defaultValue={defaultValue}

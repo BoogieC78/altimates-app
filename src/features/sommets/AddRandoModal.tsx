@@ -4,6 +4,12 @@ import { Modal } from '../../components/Modal'
 import { addRando } from '../../core/firebase/randos'
 import type { Difficulty } from '../../core/types'
 
+/** Distance/dénivelé : seules les valeurs strictement positives sont retenues. */
+export function positive(v: FormDataEntryValue | null): number | undefined {
+  const n = Number(v)
+  return n > 0 ? n : undefined
+}
+
 interface AddRandoModalProps {
   memberName: string
   onClose: () => void
@@ -28,8 +34,8 @@ export function AddRandoModal({ memberName, onClose }: AddRandoModalProps) {
         diff: (String(form.get('diff')) || 'Moyen') as Difficulty,
         dateStart: String(form.get('dateStart') ?? '') || undefined,
         dateEnd: isTrek ? String(form.get('dateEnd') ?? '') || undefined : undefined,
-        km: Number(form.get('km')) || undefined,
-        dplus: Number(form.get('dplus')) || undefined,
+        km: positive(form.get('km')),
+        dplus: positive(form.get('dplus')),
         komoot: String(form.get('komoot') ?? '').trim() || undefined,
         proposedBy: memberName,
       })
@@ -106,11 +112,11 @@ export function AddRandoModal({ memberName, onClose }: AddRandoModalProps) {
         <div className="form-row2" style={{ marginBottom: 12 }}>
           <div>
             <label className="form-lbl">Distance (km)</label>
-            <input className="form-input" name="km" type="number" placeholder="15" />
+            <input className="form-input" name="km" type="number" min="0" placeholder="15" />
           </div>
           <div>
             <label className="form-lbl">Dénivelé (m D+)</label>
-            <input className="form-input" name="dplus" type="number" placeholder="850" />
+            <input className="form-input" name="dplus" type="number" min="0" placeholder="850" />
           </div>
         </div>
         {error && (

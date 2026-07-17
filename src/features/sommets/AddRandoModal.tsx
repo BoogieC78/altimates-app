@@ -13,11 +13,19 @@ export function positive(v: FormDataEntryValue | null): number | undefined {
 /**
  * Ne laisse passer que des chiffres dans le champ, quelle que soit la source
  * (frappe, collage, autofill) — un onKeyDown seul n'attrape pas le collage.
+ * Sur un type="number", value est '' quand le contenu est invalide (ex. "1e5"
+ * en cours de frappe) : on ne peut alors rien nettoyer, d'où le blocage
+ * clavier complémentaire de blockNonDigitKeys.
  */
 export function digitsOnlyInput(e: React.FormEvent<HTMLInputElement>) {
   const el = e.currentTarget
   const cleaned = el.value.replace(/\D/g, '')
   if (el.value !== cleaned) el.value = cleaned
+}
+
+/** Bloque e/E, +/-, . et , que type="number" accepterait sinon (flèches natives conservées). */
+export function blockNonDigitKeys(e: React.KeyboardEvent<HTMLInputElement>) {
+  if (['e', 'E', '+', '-', '.', ','].includes(e.key)) e.preventDefault()
 }
 
 interface AddRandoModalProps {
@@ -122,11 +130,11 @@ export function AddRandoModal({ memberName, onClose }: AddRandoModalProps) {
         <div className="form-row2" style={{ marginBottom: 12 }}>
           <div>
             <label className="form-lbl">Distance (km)</label>
-            <input className="form-input" name="km" type="text" inputMode="numeric" onInput={digitsOnlyInput} placeholder="15" />
+            <input className="form-input" name="km" type="number" min="1" step="1" inputMode="numeric" onKeyDown={blockNonDigitKeys} onInput={digitsOnlyInput} placeholder="15" />
           </div>
           <div>
             <label className="form-lbl">Dénivelé (m D+)</label>
-            <input className="form-input" name="dplus" type="text" inputMode="numeric" onInput={digitsOnlyInput} placeholder="850" />
+            <input className="form-input" name="dplus" type="number" min="1" step="1" inputMode="numeric" onKeyDown={blockNonDigitKeys} onInput={digitsOnlyInput} placeholder="850" />
           </div>
         </div>
         {error && (

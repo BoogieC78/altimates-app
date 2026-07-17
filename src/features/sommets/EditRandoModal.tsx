@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { DateField, frToIso } from '../../components/DateField'
-import { digitsOnlyInput, positive } from './AddRandoModal'
+import { blockNonDigitKeys, digitsOnlyInput, positive } from './AddRandoModal'
 import { Modal } from '../../components/Modal'
 import { updateRando } from '../../core/firebase/randos'
 import type { Difficulty, Rando } from '../../core/types'
@@ -114,11 +114,11 @@ export function EditRandoModal({ rando: r, onClose }: EditRandoModalProps) {
         <div className="form-row2" style={{ marginBottom: 12 }}>
           <div>
             <label className="form-lbl">Distance (km)</label>
-            <input className="form-input" name="km" type="text" inputMode="numeric" onInput={digitsOnlyInput} defaultValue={r.km ?? ''} placeholder="15" />
+            <input className="form-input" name="km" type="number" min="1" step="1" inputMode="numeric" onKeyDown={blockNonDigitKeys} onInput={digitsOnlyInput} defaultValue={r.km ?? ''} placeholder="15" />
           </div>
           <div>
             <label className="form-lbl">Dénivelé (m D+)</label>
-            <input className="form-input" name="dplus" type="text" inputMode="numeric" onInput={digitsOnlyInput} defaultValue={r.dplus ?? ''} placeholder="850" />
+            <input className="form-input" name="dplus" type="number" min="1" step="1" inputMode="numeric" onKeyDown={blockNonDigitKeys} onInput={digitsOnlyInput} defaultValue={r.dplus ?? ''} placeholder="850" />
           </div>
         </div>
         {error && (

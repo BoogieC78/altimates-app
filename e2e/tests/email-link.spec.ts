@@ -81,9 +81,9 @@ test.describe('Connexion par e-mail (lien magique)', () => {
     await page.getByPlaceholder('Ton prénom').fill('Ousmane')
     await page.locator('input[name="firstname"]').press('Enter')
 
-    // Prénom enregistré : modal fermée, avatar aux initiales du prénom.
+    // Prénom enregistré : modal fermée, prénom complet affiché dans le header.
     await expect(page.getByText(/Comment doit-on t'appeler/i)).toHaveCount(0)
-    await expect(page.locator('.av-btn')).toHaveText('OU')
+    await expect(page.locator('.av-btn')).toHaveText('Ousmane')
   })
 
   test('adresse e-mail invalide : message d\'erreur', async ({ page }) => {

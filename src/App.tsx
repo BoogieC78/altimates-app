@@ -217,7 +217,7 @@ export default function App() {
             title="Mon Base Camp"
             aria-label="Mon Base Camp"
           >
-            {memberName.slice(0, 2).toUpperCase()}
+            {memberName}
           </button>
         </div>
 

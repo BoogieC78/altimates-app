@@ -28,7 +28,7 @@ html,body{height:100%;background:var(--kraft);color:var(--ink);font-family:var(-
 .logo-name .alti{font-family:var(--font);font-weight:800;font-size:16px;color:var(--ink);letter-spacing:.04em}
 .logo-name .mates{font-family:var(--font);font-weight:700;font-style:italic;font-size:16px;color:var(--gold2);letter-spacing:-.1px}
 .logo-sub{font-size:8px;color:var(--ink4);font-family:var(--mono);letter-spacing:.08em;margin-top:1px}
-.av-btn{width:30px;height:30px;border-radius:50%;border:none;cursor:pointer;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;background:var(--gold-bg);color:var(--ink);font-family:var(--mono);transition:transform .15s}
+.av-btn{height:30px;padding:0 12px;max-width:140px;border-radius:15px;border:none;cursor:pointer;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;background:var(--gold-bg);color:var(--ink);font-family:var(--mono);transition:transform .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.04em}
 .av-btn:active{transform:scale(.9)}
 
 /* ── NAV ── */

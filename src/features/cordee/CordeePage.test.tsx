@@ -25,9 +25,10 @@ vi.mock('../../core/firebase/depart', () => ({
   assignDepartItem: vi.fn(() => Promise.resolve()),
   deleteDepartItem: vi.fn(() => Promise.resolve()),
   toggleDepartDone: vi.fn(() => Promise.resolve()),
+  withdrawDepartItem: vi.fn(() => Promise.resolve()),
 }))
 
-import { assignDepartItem, toggleDepartDone } from '../../core/firebase/depart'
+import { assignDepartItem, toggleDepartDone, withdrawDepartItem } from '../../core/firebase/depart'
 import { CordeePage } from './CordeePage'
 
 afterEach(() => {
@@ -51,24 +52,43 @@ describe('CordeePage', () => {
     expect(screen.getByText('Expert')).toBeTruthy()
   })
 
-  it('le toggle de la checklist départ appelle toggleDepartDone', () => {
+  it('le bouton d\'état « À préparer » passe l\'item à prêt via toggleDepartDone', () => {
     state.departItems = [{ docId: 'd1', id: 1, name: 'Tente', done: false }]
-    const { container } = render(<CordeePage memberName="Wacil" />)
-    fireEvent.click(container.querySelector('.gear-check')!)
+    render(<CordeePage memberName="Wacil" />)
+    fireEvent.click(screen.getByText('À préparer'))
     expect(toggleDepartDone).toHaveBeenCalledWith('d1', true)
   })
 
-  it("« Prendre en charge » assigne l'item au membre, « Me retirer » le désassigne", () => {
+  it('le bouton d\'état « ✓ Prêt » repasse l\'item à préparer', () => {
+    state.departItems = [{ docId: 'd1', id: 1, name: 'Tente', done: true }]
+    render(<CordeePage memberName="Wacil" />)
+    fireEvent.click(screen.getByText('✓ Prêt'))
+    expect(toggleDepartDone).toHaveBeenCalledWith('d1', false)
+  })
+
+  it("« Prendre en charge » assigne l'item, « Me retirer » désassigne ET remet à préparer", () => {
     state.departItems = [
       { docId: 'd1', id: 1, name: 'Tente', done: false },
-      { docId: 'd2', id: 2, name: 'Réchaud', done: false, assignee: 'Wacil' },
+      { docId: 'd2', id: 2, name: 'Réchaud', done: true, assignee: 'Wacil' },
     ]
     render(<CordeePage memberName="Wacil" />)
-    expect(screen.getByText('Pris en charge par Wacil')).toBeTruthy()
     fireEvent.click(screen.getByText('Prendre en charge'))
     expect(assignDepartItem).toHaveBeenCalledWith('d1', 'Wacil')
     fireEvent.click(screen.getByText('Me retirer'))
-    expect(assignDepartItem).toHaveBeenCalledWith('d2', null)
+    expect(withdrawDepartItem).toHaveBeenCalledWith('d2')
+    expect(assignDepartItem).toHaveBeenCalledTimes(1)
+  })
+
+  it("la ligne d'état combine assignation et préparation", () => {
+    state.departItems = [
+      { docId: 'd1', id: 1, name: 'Tente', done: false, assignee: 'Wacil' },
+      { docId: 'd2', id: 2, name: 'Réchaud', done: true, assignee: 'Adebola' },
+      { docId: 'd3', id: 3, name: 'Corde', done: false },
+    ]
+    render(<CordeePage memberName="Wacil" />)
+    expect(screen.getByText("Wacil s'en occupe · pas encore prêt")).toBeTruthy()
+    expect(screen.getByText("Adebola s'en occupe · prêt")).toBeTruthy()
+    expect(screen.getByText('Personne dessus')).toBeTruthy()
   })
 
   it('affiche AUCUN ARTICLE quand la checklist est vide', () => {

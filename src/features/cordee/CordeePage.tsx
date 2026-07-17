@@ -5,6 +5,7 @@ import {
   assignDepartItem,
   deleteDepartItem,
   toggleDepartDone,
+  withdrawDepartItem,
 } from '../../core/firebase/depart'
 import { findGearItem } from '../../core/services/kit'
 import { LVLS, type Level } from '../../core/constants/gear'
@@ -175,20 +176,28 @@ export function CordeePage({ memberName }: CordeePageProps) {
       <div className="card" style={{ padding: '0 14px' }}>
         {sortedDepart.map((item) => (
           <div className="gear-item" key={item.docId}>
-            <div
-              className={item.done ? 'gear-check done' : 'gear-check'}
+            <button
+              className={item.done ? 'depart-state done' : 'depart-state'}
               onClick={() => void toggleDepartDone(item.docId, !item.done)}
-            />
+            >
+              {item.done ? '✓ Prêt' : 'À préparer'}
+            </button>
             <div style={{ flex: 1 }}>
               <div className={item.done ? 'gear-name done' : 'gear-name'}>{item.name}</div>
               <div style={{ fontSize: 9, color: 'var(--ink3)', fontFamily: 'var(--mono)', marginTop: 2 }}>
-                {item.assignee ? `Pris en charge par ${item.assignee}` : 'Personne dessus'}
+                {item.assignee
+                  ? `${item.assignee} s'en occupe · ${item.done ? 'prêt' : 'pas encore prêt'}`
+                  : 'Personne dessus'}
               </div>
             </div>
             <button
               className="btn btn-sm"
               style={{ fontSize: 9 }}
-              onClick={() => void assignDepartItem(item.docId, item.assignee === memberName ? null : memberName)}
+              onClick={() =>
+                void (item.assignee === memberName
+                  ? withdrawDepartItem(item.docId)
+                  : assignDepartItem(item.docId, memberName))
+              }
             >
               {item.assignee === memberName ? 'Me retirer' : 'Prendre en charge'}
             </button>

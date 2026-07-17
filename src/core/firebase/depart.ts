@@ -23,9 +23,14 @@ export async function toggleDepartDone(docId: string, done: boolean): Promise<vo
   await updateDoc(doc(db, 'departItems', docId), { done })
 }
 
-/** "Prendre en charge" : s'assigne l'article ; repasser à null si on se désassigne. */
+/** "Prendre en charge" : s'assigne l'article. */
 export async function assignDepartItem(docId: string, assignee: string | null): Promise<void> {
   await updateDoc(doc(db, 'departItems', docId), { assignee })
+}
+
+/** "Me retirer" : se désassigne ET remet l'article "à préparer" (retour Adebola : un retrait doit décocher). */
+export async function withdrawDepartItem(docId: string): Promise<void> {
+  await updateDoc(doc(db, 'departItems', docId), { assignee: null, done: false })
 }
 
 export async function deleteDepartItem(docId: string): Promise<void> {

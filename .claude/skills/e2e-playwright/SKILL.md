@@ -13,7 +13,7 @@ général et [`BACKLOG.md`](../../../BACKLOG.md) pour les tâches liées déjà 
 
 ## Inventaire actuel — comment l'obtenir à jour
 
-Les nombres ci-dessous datent du **2026-07-10**. Avant de t'y fier pour une décision (« qu'est-ce
+Les nombres ci-dessous datent du **2026-07-17**. Avant de t'y fier pour une décision (« qu'est-ce
 qui manque ? »), regénère-les — la suite évolue vite :
 
 ```bash
@@ -28,21 +28,22 @@ for f in e2e/tests/*.spec.ts; do echo "### $(basename "$f")"; grep -nE '^\s*test
 npm test 2>&1 | grep -E "Tests |Test Files"
 ```
 
-### Snapshot au 2026-07-10 : 28 cas E2E (11 fichiers) + 102 tests unitaires (21 fichiers)
+### Snapshot au 2026-07-17 : 32 cas E2E (12 fichiers) + 130 tests unitaires (25 fichiers)
 
 | Fichier | Cas | Couvre |
 |---|---|---|
 | `login.spec.ts` | 5 | connexion Google, rejet hors whitelist, gating onglet Admin (admin codé en dur + admin whitelisté + non-admin) |
-| `email-link.spec.ts` | 4 | connexion par lien e-mail sans pop-up (cross-device), rejet hors whitelist, tour guidé pour un nouveau membre, e-mail invalide |
+| `email-link.spec.ts` | 5 | connexion par lien e-mail sans pop-up (cross-device), rejet hors whitelist, tour guidé pour un nouveau membre, e-mail invalide |
 | `admin-access.spec.ts` | 2 | ajout d'un email → accès accordé ; retrait → accès révoqué (whitelist dynamique `config/allowedEmails`) |
-| `admin.spec.ts` | 1 | accès au panneau Admin (sections visibles) |
+| `admin.spec.ts` | 2 | accès au panneau Admin (sections visibles) |
 | `sommets.spec.ts` | 4 | proposer une rando, voter "partant"/retirer, exclusivité "peut-être", suppression par le proposeur |
 | `basecamp.spec.ts` | 5 | ouverture via l'avatar, configurer/modifier le profil, lien vers Kit, Réinitialiser, Déconnexion |
 | `kit.spec.ts` | 1 | onboarding (niveau + mode) → checklist matériel |
 | `radio.spec.ts` | 1 | poster un message |
-| `idees.spec.ts` | 2 | soumettre une idée, bascule vue Liste/Kanban |
+| `idees.spec.ts` | 1 | soumettre une idée, bascule vue Liste/Kanban |
 | `navigation.spec.ts` | 2 | smoke sur tous les onglets (zéro erreur JS), déconnexion |
 | `tour.spec.ts` | 1 | tour guidé à la première connexion |
+| `fenetre.spec.ts` | 3 | calendrier de dispos (Fenêtre) |
 
 ### Trous de couverture connus (aucun test E2E)
 
@@ -167,6 +168,9 @@ causes typiques sont documentées dans "Pièges connus" ci-dessous.
 - **`displayName` non propagé par l'émulateur Auth** → `useMemberName` retombe sur "Anonyme". Ne
   jamais asserter sur le prénom/les initiales affichées après un login émulateur brut ; passer par
   la configuration de profil (Base Camp → Configurer) si le nom affiché doit être vérifié.
+- **Champ date = input texte au format `JJ/MM/AAAA`** depuis v0.3.4 (calendrier custom
+  français) : `page.locator('input[name="dateStart"]').fill('20/09/2099')` — plus jamais
+  l'ISO `2099-09-20` (la valeur serait tronquée par le masque et la date perdue au submit).
 - **JDK ≥ 21 requis** pour l'émulateur Firestore (`firebase-tools` refuse < 21, erreur explicite).
   La CI le gère via `actions/setup-java`. En local, il faut l'avoir sur le PATH.
 

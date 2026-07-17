@@ -27,8 +27,15 @@ Pièges UI déjà rencontrés (ne pas re-diagnostiquer de zéro) :
   et masquer sous modale via `body:has(.modal-wrap.open)`.
 - **Images externes cassées en déployé mais OK en local** : penser CSP (`vercel.json`).
   `google.com/s2/favicons` redirige vers `tN.gstatic.com` → `img-src https://*.gstatic.com`.
-- **Dates au format US** : les navigateurs ignorent `lang` pour `<input type="date">`.
-  Utiliser [DateField.tsx](../../../src/components/DateField.tsx) (affichage JJ/MM/AAAA, valeur ISO).
+- **Dates au format US / calendrier en anglais** : les navigateurs ignorent `lang` pour
+  `<input type="date">` (format ET langue du picker natif — `showPicker()` n'y change rien).
+  Utiliser [DateField.tsx](../../../src/components/DateField.tsx) (v0.3.4) : input texte
+  masqué JJ/MM/AAAA + calendrier custom en français ; la valeur FormData est en JJ/MM/AAAA,
+  convertir avec `frToIso()` au submit (rejette les dates inexistantes type 31/02).
+- **Champ nombre positif** : `type=number` + `min=0` + `onKeyDown` ne suffisent PAS — le
+  collage et la notation `-4454.7e2` passent. Pattern retenu (`digitsOnlyInput` dans
+  AddRandoModal.tsx) : `type=text inputMode=numeric` + strip des non-chiffres à l'`onInput`,
+  et garde `positive()` au submit.
 - Votes rando : `VoteValue = 'oui' | 'peut' | 'non'` — boutons ✅ PARTANT / 🤔 PEUT-ÊTRE / 🇨🇳 PAS PARTANT.
 
 ## 3. Vérifier

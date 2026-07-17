@@ -44,14 +44,21 @@ Mettre à jour les tests impactés (unitaires + specs Playwright) dans le même 
 
 ## 4. Livrer en staging
 
-Commit conventionnel + push `main`. La CI ci+e2e tourne mais **deploy-staging échoue tant que
-les secrets GitHub manquent** (carte cgDN7iPJ) → déployer via CLI Vercel locale : procédure
-exacte dans le skill `environnements` (§ CLI Vercel). Ensuite, **commentaire sur chaque carte
+Commit conventionnel + push `main`. **Depuis le 2026-07-17 les secrets GitHub sont configurés** :
+la CI enchaîne ci+e2e → deploy-staging → smoke-staging automatiquement (plus besoin de la CLI
+Vercel locale, qui reste un fallback — skill `environnements`). Si un job deploy/smoke est rouge
+avec ci+e2e verts : souvent un transitoire GitHub/Vercel (503, "fetch failed", 403 artefact) —
+vérifier le log réel puis `gh run rerun <id> --failed`. Ensuite, **commentaire sur chaque carte
 Trello** : "🚀 Livré en staging (URL) le JJ/MM, commit abc1234 — en attente de validation".
 
 Rappels staging : partage la base **prod** ; protégé SSO Vercel (302 anonyme = normal) ;
 jamais d'auto-login déployé (invariant sécurité — refusé explicitement, voir carte 6W9BQWgd
 pour la vraie solution staging isolé).
+
+Piège UI supplémentaire (session 2026-07-17) : **membres "Anonyme"** — un login par lien e-mail
+n'a pas de displayName ; le prénom vient de `NamePromptModal` (modal bloquante au premier login),
+`useMemberName` traite 'Anonyme' comme absent, et `useAuth` persiste email/displayName dans
+`users/{uid}`. Le header affiche le prénom complet (`.av-btn`), plus d'initiales.
 
 ## 5. Passer en prod (sur demande explicite de Wacil uniquement)
 

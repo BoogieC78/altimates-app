@@ -40,9 +40,11 @@ Protégé par le SSO Vercel ("Standard Protection") : un humain doit être conne
 ### GitHub (repo BoogieC78/altimates-app, public)
 - Environnements : `staging` (libre), `Production` (required reviewer = BoogieC78).
 - Secrets Actions requis : `VERCEL_TOKEN`, `VERCEL_ORG_ID` (`team_eN8LH1WWtK0aoku1wneXdPdM`), `VERCEL_PROJECT_ID` (`prj_e5C0TNRoPMjcTyQOGRl9TwFOo75n`), `VERCEL_AUTOMATION_BYPASS_SECRET`.
-- ⚠️ **État 2026-07-15 : AUCUN secret configuré** (`gh secret list` vide) → les jobs deploy-staging/deploy-production de la CI échouent. Carte Trello https://trello.com/c/cgDN7iPJ (action Wacil). En attendant, déployer via CLI Vercel locale (voir ci-dessous).
+- ✅ **État 2026-07-17 : secrets configurés et pipeline complet vérifié** (release v0.3.3 : deploy-staging + smoke-staging + deploy-production verts de bout en bout). Le chemin nominal est la CI ; la CLI locale ci-dessous reste un fallback en cas d'indispo GitHub/Vercel.
+- **Approbation prod** : uniquement Wacil dans l'UI GitHub (Actions > Review deployments). L'approbation via `gh api pending_deployments` est bloquée par le classifier (gate humaine voulue) — ne pas retenter, passer par la CLI locale si Wacil donne le go dans la conversation.
+- **APIs GitHub/Vercel parfois instables** (503, "fetch failed", 403 sur upload-artifact) : un job deploy/smoke rouge avec ci+e2e verts = vérifier d'abord si les tests ont réellement échoué dans le log (`gh run view <id> --log | grep passed`) avant de chercher un bug, puis `gh run rerun <id> --failed`.
 
-### Déploiement via CLI Vercel locale (fallback tant que les secrets CI manquent)
+### Déploiement via CLI Vercel locale (fallback si CI indisponible ou go donné en conversation)
 CLI loggée sur ce Mac (compte hammadounordine, projet lié via `.vercel/project.json`). Reproduit exactement les jobs CI :
 ```bash
 # Staging (après push main + CI ci/e2e verts)

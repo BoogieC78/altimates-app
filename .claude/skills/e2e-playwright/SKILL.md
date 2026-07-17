@@ -132,6 +132,22 @@ causes typiques sont documentées dans "Pièges connus" ci-dessous.
 
 ## Pièges connus (déjà rencontrés, pour ne pas les répéter)
 
+- **Modal prénom obligatoire** (depuis v0.3.3, `NamePromptModal`) : tout login **par lien e-mail**
+  (pas de displayName) affiche une modal bloquante "Comment doit-on t'appeler ?" avant l'app —
+  et une modale ouverte **masque la barre Proposer** (`body:has(.modal-wrap.open)` dans topo.css).
+  Un test lien e-mail doit saisir le prénom (`getByPlaceholder('Ton prénom')` + Enter) avant
+  d'asserter l'app. Les logins Google émulateur ne sont PAS concernés (le widget remplit
+  `#display-name-input`). Le header affiche le **prénom complet** dans `.av-btn` (plus d'initiales).
+- **`resetEmulators()` vérifie désormais les réponses HTTP** : un `fetch` DELETE ne rejette pas
+  sur un statut d'erreur — avant ce durcissement, un reset silencieusement raté laissait fuiter
+  l'état du test précédent (flake vécu : profil 'Ousmane' survivant au beforeEach, visible
+  uniquement en suite complète). Si un test voit des données d'un autre test, suspecter ce
+  mécanisme en premier.
+- **Un flake "local vert / CI rouge" peut être une vraie course applicative** : le fix Anonyme
+  est passé 3× en local puis a cassé en CI car l'assertion arrivait avant/après l'apparition de
+  la modal selon la latence du `onSnapshot`. Toujours rendre le test déterministe vis-à-vis du
+  nouvel état (attendre la modal explicitement) plutôt que de compter sur le timing.
+
 - **Bottom-sheets recouverts par la nav fixe** : le bouton submit d'un modal bottom-sheet peut être
   recouvert par la nav pendant l'animation → `.click()` timeout ou clique au mauvais endroit. Fix
   utilisé : soumettre au clavier (`locator('input[name="x"]').press('Enter')`) plutôt que cliquer le

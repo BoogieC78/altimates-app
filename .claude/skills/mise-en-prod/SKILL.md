@@ -18,7 +18,7 @@ QA manuelle : tester sur l'URL staging AVANT d'approuver. Rejeter = bouton "Reje
 
 Secrets GitHub Actions requis (Settings > Secrets and variables > Actions) : `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `VERCEL_AUTOMATION_BYPASS_SECRET` (Vercel > Settings > Deployment Protection > Protection Bypass for Automation). Environnement GitHub `production` = required reviewer (protection du go).
 
-⚠️ **Tant que ces secrets ne sont pas configurés** (état 2026-07-15, carte Trello cgDN7iPJ), les jobs deploy-* échouent : déployer via la **CLI Vercel locale** — procédure exacte dans le skill `environnements` (§ "Déploiement via CLI Vercel locale"). Le "go" prod = validation humaine du staging par Wacil dans la conversation, à exiger avant `vercel deploy --prod`. Release v0.3.1 (2026-07-15) livrée ainsi.
+✅ **Secrets configurés depuis le 2026-07-17** : pipeline complet vérifié (release v0.3.3, deploy-production vert après approbation Wacil). Le "go" prod = soit l'approbation GitHub par Wacil (Review deployments — je ne peux PAS approuver via API, bloqué par le classifier), soit un go explicite dans la conversation → alors déployer via la CLI Vercel locale (procédure dans le skill `environnements`), comme pour v0.3.1 et v0.3.3. Après un deploy CLI, le run GitHub reste en "waiting" — le signaler à Wacil (Approve/Reject indifférent, même commit).
 
 Lancer les smoke en local contre n'importe quel environnement :
 ```bash

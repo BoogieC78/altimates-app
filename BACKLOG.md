@@ -38,6 +38,8 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
   persisté par l'onboarding Kit. Fix : modal prénom obligatoire au premier login, 'Anonyme' traité
   comme absent, email/displayName persistés dans users/{uid}. Livré prod v0.3.3 (2026-07-17,
   carte Trello FMl7ZRjm).
+- [x] **Header : avatar « AN » incompréhensible** — prénom complet affiché en pastille dans le
+  header (retour Adebola). Livré prod 2026-07-17 (carte Trello jGR5Kq1F).
 - [ ] **Bugs Base Camp** — signalés (« il y a des bugs ») mais pas encore détaillés.
   → À faire : lister précisément les symptômes (captures) puis corriger.
 - [x] **Kit : popup info article tronquée** — livré prod v0.3.1 (2026-07-15).

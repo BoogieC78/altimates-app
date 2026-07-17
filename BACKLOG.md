@@ -96,6 +96,10 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
 
 ## ✅ Déjà fait (contexte)
 
+- **Flèches Distance/Dénivelé restaurées** (v0.3.7) : le durcissement v0.3.4 (type=text) avait fait
+  disparaître les spinners natifs (retour Adebola) → retour à type=number (min=1, step=1) avec tous
+  les garde-fous conservés (blocage clavier e/./-/+/,, nettoyage collage, entier positif au submit).
+  Carte Trello 6a5a8a45.
 - **Modifier mon profil mis en avant** (v0.3.6) : le bouton était noyé en bas du Base Camp → bouton
   primaire pleine largeur (ink/gold, icône crayon) sous les Personal Bests, Déconnexion/Réinitialiser
   côte à côte en dessous. Option validée sur maquette visuelle. Carte Trello 6a5a84ab.

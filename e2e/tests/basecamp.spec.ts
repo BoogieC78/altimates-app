@@ -37,8 +37,8 @@ test.describe('Base Camp (écran compte via avatar)', () => {
     await expect(page.locator('.bc-name')).toHaveText('Wacil Test')
     await expect(page.getByText('Expert')).toBeVisible()
 
-    // "Modifier profil" rouvre la modale pré-remplie.
-    await page.getByRole('button', { name: 'Modifier profil' }).click()
+    // "Modifier mon profil" rouvre la modale pré-remplie.
+    await page.getByRole('button', { name: 'Modifier mon profil' }).click()
     await expect(page.locator('.modal-title', { hasText: 'Modifier profil' })).toBeVisible()
     await expect(page.locator('.modal input.form-input').first()).toHaveValue('Wacil Test')
   })

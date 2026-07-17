@@ -241,21 +241,28 @@ export function BasecampPage({ user, memberName, onGoKit }: BasecampPageProps) {
       </div>
 
       <div className="bc-section">
-        <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
-          <button className="btn btn-sm" onClick={() => setEditing(true)}>
-            Modifier profil
+        <button className="btn btn-primary btn-full" onClick={() => setEditing(true)}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+          </svg>
+          Modifier mon profil
+        </button>
+        <div style={{ display: 'flex', gap: 7, marginTop: 10 }}>
+          <button
+            className="btn btn-sm"
+            style={{ flex: 1, justifyContent: 'center' }}
+            onClick={() => void signOut()}
+          >
+            Déconnexion
           </button>
-          <button className="btn btn-sm btn-danger" onClick={handleReset}>
+          <button
+            className="btn btn-sm btn-danger"
+            style={{ flex: 1, justifyContent: 'center' }}
+            onClick={handleReset}
+          >
             Réinitialiser
           </button>
         </div>
-        <button
-          className="btn btn-sm"
-          onClick={() => void signOut()}
-          style={{ marginTop: 10, width: '100%', justifyContent: 'center' }}
-        >
-          Déconnexion
-        </button>
       </div>
 
       {editing && (

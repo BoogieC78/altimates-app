@@ -96,6 +96,10 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
 
 ## ✅ Déjà fait (contexte)
 
+- **Checklist départ clarifiée** (v0.3.5) : la checkbox nue se confondait avec la prise en charge
+  (retour Adebola) → chip explicite "À préparer / ✓ Prêt", ligne d'état combinée ("Wacil s'en occupe ·
+  pas encore prêt"), et "Me retirer" remet aussi l'article à préparer. Première spec E2E Cordée (3 cas).
+  Carte Trello 6a5a58d0.
 - **Proposer une rando : date + saisies durcies** (v0.3.4) : calendrier custom en français (le picker
   natif suit la langue du navigateur, `lang` ignoré), saisie date au clavier avec masque JJ/MM/AAAA
   (`frToIso` au submit, 31/02 rejeté), distance/dénivelé limités aux entiers positifs y compris au

@@ -12,7 +12,7 @@ test.describe('Sommets — proposer / voter / supprimer', () => {
     await page.locator('input[name="name"]').fill('Aiguille du Midi')
     await page.locator('input[name="region"]').fill('Haute-Savoie')
     await page.locator('select[name="diff"]').selectOption('Difficile')
-    await page.locator('input[name="dateStart"]').fill('2099-09-20')
+    await page.locator('input[name="dateStart"]').fill('20/09/2099')
     await page.locator('input[name="km"]').fill('18')
     await page.locator('input[name="dplus"]').fill('1200')
 
@@ -72,7 +72,7 @@ test.describe('Sommets — proposer / voter / supprimer', () => {
     // Créer une rando dont Wacil est le proposeur (bouton corbeille visible).
     await page.getByRole('button', { name: /Proposer une rando/i }).click()
     await page.locator('input[name="name"]').fill('Rando à supprimer')
-    await page.locator('input[name="dateStart"]').fill('2099-10-01')
+    await page.locator('input[name="dateStart"]').fill('01/10/2099')
     await page.locator('input[name="name"]').press('Enter')
 
     const card = page.locator('.rcard', { hasText: 'Rando à supprimer' })

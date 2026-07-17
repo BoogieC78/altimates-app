@@ -1,13 +1,23 @@
 import { useState, type FormEvent } from 'react'
-import { DateField } from '../../components/DateField'
+import { DateField, frToIso } from '../../components/DateField'
 import { Modal } from '../../components/Modal'
 import { addRando } from '../../core/firebase/randos'
 import type { Difficulty } from '../../core/types'
 
-/** Distance/dénivelé : seules les valeurs strictement positives sont retenues. */
+/** Distance/dénivelé : seuls les entiers strictement positifs sont retenus. */
 export function positive(v: FormDataEntryValue | null): number | undefined {
-  const n = Number(v)
-  return n > 0 ? n : undefined
+  const n = Math.round(Number(v))
+  return Number.isFinite(n) && n > 0 ? n : undefined
+}
+
+/**
+ * Ne laisse passer que des chiffres dans le champ, quelle que soit la source
+ * (frappe, collage, autofill) — un onKeyDown seul n'attrape pas le collage.
+ */
+export function digitsOnlyInput(e: React.FormEvent<HTMLInputElement>) {
+  const el = e.currentTarget
+  const cleaned = el.value.replace(/\D/g, '')
+  if (el.value !== cleaned) el.value = cleaned
 }
 
 interface AddRandoModalProps {
@@ -32,8 +42,8 @@ export function AddRandoModal({ memberName, onClose }: AddRandoModalProps) {
         name,
         region: String(form.get('region') ?? '').trim() || 'France',
         diff: (String(form.get('diff')) || 'Moyen') as Difficulty,
-        dateStart: String(form.get('dateStart') ?? '') || undefined,
-        dateEnd: isTrek ? String(form.get('dateEnd') ?? '') || undefined : undefined,
+        dateStart: frToIso(String(form.get('dateStart') ?? '')) || undefined,
+        dateEnd: isTrek ? frToIso(String(form.get('dateEnd') ?? '')) || undefined : undefined,
         km: positive(form.get('km')),
         dplus: positive(form.get('dplus')),
         komoot: String(form.get('komoot') ?? '').trim() || undefined,
@@ -112,11 +122,11 @@ export function AddRandoModal({ memberName, onClose }: AddRandoModalProps) {
         <div className="form-row2" style={{ marginBottom: 12 }}>
           <div>
             <label className="form-lbl">Distance (km)</label>
-            <input className="form-input" name="km" type="number" min="0" placeholder="15" />
+            <input className="form-input" name="km" type="text" inputMode="numeric" onInput={digitsOnlyInput} placeholder="15" />
           </div>
           <div>
             <label className="form-lbl">Dénivelé (m D+)</label>
-            <input className="form-input" name="dplus" type="number" min="0" placeholder="850" />
+            <input className="form-input" name="dplus" type="text" inputMode="numeric" onInput={digitsOnlyInput} placeholder="850" />
           </div>
         </div>
         {error && (

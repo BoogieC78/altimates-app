@@ -32,7 +32,7 @@ const FLUSH_LABELS: Record<FlushableCollection, string> = {
   departItems: 'la checklist',
 }
 
-const APP_VERSION = 'v0.3.4 · ALTImates'
+const APP_VERSION = 'v0.3.5 · ALTImates'
 
 // Mêmes couleurs d'avatars que l'ancienne app.
 const AVATAR_COLORS = ['#E8C84A', '#4ADE80', '#60A5FA', '#F87171', '#A78BFA']

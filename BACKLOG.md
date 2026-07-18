@@ -96,6 +96,15 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
 
 ## ✅ Déjà fait (contexte)
 
+- **Modifier profil : Prénom + champs numériques durcis** (v0.3.8) : le champ "Nom" du modal
+  Base Camp renommé en "Prénom" ; les 5 champs stats (Km saison, D+ saison, Sorties, Best km,
+  Best D+) laissaient passer des caractères non numériques (`--71`) → saisie filtrée aux chiffres
+  uniquement. Cartes Trello 6a5b61ae7a18b1382e1aaf36, 6a5b61ae0ad86bc1af761526.
+- **Fenêtre : refonte UX du bloc Mon statut** (v0.3.8) : les 4 boutons pilules (DISPO/RETOUR
+  DIM./+1 JOUR/INDISPO) n'expliquaient pas leur sens ni la visibilité côté cordée → cartes
+  empilées (icône + titre + explication courte) + rappel "Visible par la cordée sur le
+  calendrier, à ton nom." Maquette validée par Wacil (option B sur 3 propositions). Carte Trello
+  6a5b7f426c415181c69f8454.
 - **Flèches Distance/Dénivelé restaurées** (v0.3.7) : le durcissement v0.3.4 (type=text) avait fait
   disparaître les spinners natifs (retour Adebola) → retour à type=number (min=1, step=1) avec tous
   les garde-fous conservés (blocage clavier e/./-/+/,, nettoyage collage, entier positif au submit).

@@ -8,6 +8,7 @@ import { useCollection } from '../../hooks/useCollection'
 import { useUserProfile, type Profile } from '../../hooks/useUserProfile'
 import { Modal } from '../../components/Modal'
 import { RandoDetailModal } from '../sommets/RandoDetailModal'
+import { blockNonDigitKeys } from '../sommets/AddRandoModal'
 
 interface BasecampPageProps {
   user: User
@@ -329,7 +330,7 @@ function EditProfileModal({
   return (
     <Modal title="Modifier profil" onClose={onClose}>
       <div style={{ marginBottom: 10 }}>
-        <label className="form-lbl">Nom</label>
+        <label className="form-lbl">Prénom</label>
         <input className="form-input" value={name} onChange={(e) => setName(e.target.value)} />
       </div>
       <div style={{ marginBottom: 10 }}>
@@ -348,10 +349,12 @@ function EditProfileModal({
             <label className="form-lbl">{l}</label>
             <input
               className="form-input"
-              type="number"
+              type="text"
+              inputMode="numeric"
               min={0}
               value={stats[k]}
-              onChange={(e) => setStats({ ...stats, [k]: e.target.value })}
+              onKeyDown={blockNonDigitKeys}
+              onChange={(e) => setStats({ ...stats, [k]: e.target.value.replace(/\D/g, '') })}
             />
           </div>
         ))}

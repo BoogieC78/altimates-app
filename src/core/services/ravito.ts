@@ -32,7 +32,7 @@ const RETOUR_MEALS: Record<string, RavitoStock> = {
 const FULL_MEALS: RavitoStock = { petitdej: 1, lunch: 1, snack: 2, diner: 1 }
 
 export function defaultRavitoEntry(): RavitoEntry {
-  return { config: { depart: 'matin', retour: 'apresmidi' }, stocks: {}, items: [] }
+  return { config: { depart: 'matin', retour: 'apresmidi' }, stocks: {}, items: [], electrolytes: {} }
 }
 
 /** Noms d'items (normalisés) ramenés par au moins 2 membres différents — doublon probable. */
@@ -105,7 +105,6 @@ export function defaultHydraEntry(): HydraEntry {
     capacite: 2000,
     filtreDisponible: false,
     segments: [{ id: 1, label: 'Départ → Point 1', source: 'ruisseau', km: 0 }],
-    electrolytes: {},
   }
 }
 

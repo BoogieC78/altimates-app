@@ -158,6 +158,8 @@ export interface RavitoEntry {
   stocks: Record<string, RavitoStock>
   /** répartition nommée : qui ramène quoi, pour éviter les doublons */
   items?: RavitoItem[]
+  /** clé = prénom du membre, valeur = nb de pastilles électrolytes/vitamines emportées */
+  electrolytes?: Record<string, number>
 }
 
 /** Doc ravito/shared : clé = id métier de la rando (String) */
@@ -185,8 +187,6 @@ export interface HydraEntry {
   capacite: number
   filtreDisponible: boolean
   segments: HydraSegment[]
-  /** clé = prénom du membre, valeur = a prévu pastilles électrolytes/vitamines */
-  electrolytes?: Record<string, boolean>
 }
 
 /** Doc hydra/shared : clé = id métier de la rando (String) */

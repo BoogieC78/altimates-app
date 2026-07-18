@@ -264,7 +264,7 @@ export function RandoDetailModal({ rando: r, memberName, onClose }: RandoDetailM
       </div>
       {tab === 'info' && <InfoTab rando={r} memberName={memberName} onClose={onClose} />}
       {tab === 'ravito' && <RavitoTab rando={r} memberName={memberName} />}
-      {tab === 'hydra' && <HydraTab rando={r} memberName={memberName} />}
+      {tab === 'hydra' && <HydraTab rando={r} />}
     </Modal>
   )
 }
@@ -519,6 +519,10 @@ function RavitoTab({ rando: r, memberName }: { rando: WithDocId<Rando>; memberNa
     save({ ...entry, stocks: { ...entry.stocks, [name]: { ...stock, [cat]: parseInt(val, 10) || 0 } } })
   }
 
+  const setElectrolytes = (name: string, val: string) => {
+    save({ ...entry, electrolytes: { ...(entry.electrolytes ?? {}), [name]: parseInt(val, 10) || 0 } })
+  }
+
   const besoinsTotal = MEAL_CATS.reduce((a, c) => a + Math.max(0, (besoins[c.id] || 0) - (stockTotal[c.id] || 0)), 0)
 
   const items = entry.items ?? []
@@ -649,6 +653,37 @@ function RavitoTab({ rando: r, memberName }: { rando: WithDocId<Rando>; memberNa
                   />
                 </div>
               ))}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Stock électrolytes */}
+      <div className="sec" style={{ marginTop: 4 }}>
+        Mon stock électrolytes
+      </div>
+      <div className="card" style={{ padding: '0 14px' }}>
+        {allMembres.map((name) => {
+          const isMe = name === memberName
+          return (
+            <div className="ravito-member-row" key={name}>
+              <div style={{ fontSize: 12, fontWeight: 500, minWidth: 70 }}>
+                {name}
+                {isMe ? ' (toi)' : ''}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, marginLeft: 'auto' }}>
+                <span style={{ fontSize: 8, color: 'var(--ink3)', fontFamily: 'var(--mono)' }}>Pastilles</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={99}
+                  className="ravito-stock-input"
+                  defaultValue={entry.electrolytes?.[name] || 0}
+                  onBlur={(e) => isMe && setElectrolytes(name, e.target.value)}
+                  disabled={!isMe}
+                  style={!isMe ? { opacity: 0.5 } : undefined}
+                />
+              </div>
             </div>
           )
         })}
@@ -788,7 +823,7 @@ function RavitoTab({ rando: r, memberName }: { rando: WithDocId<Rando>; memberNa
 
 // ── Onglet Hydratation ────────────────────────────────
 
-function HydraTab({ rando: r, memberName }: { rando: WithDocId<Rando>; memberName: string }) {
+function HydraTab({ rando: r }: { rando: WithDocId<Rando> }) {
   const hydra = useHydra()
   const randoId = String(r.id)
   const cfg: HydraEntry = hydra[randoId] ?? defaultHydraEntry()
@@ -796,19 +831,8 @@ function HydraTab({ rando: r, memberName }: { rando: WithDocId<Rando>; memberNam
   const jours = parseJours(r.dur)
   const besoins = calcHydraBesoins(jours, nMembres, cfg)
 
-  const partants = Object.entries(r.memberVotes ?? {})
-    .filter(([, v]) => v === 'oui')
-    .map(([name]) => name)
-  const allMembres = partants.length >= 2 ? partants : [memberName]
-
   const save = (next: HydraEntry) => {
     void saveHydraEntry(randoId, next).catch((e) => console.warn('saveHydra:', e))
-  }
-
-  const toggleElectrolytes = (name: string) => {
-    const electrolytes = { ...(cfg.electrolytes ?? {}) }
-    electrolytes[name] = !electrolytes[name]
-    save({ ...cfg, electrolytes })
   }
 
   const setNum = (key: keyof HydraEntry, val: string) => {
@@ -912,45 +936,6 @@ function HydraTab({ rando: r, memberName }: { rando: WithDocId<Rando>; memberNam
             <span style={{ color: 'var(--red)' }}>Capacité insuffisante — prévoir ravitaillement en eau</span>
           )}
         </div>
-      </div>
-
-      {/* Électrolytes / minéraux / vitamines */}
-      <div className="sec">Électrolytes / vitamines</div>
-      <div className="card" style={{ padding: '0 14px', marginBottom: 12 }}>
-        {allMembres.map((name) => {
-          const isMe = name === memberName
-          const checked = !!cfg.electrolytes?.[name]
-          return (
-            <div className="hydra-input-row" key={name}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 12, fontWeight: 500 }}>
-                  {name}
-                  {isMe ? ' (toi)' : ''}
-                </div>
-                <div style={{ fontSize: 10, color: 'var(--ink3)', fontFamily: 'var(--mono)' }}>
-                  Pastilles électrolytes / sels / vitamines
-                </div>
-              </div>
-              <button
-                onClick={() => isMe && toggleElectrolytes(name)}
-                disabled={!isMe}
-                style={{
-                  padding: '4px 12px',
-                  borderRadius: 20,
-                  border: '.5px solid var(--border2)',
-                  cursor: isMe ? 'pointer' : 'default',
-                  fontSize: 10,
-                  fontFamily: 'var(--mono)',
-                  background: checked ? 'var(--ink)' : 'transparent',
-                  color: checked ? 'var(--gold)' : 'var(--ink3)',
-                  opacity: isMe ? 1 : 0.6,
-                }}
-              >
-                {checked ? 'Prévu' : 'Pas prévu'}
-              </button>
-            </div>
-          )
-        })}
       </div>
 
       {/* Points d'eau sur le tracé */}

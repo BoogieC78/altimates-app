@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactElement } from 'react'
 import type { User } from 'firebase/auth'
 import { availabilityCol } from '../../core/firebase/collections'
 import { setDayAvailability } from '../../core/firebase/availability'
@@ -19,6 +19,24 @@ interface FenetrePageProps {
 }
 
 const STATUSES: AvailabilityStatus[] = ['dispo', 'retour', 'prolonge', 'indispo']
+
+const STATUS_ICONS: Record<AvailabilityStatus, ReactElement> = {
+  dispo: (
+    <path d="M20 6 9 17l-5-5" />
+  ),
+  retour: (
+    <path d="M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11" />
+  ),
+  prolonge: (
+    <>
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path d="M3 10h18M8 2v4M16 2v4M12 14v6M9 17h6" />
+    </>
+  ),
+  indispo: (
+    <path d="M18 6 6 18M6 6l12 12" />
+  ),
+}
 
 export function FenetrePage({ user, memberName }: FenetrePageProps) {
   const { data: docs, loading } = useCollection(availabilityCol)
@@ -52,18 +70,25 @@ export function FenetrePage({ user, memberName }: FenetrePageProps) {
       </div>
 
       <div className="sec">Mon statut</div>
-      <div className="fen-brushes">
+      <div className="fen-status-cards">
         {STATUSES.map((s) => (
           <button
             key={s}
-            className={brush === s ? 'fen-brush active' : 'fen-brush'}
+            className={brush === s ? 'fen-status-card active' : 'fen-status-card'}
             style={{ ['--brush' as string]: STATUS_META[s].color }}
             onClick={() => setBrush(s)}
           >
-            {STATUS_META[s].short}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              {STATUS_ICONS[s]}
+            </svg>
+            <span>
+              <span className="fen-status-title">{STATUS_META[s].label}</span>
+              <span className="fen-status-hint">{STATUS_META[s].hint}</span>
+            </span>
           </button>
         ))}
       </div>
+      <p className="fen-status-visibility">Visible par la cordée sur le calendrier, à ton nom.</p>
 
       <div className="sec" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <button className="fen-nav" onClick={prevMonth} aria-label="Mois précédent">

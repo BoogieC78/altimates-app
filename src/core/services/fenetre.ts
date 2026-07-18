@@ -5,11 +5,11 @@
 
 import type { AvailabilityStatus } from '../types'
 
-export const STATUS_META: Record<AvailabilityStatus, { label: string; short: string; color: string }> = {
-  dispo: { label: 'Disponible', short: 'DISPO', color: '#3E7C4F' },
-  retour: { label: 'Dispo · retour dimanche soir', short: 'RETOUR DIM.', color: '#C4831A' },
-  prolonge: { label: 'Dispo · peut prolonger d’un jour', short: '+1 JOUR', color: '#4A7FA8' },
-  indispo: { label: 'Indisponible', short: 'INDISPO', color: '#B3452F' },
+export const STATUS_META: Record<AvailabilityStatus, { label: string; short: string; hint: string; color: string }> = {
+  dispo: { label: 'Dispo', short: 'DISPO', hint: 'Partant sur tout le créneau', color: '#3E7C4F' },
+  retour: { label: 'Retour dimanche soir', short: 'RETOUR DIM.', hint: 'Dispo, mais rentre plus tôt', color: '#C4831A' },
+  prolonge: { label: '+1 jour possible', short: '+1 JOUR', hint: 'Dispo, peut prolonger si besoin', color: '#4A7FA8' },
+  indispo: { label: 'Indispo', short: 'INDISPO', hint: 'Pas dispo sur ce créneau', color: '#B3452F' },
 }
 
 /** Statuts qui comptent comme « peut partir ». */

@@ -143,10 +143,21 @@ export type MealId = 'petitdej' | 'lunch' | 'snack' | 'diner'
 /** Stock lyophilisé d'un membre : nb de repas par catégorie */
 export type RavitoStock = Record<MealId, number>
 
+export interface RavitoItem {
+  id: number
+  /** nom libre de l'item (ex: "Riz lyophilisé", "Barres de céréales") */
+  name: string
+  qty: number
+  /** prénom du membre qui ramène cet item */
+  assignee: string
+}
+
 export interface RavitoEntry {
   config: { depart: RavitoDepart; retour: RavitoRetour }
   /** clé = prénom du membre */
   stocks: Record<string, RavitoStock>
+  /** répartition nommée : qui ramène quoi, pour éviter les doublons */
+  items?: RavitoItem[]
 }
 
 /** Doc ravito/shared : clé = id métier de la rando (String) */
@@ -174,6 +185,8 @@ export interface HydraEntry {
   capacite: number
   filtreDisponible: boolean
   segments: HydraSegment[]
+  /** clé = prénom du membre, valeur = a prévu pastilles électrolytes/vitamines */
+  electrolytes?: Record<string, boolean>
 }
 
 /** Doc hydra/shared : clé = id métier de la rando (String) */

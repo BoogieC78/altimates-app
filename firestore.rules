@@ -60,10 +60,20 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Idées (onglet Idées) : vote/statut/commentaires/suppression ouverts à tout
+    // membre comme le reste des collections collaboratives, mais le texte et la
+    // catégorie ne sont modifiables que par l'auteur (édition après soumission).
+    match /feedbacks/{doc} {
+      allow read, create, delete: if isMember();
+      allow update: if isMember()
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['text', 'cat'])
+          || resource.data.author == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.profile.name);
+    }
+
     // Collections collaboratives : lecture/écriture pour tous les membres.
     match /{collection}/{doc} {
       allow read, write: if isMember()
-        && collection in ['randos', 'messages', 'feedbacks', 'departItems', 'ravito', 'hydra'];
+        && collection in ['randos', 'messages', 'departItems', 'ravito', 'hydra'];
     }
   }
 }

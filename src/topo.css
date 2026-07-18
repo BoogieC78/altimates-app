@@ -257,6 +257,10 @@ select.form-input{appearance:none}
 .vote-chip:hover{background:var(--kraft2)}
 .vote-chip.up-active{background:var(--green-bg);color:var(--green);border-color:#A8D8B0}
 .vote-chip.down-active{background:var(--red-bg);color:var(--red);border-color:#F0A090}
+.dplus-filter{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.dplus-chip{font-size:10px;padding:4px 10px;border-radius:20px;cursor:pointer;border:.5px solid var(--border2);background:transparent;color:var(--ink3);font-family:var(--mono);transition:all .15s}
+.dplus-chip:hover{background:var(--kraft2)}
+.dplus-chip.active{background:var(--gold-bg);color:var(--ink);border-color:rgba(200,168,50,.35)}
 .info-box{background:rgba(74,127,168,.08);border:.5px solid rgba(74,127,168,.25);border-radius:var(--r);padding:10px 12px;display:flex;gap:7px;align-items:flex-start;margin-bottom:11px}
 .info-box p{font-size:11px;color:var(--blue);line-height:1.6;font-family:var(--mono)}
 

@@ -5,8 +5,9 @@ import { GEAR, LVLS, type Level } from '../../core/constants/gear'
 import { jMinus, todayLocalISO } from '../../core/services/dates'
 import { signOut } from '../../core/firebase/auth'
 import { useCollection } from '../../hooks/useCollection'
-import { useUserProfile, type Profile } from '../../hooks/useUserProfile'
+import { useUserProfile, type PastOuting, type Profile } from '../../hooks/useUserProfile'
 import { Modal } from '../../components/Modal'
+import { TrashIcon } from '../../components/icons'
 import { RandoDetailModal } from '../sommets/RandoDetailModal'
 import { blockNonDigitKeys } from '../sommets/AddRandoModal'
 
@@ -241,6 +242,8 @@ export function BasecampPage({ user, memberName, onGoKit }: BasecampPageProps) {
         </div>
       </div>
 
+      <PastOutingsSection outings={profile?.pastOutings ?? []} onChange={(outings) => void update({ pastOutings: outings })} />
+
       <div className="bc-section">
         <button className="btn btn-primary btn-full" onClick={() => setEditing(true)}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -281,6 +284,102 @@ export function BasecampPage({ user, memberName, onGoKit }: BasecampPageProps) {
       {showNext && next && (
         <RandoDetailModal rando={next} memberName={memberName} onClose={() => setShowNext(false)} />
       )}
+    </div>
+  )
+}
+
+// Historique des sorties faites avant ALTImates (saisie manuelle) — pas de moteur
+// de recommandation aujourd'hui, juste un mémo perso pour éviter de reproposer
+// une sortie déjà faite.
+function PastOutingsSection({
+  outings,
+  onChange,
+}: {
+  outings: PastOuting[]
+  onChange: (outings: PastOuting[]) => void
+}) {
+  const [name, setName] = useState('')
+  const [km, setKm] = useState('')
+  const [dplus, setDplus] = useState('')
+
+  const add = () => {
+    const n = name.trim()
+    if (!n) return
+    const outing: PastOuting = {
+      id: Date.now(),
+      name: n,
+      km: parseInt(km, 10) || undefined,
+      dplus: parseInt(dplus, 10) || undefined,
+    }
+    setName('')
+    setKm('')
+    setDplus('')
+    onChange([...outings, outing])
+  }
+
+  const remove = (id: number) => {
+    onChange(outings.filter((o) => o.id !== id))
+  }
+
+  return (
+    <div className="bc-section">
+      <div className="bc-section-title">Sorties passées</div>
+      <div className="card" style={{ padding: '0 14px' }}>
+        {outings.length === 0 && (
+          <div style={{ padding: '10px 0', fontSize: 11, color: 'var(--ink3)', fontFamily: 'var(--mono)' }}>
+            Aucune sortie ajoutée. Renseigne tes randos déjà faites.
+          </div>
+        )}
+        {outings.map((o) => (
+          <div className="hydra-input-row" key={o.id}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 12, fontWeight: 500 }}>{o.name}</div>
+              <div style={{ fontSize: 10, color: 'var(--ink3)', fontFamily: 'var(--mono)' }}>
+                {o.km ? `${o.km}km` : ''}
+                {o.km && o.dplus ? ' · ' : ''}
+                {o.dplus ? `+${o.dplus}m` : ''}
+              </div>
+            </div>
+            <button
+              onClick={() => remove(o.id)}
+              title="Supprimer"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 3, color: 'var(--ink4)' }}
+            >
+              <TrashIcon size={13} />
+            </button>
+          </div>
+        ))}
+        <div style={{ display: 'flex', gap: 6, padding: '10px 0', flexWrap: 'wrap' }}>
+          <input
+            className="form-input"
+            placeholder="ex: Mont Blanc"
+            style={{ flex: '1 1 120px', fontSize: 11, padding: '6px 9px' }}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <input
+            className="form-input"
+            placeholder="km"
+            inputMode="numeric"
+            style={{ width: 60, fontSize: 11, padding: '6px 9px' }}
+            value={km}
+            onKeyDown={blockNonDigitKeys}
+            onChange={(e) => setKm(e.target.value.replace(/\D/g, ''))}
+          />
+          <input
+            className="form-input"
+            placeholder="D+"
+            inputMode="numeric"
+            style={{ width: 60, fontSize: 11, padding: '6px 9px' }}
+            value={dplus}
+            onKeyDown={blockNonDigitKeys}
+            onChange={(e) => setDplus(e.target.value.replace(/\D/g, ''))}
+          />
+          <button className="btn btn-primary btn-sm" onClick={add}>
+            Ajouter
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

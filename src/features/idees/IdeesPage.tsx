@@ -6,12 +6,13 @@ import {
   deleteFeedback,
   deleteFeedbackComment,
   setFeedbackStatus,
+  updateFeedback,
   voteFeedback,
 } from '../../core/firebase/feedbacks'
 import { relativeTime } from '../../core/services/time'
 import { useCollection, type WithDocId } from '../../hooks/useCollection'
 import type { Feedback, FeedbackStatus } from '../../core/types'
-import { BubbleIcon, ThumbIcon, TrashIcon } from '../../components/icons'
+import { BubbleIcon, EditIcon, ThumbIcon, TrashIcon } from '../../components/icons'
 
 const CATL: Record<string, string> = { feature: 'Feature', ux: 'UX', bug: 'Bug', content: 'Contenu' }
 const CATCLS: Record<string, string> = { feature: 'tb', ux: 'tg', bug: 'tr', content: 'tgold' }
@@ -41,6 +42,9 @@ export function IdeesPage({ memberName }: IdeesPageProps) {
   const [cat, setCat] = useState('feature')
   const [openComments, setOpenComments] = useState<Record<string, boolean>>({})
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({})
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editText, setEditText] = useState('')
+  const [editCat, setEditCat] = useState('feature')
 
   const sorted = [...feedbacks].sort(
     (a, b) => (b.votes?.up ?? 0) - (b.votes?.down ?? 0) - ((a.votes?.up ?? 0) - (a.votes?.down ?? 0)),
@@ -55,6 +59,19 @@ export function IdeesPage({ memberName }: IdeesPageProps) {
 
   const time = (f: WithDocId<Feedback>) =>
     f.createdAt ? relativeTime(f.createdAt.toMillis(), Date.now()) : f.ts ?? ''
+
+  const startEdit = (f: WithDocId<Feedback>) => {
+    setEditingId(f.docId)
+    setEditText(f.text)
+    setEditCat(f.cat)
+  }
+
+  const saveEdit = (docId: string) => {
+    const t = editText.trim()
+    if (!t) return
+    setEditingId(null)
+    void updateFeedback(docId, t, editCat).catch((e) => console.warn('feedback:update:', e))
+  }
 
   return (
     <div className="tab active">
@@ -124,7 +141,33 @@ export function IdeesPage({ memberName }: IdeesPageProps) {
                     {f.author} · {time(f)}
                   </span>
                 </div>
-                <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.5, marginBottom: 10 }}>{f.text}</div>
+                {editingId === f.docId ? (
+                  <div style={{ marginBottom: 10 }}>
+                    <textarea
+                      className="form-input"
+                      rows={3}
+                      style={{ resize: 'vertical', marginBottom: 8 }}
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                    />
+                    <select className="form-input" value={editCat} onChange={(e) => setEditCat(e.target.value)} style={{ marginBottom: 8 }}>
+                      <option value="feature">Fonctionnalité</option>
+                      <option value="ux">UX / Design</option>
+                      <option value="bug">Bug</option>
+                      <option value="content">Contenu</option>
+                    </select>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button className="btn btn-primary btn-sm" onClick={() => saveEdit(f.docId)}>
+                        Enregistrer
+                      </button>
+                      <button className="btn btn-sm" onClick={() => setEditingId(null)}>
+                        Annuler
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.5, marginBottom: 10 }}>{f.text}</div>
+                )}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
                   <button
                     className={myVote === 'up' ? 'vote-chip up-active' : 'vote-chip'}
@@ -151,6 +194,15 @@ export function IdeesPage({ memberName }: IdeesPageProps) {
                     {comments.length}
                   </button>
                   {(f.votes?.up ?? 0) >= 3 && <span className="tag tgold">POPULAIRE</span>}
+                  {f.author === memberName && editingId !== f.docId && (
+                    <button
+                      onClick={() => startEdit(f)}
+                      style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', padding: 3, color: 'var(--ink4)', display: 'flex', alignItems: 'center' }}
+                      title="Éditer"
+                    >
+                      <EditIcon />
+                    </button>
+                  )}
                   <button
                     onClick={() => confirm('Supprimer cette idée ?') && void deleteFeedback(f.docId)}
                     style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', padding: 3, color: 'var(--ink4)', display: 'flex', alignItems: 'center' }}

@@ -32,7 +32,24 @@ const RETOUR_MEALS: Record<string, RavitoStock> = {
 const FULL_MEALS: RavitoStock = { petitdej: 1, lunch: 1, snack: 2, diner: 1 }
 
 export function defaultRavitoEntry(): RavitoEntry {
-  return { config: { depart: 'matin', retour: 'apresmidi' }, stocks: {} }
+  return { config: { depart: 'matin', retour: 'apresmidi' }, stocks: {}, items: [] }
+}
+
+/** Noms d'items (normalisés) ramenés par au moins 2 membres différents — doublon probable. */
+export function duplicateItemNames(items: RavitoEntry['items']): Set<string> {
+  const byName = new Map<string, Set<string>>()
+  for (const item of items ?? []) {
+    const key = item.name.trim().toLowerCase()
+    if (!key) continue
+    const assignees = byName.get(key) ?? new Set<string>()
+    assignees.add(item.assignee)
+    byName.set(key, assignees)
+  }
+  const dupes = new Set<string>()
+  byName.forEach((assignees, key) => {
+    if (assignees.size > 1) dupes.add(key)
+  })
+  return dupes
 }
 
 /** Nombre de jours à partir du libellé de durée ('1j', '3j'). */
@@ -88,6 +105,7 @@ export function defaultHydraEntry(): HydraEntry {
     capacite: 2000,
     filtreDisponible: false,
     segments: [{ id: 1, label: 'Départ → Point 1', source: 'ruisseau', km: 0 }],
+    electrolytes: {},
   }
 }
 

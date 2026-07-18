@@ -11,6 +11,7 @@ import {
   calcStockTotal,
   defaultHydraEntry,
   defaultRavitoEntry,
+  duplicateItemNames,
   parseJours,
 } from '../../core/services/ravito'
 import { safeExternalUrl, tourSearchUrl } from '../../core/services/url'
@@ -22,6 +23,7 @@ import type {
   Rando,
   RavitoDepart,
   RavitoEntry,
+  RavitoItem,
   RavitoRetour,
   WaterSourceId,
 } from '../../core/types'
@@ -262,7 +264,7 @@ export function RandoDetailModal({ rando: r, memberName, onClose }: RandoDetailM
       </div>
       {tab === 'info' && <InfoTab rando={r} memberName={memberName} onClose={onClose} />}
       {tab === 'ravito' && <RavitoTab rando={r} memberName={memberName} />}
-      {tab === 'hydra' && <HydraTab rando={r} />}
+      {tab === 'hydra' && <HydraTab rando={r} memberName={memberName} />}
     </Modal>
   )
 }
@@ -519,6 +521,25 @@ function RavitoTab({ rando: r, memberName }: { rando: WithDocId<Rando>; memberNa
 
   const besoinsTotal = MEAL_CATS.reduce((a, c) => a + Math.max(0, (besoins[c.id] || 0) - (stockTotal[c.id] || 0)), 0)
 
+  const items = entry.items ?? []
+  const dupeNames = duplicateItemNames(items)
+  const [itemName, setItemName] = useState('')
+  const [itemQty, setItemQty] = useState('1')
+
+  const addItem = () => {
+    const name = itemName.trim()
+    if (!name) return
+    const qty = parseInt(itemQty, 10) || 1
+    const item: RavitoItem = { id: Date.now(), name, qty, assignee: memberName }
+    setItemName('')
+    setItemQty('1')
+    save({ ...entry, items: [...items, item] })
+  }
+
+  const removeItem = (id: number) => {
+    save({ ...entry, items: items.filter((i) => i.id !== id) })
+  }
+
   return (
     <div className="ravito-wrap">
       {partants.length < 2 && (
@@ -633,6 +654,66 @@ function RavitoTab({ rando: r, memberName }: { rando: WithDocId<Rando>; memberNa
         })}
       </div>
 
+      {/* Répartition précise : qui ramène quoi */}
+      <div className="sec" style={{ marginTop: 4 }}>
+        Qui ramène quoi
+      </div>
+      <div className="card" style={{ padding: '0 14px', marginBottom: 12 }}>
+        {items.length === 0 && (
+          <div style={{ padding: '10px 0', fontSize: 11, color: 'var(--ink3)', fontFamily: 'var(--mono)' }}>
+            Aucun item assigné. Ajoute ce que tu ramènes ci-dessous.
+          </div>
+        )}
+        {items.map((item) => {
+          const isDupe = dupeNames.has(item.name.trim().toLowerCase())
+          return (
+            <div className="hydra-input-row" key={item.id}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 12, fontWeight: 500 }}>
+                  {item.name} × {item.qty}
+                  {isDupe && (
+                    <span style={{ marginLeft: 6, fontSize: 9, color: 'var(--red)', fontFamily: 'var(--mono)' }}>
+                      DOUBLON
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontSize: 10, color: 'var(--ink3)', fontFamily: 'var(--mono)' }}>{item.assignee}</div>
+              </div>
+              {item.assignee === memberName && (
+                <button
+                  onClick={() => removeItem(item.id)}
+                  title="Supprimer"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 3, color: 'var(--ink4)' }}
+                >
+                  <TrashIcon size={13} />
+                </button>
+              )}
+            </div>
+          )
+        })}
+        <div style={{ display: 'flex', gap: 6, padding: '10px 0' }}>
+          <input
+            className="form-input"
+            placeholder="ex: Riz lyophilisé"
+            style={{ flex: 1, fontSize: 11, padding: '6px 9px' }}
+            value={itemName}
+            onChange={(e) => setItemName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && addItem()}
+          />
+          <input
+            type="number"
+            min={1}
+            max={99}
+            className="ravito-stock-input"
+            value={itemQty}
+            onChange={(e) => setItemQty(e.target.value)}
+          />
+          <button className="btn btn-primary btn-sm" onClick={addItem}>
+            Ajouter
+          </button>
+        </div>
+      </div>
+
       {/* Achats suggérés */}
       <div className="sec" style={{ marginTop: 4 }}>
         À acheter
@@ -707,7 +788,7 @@ function RavitoTab({ rando: r, memberName }: { rando: WithDocId<Rando>; memberNa
 
 // ── Onglet Hydratation ────────────────────────────────
 
-function HydraTab({ rando: r }: { rando: WithDocId<Rando> }) {
+function HydraTab({ rando: r, memberName }: { rando: WithDocId<Rando>; memberName: string }) {
   const hydra = useHydra()
   const randoId = String(r.id)
   const cfg: HydraEntry = hydra[randoId] ?? defaultHydraEntry()
@@ -715,8 +796,19 @@ function HydraTab({ rando: r }: { rando: WithDocId<Rando> }) {
   const jours = parseJours(r.dur)
   const besoins = calcHydraBesoins(jours, nMembres, cfg)
 
+  const partants = Object.entries(r.memberVotes ?? {})
+    .filter(([, v]) => v === 'oui')
+    .map(([name]) => name)
+  const allMembres = partants.length >= 2 ? partants : [memberName]
+
   const save = (next: HydraEntry) => {
     void saveHydraEntry(randoId, next).catch((e) => console.warn('saveHydra:', e))
+  }
+
+  const toggleElectrolytes = (name: string) => {
+    const electrolytes = { ...(cfg.electrolytes ?? {}) }
+    electrolytes[name] = !electrolytes[name]
+    save({ ...cfg, electrolytes })
   }
 
   const setNum = (key: keyof HydraEntry, val: string) => {
@@ -820,6 +912,45 @@ function HydraTab({ rando: r }: { rando: WithDocId<Rando> }) {
             <span style={{ color: 'var(--red)' }}>Capacité insuffisante — prévoir ravitaillement en eau</span>
           )}
         </div>
+      </div>
+
+      {/* Électrolytes / minéraux / vitamines */}
+      <div className="sec">Électrolytes / vitamines</div>
+      <div className="card" style={{ padding: '0 14px', marginBottom: 12 }}>
+        {allMembres.map((name) => {
+          const isMe = name === memberName
+          const checked = !!cfg.electrolytes?.[name]
+          return (
+            <div className="hydra-input-row" key={name}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 12, fontWeight: 500 }}>
+                  {name}
+                  {isMe ? ' (toi)' : ''}
+                </div>
+                <div style={{ fontSize: 10, color: 'var(--ink3)', fontFamily: 'var(--mono)' }}>
+                  Pastilles électrolytes / sels / vitamines
+                </div>
+              </div>
+              <button
+                onClick={() => isMe && toggleElectrolytes(name)}
+                disabled={!isMe}
+                style={{
+                  padding: '4px 12px',
+                  borderRadius: 20,
+                  border: '.5px solid var(--border2)',
+                  cursor: isMe ? 'pointer' : 'default',
+                  fontSize: 10,
+                  fontFamily: 'var(--mono)',
+                  background: checked ? 'var(--ink)' : 'transparent',
+                  color: checked ? 'var(--gold)' : 'var(--ink3)',
+                  opacity: isMe ? 1 : 0.6,
+                }}
+              >
+                {checked ? 'Prévu' : 'Pas prévu'}
+              </button>
+            </div>
+          )
+        })}
       </div>
 
       {/* Points d'eau sur le tracé */}

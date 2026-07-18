@@ -10,20 +10,24 @@ interface SommetsPageProps {
   memberName: string
 }
 
+const DPLUS_MAX_OPTIONS = [500, 1000, 1500, 2000] as const
+
 export function SommetsPage({ memberName }: SommetsPageProps) {
   const { data: randos, loading, error } = useCollection(randosCol)
   const [showAdd, setShowAdd] = useState(false)
+  const [dplusMax, setDplusMax] = useState<number | null>(null)
 
   const { upcoming, past } = useMemo(() => {
     const today = todayLocalISO()
-    const upcoming = randos
+    const filtered = dplusMax == null ? randos : randos.filter((r) => r.dplus == null || r.dplus <= dplusMax)
+    const upcoming = filtered
       .filter((r) => !isPast(r, today))
       .sort((a, b) => (a.dateStart ?? '9999').localeCompare(b.dateStart ?? '9999'))
-    const past = randos
+    const past = filtered
       .filter((r) => isPast(r, today))
       .sort((a, b) => (b.dateStart ?? '').localeCompare(a.dateStart ?? ''))
     return { upcoming, past }
-  }, [randos])
+  }, [randos, dplusMax])
 
   return (
     <>
@@ -42,9 +46,32 @@ export function SommetsPage({ memberName }: SommetsPageProps) {
         {!loading && !error && (
           <>
             <div className="sec">Randos proposées</div>
+            <div className="dplus-filter" role="group" aria-label="Filtrer par dénivelé max">
+              <button
+                type="button"
+                className={dplusMax == null ? 'dplus-chip active' : 'dplus-chip'}
+                onClick={() => setDplusMax(null)}
+              >
+                Tout dénivelé
+              </button>
+              {DPLUS_MAX_OPTIONS.map((max) => (
+                <button
+                  key={max}
+                  type="button"
+                  className={dplusMax === max ? 'dplus-chip active' : 'dplus-chip'}
+                  onClick={() => setDplusMax(max)}
+                >
+                  ≤ {max} m
+                </button>
+              ))}
+            </div>
             {upcoming.length === 0 && (
               <div className="card">
-                <div className="t-body">Aucune sortie planifiée. Propose la prochaine !</div>
+                <div className="t-body">
+                  {dplusMax == null
+                    ? 'Aucune sortie planifiée. Propose la prochaine !'
+                    : 'Aucune sortie sous ce dénivelé.'}
+                </div>
               </div>
             )}
             {upcoming.map((r) => (

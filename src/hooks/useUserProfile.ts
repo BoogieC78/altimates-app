@@ -4,6 +4,13 @@ import type { User } from 'firebase/auth'
 import { db } from '../core/firebase/app'
 import type { KitMode, KitStatus, Level } from '../core/constants/gear'
 
+export interface PastOuting {
+  id: number
+  name: string
+  km?: number
+  dplus?: number
+}
+
 // Forme du champ `profile` des documents users, héritée de l'ancienne app
 // (elle y stockait son objet `user` local entier).
 export interface Profile {
@@ -18,6 +25,8 @@ export interface Profile {
   sorties?: number
   bestKm?: number
   bestDplus?: number
+  /** sorties faites avant ALTImates, saisies manuellement (historique / XP) */
+  pastOutings?: PastOuting[]
 }
 
 interface UserProfileState {

@@ -45,6 +45,10 @@ export async function setFeedbackStatus(docId: string, status: FeedbackStatus): 
   await updateDoc(doc(db, 'feedbacks', docId), { status })
 }
 
+export async function updateFeedback(docId: string, text: string, cat: string): Promise<void> {
+  await updateDoc(doc(db, 'feedbacks', docId), { text, cat })
+}
+
 export async function addFeedbackComment(f: Feedback & { docId: string }, comment: FeedbackComment): Promise<void> {
   await updateDoc(doc(db, 'feedbacks', f.docId), { comments: [...(f.comments ?? []), comment] })
 }

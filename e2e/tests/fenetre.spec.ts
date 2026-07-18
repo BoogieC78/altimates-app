@@ -67,9 +67,9 @@ test.describe('Fenêtre — disponibilités', () => {
     await openFenetre(page, 'retour')
     const { saturday, sunday } = firstWeekend()
 
-    await page.getByRole('button', { name: 'DISPO', exact: true }).click()
+    await page.getByRole('button', { name: 'Dispo', exact: true }).click()
     await paintDay(page, saturday)
-    await page.getByRole('button', { name: 'RETOUR DIM.' }).click()
+    await page.getByRole('button', { name: 'Retour dimanche soir', exact: true }).click()
     await paintDay(page, sunday)
 
     await expect(page.locator('.fen-window').first()).toContainText('Retour dimanche soir :')

@@ -31,7 +31,7 @@ export function SommetsPage({ memberName }: SommetsPageProps) {
 
   return (
     <>
-      <div className="tab active" style={{ paddingBottom: 130 }}>
+      <div className="tab active" style={{ paddingBottom: 'calc(130px + env(safe-area-inset-bottom))' }}>
         {loading && (
           <div className="spinner-wrap">
             <div className="spinner" />
@@ -39,13 +39,13 @@ export function SommetsPage({ memberName }: SommetsPageProps) {
           </div>
         )}
         {error && (
-          <div className="alert-band">
+          <div className="alert-band" role="alert">
             <div className="alert-text">{error.message}</div>
           </div>
         )}
         {!loading && !error && (
           <>
-            <div className="sec">Randos proposées</div>
+            <h2 className="sec">Randos proposées</h2>
             <div className="dplus-filter" role="group" aria-label="Filtrer par dénivelé max">
               <button
                 type="button"
@@ -80,9 +80,9 @@ export function SommetsPage({ memberName }: SommetsPageProps) {
 
             {past.length > 0 && (
               <>
-                <div className="sec" style={{ marginTop: 18 }}>
+                <h2 className="sec" style={{ marginTop: 18 }}>
                   Sorties passées
-                </div>
+                </h2>
                 <div style={{ opacity: 0.6 }}>
                   {past.map((r) => (
                     <RandoCard key={r.docId} rando={r} memberName={memberName} />

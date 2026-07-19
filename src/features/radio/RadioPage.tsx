@@ -77,11 +77,13 @@ export function RadioPage({ memberName }: RadioPageProps) {
     <button
       onClick={() => deleteMessage(docId).catch((e) => console.warn('delete:', e))}
       title="Supprimer"
+      aria-label="Supprimer"
       style={{
         background: 'none',
         border: 'none',
         cursor: 'pointer',
-        padding: 3,
+        padding: 8,
+        margin: -5,
         color: light ? 'rgba(255,255,255,.7)' : 'var(--ink4)',
         opacity: 0.35,
         display: 'flex',
@@ -104,9 +106,9 @@ export function RadioPage({ memberName }: RadioPageProps) {
 
       {pinned.length > 0 && (
         <>
-          <div className="sec">Épinglés</div>
+          <h2 className="sec">Épinglés</h2>
           {pinned.map((m) => (
-            <div className="msg-pinned" key={m.docId} onClick={() => void togglePin(m.docId, false)}>
+            <div className="msg-pinned" key={m.docId}>
               <div className="msg-pin-icon">·</div>
               <div style={{ flex: 1 }}>
                 <div className="msg-pinned-text">{m.text}</div>
@@ -114,16 +116,35 @@ export function RadioPage({ memberName }: RadioPageProps) {
                   {MSG_TYPE_LABELS[m.type] ?? m.type} · {m.author} · {time(m)}
                 </div>
               </div>
+              <button
+                onClick={() => void togglePin(m.docId, false)}
+                title="Désépingler"
+                aria-label="Désépingler"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 8,
+                  margin: -5,
+                  opacity: 0.35,
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexShrink: 0,
+                  color: 'var(--ink4)',
+                }}
+              >
+                📌
+              </button>
               {renderDelete(m.docId)}
             </div>
           ))}
         </>
       )}
 
-      <div className="sec" style={{ marginTop: 4 }}>
+      <h2 className="sec" style={{ marginTop: 4 }}>
         Fil de la cordée
-      </div>
-      <div className="msg-list">
+      </h2>
+      <div className="msg-list" aria-live="polite">
         {loading && (
           <div className="spinner-wrap">
             <div className="spinner" />
@@ -151,12 +172,14 @@ export function RadioPage({ memberName }: RadioPageProps) {
                 <button
                   onClick={() => void togglePin(m.docId, true)}
                   title="Épingler"
+                  aria-label="Épingler"
                   style={{
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
-                    padding: 2,
-                    marginLeft: 4,
+                    padding: 8,
+                    margin: -6,
+                    marginLeft: -2,
                     opacity: 0.35,
                     display: 'flex',
                     alignItems: 'center',
@@ -170,7 +193,13 @@ export function RadioPage({ memberName }: RadioPageProps) {
               <div className="msg-text">{m.text}</div>
               <div className="msg-receipts">
                 {memberInitialsList.map((ini, i) => (
-                  <div key={i} className={m.reads?.includes(ini) ? 'receipt read' : 'receipt unread'} title={ini}>
+                  <div
+                    key={i}
+                    className={m.reads?.includes(ini) ? 'receipt read' : 'receipt unread'}
+                    title={ini}
+                    role="img"
+                    aria-label={m.reads?.includes(ini) ? `${ini} a lu` : `${ini} n'a pas lu`}
+                  >
                     {ini[0]}
                   </div>
                 ))}
@@ -186,6 +215,7 @@ export function RadioPage({ memberName }: RadioPageProps) {
             <button
               key={t}
               className={activeType === t ? 'type-btn active' : 'type-btn'}
+              aria-pressed={activeType === t}
               onClick={() => setActiveType(t)}
             >
               {MSG_TYPE_LABELS[t]}

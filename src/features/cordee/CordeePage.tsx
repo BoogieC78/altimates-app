@@ -68,15 +68,15 @@ export function CordeePage({ memberName }: CordeePageProps) {
 
   return (
     <div className="tab active">
-      <div className="sec">Membres</div>
-      <div className="card">
+      <h2 className="sec">Membres</h2>
+      <div className="card" role="list">
         {loading && (
           <div className="spinner-wrap">
             <div className="spinner" />
           </div>
         )}
         {members.map((m, i) => (
-          <div className="member-row" key={m.name}>
+          <div className="member-row" role="listitem" key={m.name}>
             <div className="sm-av" style={avatarStyle(i)}>
               {m.name.slice(0, 2).toUpperCase()}
             </div>
@@ -91,9 +91,9 @@ export function CordeePage({ memberName }: CordeePageProps) {
         ))}
       </div>
 
-      <div className="sec" style={{ marginTop: 12 }}>
+      <h2 className="sec" style={{ marginTop: 12 }}>
         Kit partagé du groupe
-      </div>
+      </h2>
       <div
         style={{
           background: 'rgba(74,127,168,.08)',
@@ -155,9 +155,9 @@ export function CordeePage({ memberName }: CordeePageProps) {
         })}
       </div>
 
-      <div className="sec" style={{ marginTop: 12 }}>
+      <h2 className="sec" style={{ marginTop: 12 }}>
         Checklist départ
-      </div>
+      </h2>
       <div
         style={{
           background: 'rgba(74,127,168,.08)',
@@ -203,8 +203,9 @@ export function CordeePage({ memberName }: CordeePageProps) {
             </button>
             <button
               onClick={() => void deleteDepartItem(item.docId)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 3, color: 'var(--ink4)', display: 'flex', alignItems: 'center' }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 8, margin: -5, color: 'var(--ink4)', display: 'flex', alignItems: 'center' }}
               title="Supprimer"
+              aria-label="Supprimer"
             >
               <TrashIcon size={11} />
             </button>
@@ -220,7 +221,8 @@ export function CordeePage({ memberName }: CordeePageProps) {
         <input
           className="form-input"
           placeholder="Ajouter un article…"
-          style={{ flex: 1, fontSize: 11 }}
+          aria-label="Ajouter un article"
+          style={{ flex: 1, fontSize: 16 }}
           value={newItem}
           onChange={(e) => setNewItem(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && add()}
@@ -230,11 +232,11 @@ export function CordeePage({ memberName }: CordeePageProps) {
         </button>
       </div>
 
-      <div className="sec" style={{ marginTop: 12 }}>
+      <h2 className="sec" style={{ marginTop: 12 }}>
         Inviter
-      </div>
+      </h2>
       <div className="card" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-        <input className="form-input" style={{ flex: 1, fontSize: 11 }} readOnly value={inviteUrl} />
+        <input className="form-input" aria-label="Lien d'invitation" style={{ flex: 1, fontSize: 11 }} readOnly value={inviteUrl} />
         <button className="btn btn-sm" onClick={copyInvite}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />

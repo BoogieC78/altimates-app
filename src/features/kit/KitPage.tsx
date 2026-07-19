@@ -101,7 +101,7 @@ export function KitPage({ user, memberName }: KitPageProps) {
           <div
             style={{
               fontSize: 10,
-              color: 'rgba(255,255,255,.4)',
+              color: 'rgba(255,255,255,.65)',
               fontFamily: 'var(--mono)',
               letterSpacing: '.08em',
               marginBottom: 4,
@@ -135,7 +135,15 @@ export function KitPage({ user, memberName }: KitPageProps) {
 
       <div
         className="card"
-        style={{ padding: '8px 12px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+        style={{
+          padding: '8px 12px',
+          marginBottom: 10,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          rowGap: 6,
+        }}
       >
         <div style={{ display: 'flex', gap: 6 }}>
           <span className={`tag ${LVLS[level].cls}`}>{LVLS[level].l}</span>
@@ -172,18 +180,23 @@ export function KitPage({ user, memberName }: KitPageProps) {
           const open = openSec[s.k]
           return (
             <div key={s.k}>
-              <div className="sec-toggle" onClick={() => setOpenSec({ ...openSec, [s.k]: !open })}>
-                <div className="sec-toggle-title">
+              <button
+                type="button"
+                className="sec-toggle"
+                aria-expanded={open}
+                onClick={() => setOpenSec({ ...openSec, [s.k]: !open })}
+              >
+                <span className="sec-toggle-title">
                   <span className={`tag ${s.tag}`}>{s.l}</span>
                   <span style={{ fontSize: 10, color: 'var(--ink3)' }}>{items.length} articles</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ fontSize: 9, color: 'var(--ink3)', fontFamily: 'var(--mono)' }}>
                     {done}/{items.length}
                   </span>
-                  <span style={{ fontSize: 12, color: 'var(--ink3)' }}>{open ? '▲' : '▼'}</span>
-                </div>
-              </div>
+                  <span style={{ fontSize: 12, color: 'var(--ink3)' }} aria-hidden="true">{open ? '▲' : '▼'}</span>
+                </span>
+              </button>
               {open &&
                 items.map((g) => (
                   <GearRow
@@ -205,8 +218,11 @@ export function KitPage({ user, memberName }: KitPageProps) {
       {emailOpen && (
         <Modal title="Recevoir mon kit" onClose={() => setEmailOpen(false)}>
           <div style={{ marginBottom: 10 }}>
-            <label className="form-lbl">Email</label>
+            <label className="form-lbl" htmlFor="kit-email-addr">
+              Email
+            </label>
             <input
+              id="kit-email-addr"
               className="form-input"
               type="email"
               placeholder="prenom@email.com"

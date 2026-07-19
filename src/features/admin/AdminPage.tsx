@@ -169,7 +169,7 @@ export function AdminPage({ memberName }: AdminPageProps) {
           >
             PANNEAU ADMIN
           </div>
-          <div style={{ fontSize: 9, color: 'rgba(255,255,255,.35)', fontFamily: 'var(--mono)' }}>
+          <div style={{ fontSize: 9, color: 'rgba(255,255,255,.65)', fontFamily: 'var(--mono)' }}>
             {APP_VERSION}
           </div>
         </div>
@@ -211,7 +211,7 @@ export function AdminPage({ memberName }: AdminPageProps) {
         )}
         {randos.map((r) => (
           <div className="admin-row" key={r.docId}>
-            <div>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <div className="admin-label">{r.name}</div>
               <div className="admin-sub">
                 {r.region}
@@ -355,7 +355,8 @@ export function AdminPage({ memberName }: AdminPageProps) {
           <input
             className="form-input"
             placeholder="Ajouter un email…"
-            style={{ fontSize: 11, flex: 1 }}
+            aria-label="Adresse e-mail à autoriser"
+            style={{ fontSize: 16, flex: 1 }}
             value={newEmail}
             onChange={(e) => setNewEmail(e.target.value)}
             onKeyDown={(e) => {

@@ -249,15 +249,15 @@ export function RandoDetailModal({ rando: r, memberName, onClose }: RandoDetailM
       }
     >
       <div className="ravito-tab-row">
-        <button className={tab === 'info' ? 'ravito-tab active' : 'ravito-tab'} onClick={() => setTab('info')}>
+        <button className={tab === 'info' ? 'ravito-tab active' : 'ravito-tab'} aria-pressed={tab === 'info'} onClick={() => setTab('info')}>
           <InfoTabIcon />
           Infos
         </button>
-        <button className={tab === 'ravito' ? 'ravito-tab active' : 'ravito-tab'} onClick={() => setTab('ravito')}>
+        <button className={tab === 'ravito' ? 'ravito-tab active' : 'ravito-tab'} aria-pressed={tab === 'ravito'} onClick={() => setTab('ravito')}>
           <RavitoTabIcon />
           Ravito
         </button>
-        <button className={tab === 'hydra' ? 'ravito-tab active' : 'ravito-tab'} onClick={() => setTab('hydra')}>
+        <button className={tab === 'hydra' ? 'ravito-tab active' : 'ravito-tab'} aria-pressed={tab === 'hydra'} onClick={() => setTab('hydra')}>
           <DropIcon />
           Hydratation
         </button>
@@ -443,7 +443,8 @@ function TracesSection({ rando: r, memberName }: { rando: WithDocId<Rando>; memb
               <button
                 onClick={() => void removeTrace(r, i).catch((e) => console.warn('removeTrace:', e))}
                 title="Supprimer"
-                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 3, color: 'var(--ink4)', flexShrink: 0 }}
+                aria-label="Supprimer"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 8, margin: -5, color: 'var(--ink4)', flexShrink: 0 }}
               >
                 <TrashIcon />
               </button>
@@ -457,23 +458,25 @@ function TracesSection({ rando: r, memberName }: { rando: WithDocId<Rando>; memb
             <input
               className="form-input"
               placeholder="Nom (ex: Variante facile)"
-              style={{ fontSize: 11, padding: '6px 9px', flex: 1 }}
+              aria-label="Nom de la trace"
+              style={{ fontSize: 16, padding: '6px 9px', flex: 1 }}
               value={label}
               onChange={(e) => setLabel(e.target.value)}
             />
             <input
               className="form-input"
               placeholder="https://www.komoot.com/tour/..."
-              style={{ fontSize: 11, padding: '6px 9px', flex: 2 }}
+              aria-label="Lien Komoot de la trace"
+              style={{ fontSize: 16, padding: '6px 9px', flex: 2 }}
               value={url}
               onChange={(e) => setUrl(e.target.value)}
             />
-            <button className="btn btn-primary btn-sm" onClick={submitTrace} style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
+            <button className="btn btn-primary btn-sm" aria-label="Ajouter la trace" onClick={submitTrace} style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
               <PlusIcon />
             </button>
           </div>
           {formError && (
-            <div style={{ fontSize: 10, color: 'var(--red)', fontFamily: 'var(--mono)', marginTop: 4 }}>{formError}</div>
+            <div role="alert" style={{ fontSize: 10, color: 'var(--red)', fontFamily: 'var(--mono)', marginTop: 4 }}>{formError}</div>
           )}
         </>
       )}
@@ -569,7 +572,7 @@ function RavitoTab({ rando: r, memberName }: { rando: WithDocId<Rando>; memberNa
           <div style={{ fontSize: 10, fontFamily: 'var(--mono)', color: 'var(--ink3)', marginBottom: 5 }}>Départ</div>
           <div className="time-select">
             {(Object.keys(DEPART_LABELS) as RavitoDepart[]).map((t) => (
-              <button key={t} className={entry.config.depart === t ? 'time-btn active' : 'time-btn'} onClick={() => setTime('depart', t)}>
+              <button key={t} className={entry.config.depart === t ? 'time-btn active' : 'time-btn'} aria-pressed={entry.config.depart === t} onClick={() => setTime('depart', t)}>
                 {DEPART_LABELS[t]}
               </button>
             ))}
@@ -579,7 +582,7 @@ function RavitoTab({ rando: r, memberName }: { rando: WithDocId<Rando>; memberNa
           <div style={{ fontSize: 10, fontFamily: 'var(--mono)', color: 'var(--ink3)', marginBottom: 5 }}>Retour</div>
           <div className="time-select">
             {(Object.keys(RETOUR_LABELS) as RavitoRetour[]).map((t) => (
-              <button key={t} className={entry.config.retour === t ? 'time-btn active' : 'time-btn'} onClick={() => setTime('retour', t)}>
+              <button key={t} className={entry.config.retour === t ? 'time-btn active' : 'time-btn'} aria-pressed={entry.config.retour === t} onClick={() => setTime('retour', t)}>
                 {RETOUR_LABELS[t]}
               </button>
             ))}
@@ -588,7 +591,7 @@ function RavitoTab({ rando: r, memberName }: { rando: WithDocId<Rando>; memberNa
       </div>
 
       {/* Besoins par catégorie */}
-      <div className="sec">Besoins vs stock</div>
+      <h2 className="sec">Besoins vs stock</h2>
       <div className="card" style={{ padding: '0 14px' }}>
         {MEAL_CATS.map((c) => {
           const b = besoins[c.id] || 0
@@ -625,9 +628,9 @@ function RavitoTab({ rando: r, memberName }: { rando: WithDocId<Rando>; memberNa
       </div>
 
       {/* Stock par membre */}
-      <div className="sec" style={{ marginTop: 4 }}>
+      <h2 className="sec" style={{ marginTop: 4 }}>
         Mon stock lyophilisé
-      </div>
+      </h2>
       <div className="card" style={{ padding: '0 14px', overflowX: 'auto' }}>
         {allMembres.map((name) => {
           const stock = entry.stocks[name] ?? { petitdej: 0, lunch: 0, snack: 0, diner: 0 }
@@ -646,6 +649,7 @@ function RavitoTab({ rando: r, memberName }: { rando: WithDocId<Rando>; memberNa
                     min={0}
                     max={99}
                     className="ravito-stock-input"
+                    aria-label={`Stock ${c.label} de ${name}`}
                     defaultValue={stock[c.id] || 0}
                     onBlur={(e) => isMe && setStock(name, c.id, e.target.value)}
                     disabled={!isMe}
@@ -659,9 +663,9 @@ function RavitoTab({ rando: r, memberName }: { rando: WithDocId<Rando>; memberNa
       </div>
 
       {/* Stock électrolytes */}
-      <div className="sec" style={{ marginTop: 4 }}>
+      <h2 className="sec" style={{ marginTop: 4 }}>
         Mon stock électrolytes
-      </div>
+      </h2>
       <div className="card" style={{ padding: '0 14px' }}>
         {allMembres.map((name) => {
           const isMe = name === memberName
@@ -678,6 +682,7 @@ function RavitoTab({ rando: r, memberName }: { rando: WithDocId<Rando>; memberNa
                   min={0}
                   max={99}
                   className="ravito-stock-input"
+                  aria-label={`Pastilles d'électrolytes de ${name}`}
                   defaultValue={entry.electrolytes?.[name] || 0}
                   onBlur={(e) => isMe && setElectrolytes(name, e.target.value)}
                   disabled={!isMe}
@@ -690,9 +695,9 @@ function RavitoTab({ rando: r, memberName }: { rando: WithDocId<Rando>; memberNa
       </div>
 
       {/* Répartition précise : qui ramène quoi */}
-      <div className="sec" style={{ marginTop: 4 }}>
+      <h2 className="sec" style={{ marginTop: 4 }}>
         Qui ramène quoi
-      </div>
+      </h2>
       <div className="card" style={{ padding: '0 14px', marginBottom: 12 }}>
         {items.length === 0 && (
           <div style={{ padding: '10px 0', fontSize: 11, color: 'var(--ink3)', fontFamily: 'var(--mono)' }}>
@@ -718,7 +723,8 @@ function RavitoTab({ rando: r, memberName }: { rando: WithDocId<Rando>; memberNa
                 <button
                   onClick={() => removeItem(item.id)}
                   title="Supprimer"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 3, color: 'var(--ink4)' }}
+                  aria-label="Supprimer"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 8, margin: -5, color: 'var(--ink4)' }}
                 >
                   <TrashIcon size={13} />
                 </button>
@@ -730,7 +736,8 @@ function RavitoTab({ rando: r, memberName }: { rando: WithDocId<Rando>; memberNa
           <input
             className="form-input"
             placeholder="ex: Riz lyophilisé"
-            style={{ flex: 1, fontSize: 11, padding: '6px 9px' }}
+            aria-label="Nom de l'item à ramener"
+            style={{ flex: 1, fontSize: 16, padding: '6px 9px' }}
             value={itemName}
             onChange={(e) => setItemName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && addItem()}
@@ -740,6 +747,7 @@ function RavitoTab({ rando: r, memberName }: { rando: WithDocId<Rando>; memberNa
             min={1}
             max={99}
             className="ravito-stock-input"
+            aria-label="Quantité"
             value={itemQty}
             onChange={(e) => setItemQty(e.target.value)}
           />
@@ -750,9 +758,9 @@ function RavitoTab({ rando: r, memberName }: { rando: WithDocId<Rando>; memberNa
       </div>
 
       {/* Achats suggérés */}
-      <div className="sec" style={{ marginTop: 4 }}>
+      <h2 className="sec" style={{ marginTop: 4 }}>
         À acheter
-      </div>
+      </h2>
       {besoinsTotal > 0 ? (
         <div style={{ marginTop: 4 }}>
           {MEAL_CATS.map((c) => {
@@ -863,6 +871,7 @@ function HydraTab({ rando: r }: { rando: WithDocId<Rando> }) {
       <input
         type="number"
         className="hydra-num"
+        aria-label={`${label} (${unit})`}
         defaultValue={cfg[key] as number}
         min={attrs.min}
         max={attrs.max}
@@ -906,7 +915,7 @@ function HydraTab({ rando: r }: { rando: WithDocId<Rando> }) {
       </div>
 
       {/* Récap besoins */}
-      <div className="sec">Besoin estimé</div>
+      <h2 className="sec">Besoin estimé</h2>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
         <div className="card" style={{ textAlign: 'center', padding: 10 }}>
           <div style={{ fontSize: 20, fontWeight: 600, color: 'var(--ink)', fontFamily: 'var(--mono)' }}>
@@ -939,7 +948,7 @@ function HydraTab({ rando: r }: { rando: WithDocId<Rando> }) {
       </div>
 
       {/* Points d'eau sur le tracé */}
-      <div className="sec">Points d'eau sur le tracé</div>
+      <h2 className="sec">Points d'eau sur le tracé</h2>
       <div style={{ fontSize: 10, color: 'var(--ink3)', fontFamily: 'var(--mono)', marginBottom: 8 }}>
         Renseigne les sources d'eau disponibles sur ton tracé
       </div>
@@ -950,7 +959,8 @@ function HydraTab({ rando: r }: { rando: WithDocId<Rando> }) {
             <div className="hydra-segment-header">
               <input
                 className="form-input"
-                style={{ flex: 1, fontSize: 11, padding: '5px 8px' }}
+                aria-label="Nom du segment"
+                style={{ flex: 1, fontSize: 16, padding: '5px 8px' }}
                 defaultValue={seg.label}
                 placeholder="ex: Départ → Refuge"
                 onBlur={(e) => setSegment(i, { label: e.target.value })}
@@ -958,7 +968,8 @@ function HydraTab({ rando: r }: { rando: WithDocId<Rando> }) {
               <button
                 onClick={() => save({ ...cfg, segments: cfg.segments.filter((_, j) => j !== i) })}
                 title="Supprimer"
-                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 3, color: 'var(--ink4)' }}
+                aria-label="Supprimer"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 8, margin: -5, color: 'var(--ink4)' }}
               >
                 <TrashIcon size={13} />
               </button>
@@ -968,6 +979,7 @@ function HydraTab({ rando: r }: { rando: WithDocId<Rando> }) {
                 <button
                   key={s.id}
                   className={seg.source === s.id ? 'hydra-source-btn active' : 'hydra-source-btn'}
+                  aria-pressed={seg.source === s.id}
                   onClick={() => setSegment(i, { source: s.id })}
                 >
                   <svg viewBox="0 0 24 24">{WATER_ICONS[s.id]}</svg>

@@ -16,11 +16,11 @@ export function NamePromptModal({ onSave }: { onSave: (name: string) => void }) 
   }
 
   return createPortal(
-    <div className="modal-wrap open">
+    <div className="modal-wrap open" role="dialog" aria-modal="true" aria-labelledby="name-prompt-title">
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-handle" />
         <div className="modal-header">
-          <span className="modal-title">Bienvenue dans la cordée !</span>
+          <span className="modal-title" id="name-prompt-title">Bienvenue dans la cordée !</span>
         </div>
         <form onSubmit={submit}>
           <p style={{ fontSize: 12, color: 'var(--ink2)', lineHeight: 1.6, marginBottom: 12 }}>
@@ -30,6 +30,7 @@ export function NamePromptModal({ onSave }: { onSave: (name: string) => void }) 
           <input
             className="form-input"
             name="firstname"
+            aria-label="Ton prénom"
             placeholder="Ton prénom"
             value={name}
             onChange={(e) => setName(e.target.value)}

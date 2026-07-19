@@ -105,13 +105,20 @@ export function GuidedTour({ onDone }: { onDone: () => void }) {
       </div>
       <div className="tuto-dots">
         {SLIDES.map((s, i) => (
-          <div className={i === slide ? 'tuto-dot active' : 'tuto-dot'} key={s.title} onClick={() => setSlide(i)} />
+          <button
+            type="button"
+            className={i === slide ? 'tuto-dot active' : 'tuto-dot'}
+            key={s.title}
+            aria-label={`Aller à l'étape ${i + 1} sur ${SLIDES.length}`}
+            aria-current={i === slide}
+            onClick={() => setSlide(i)}
+          />
         ))}
       </div>
       <div className="tuto-footer">
         {slide > 0 && (
-          <button className="btn btn-sm" onClick={() => setSlide(slide - 1)}>
-            <span>←</span>
+          <button className="btn btn-sm" aria-label="Étape précédente" onClick={() => setSlide(slide - 1)}>
+            <span aria-hidden="true">←</span>
           </button>
         )}
         <button className="btn btn-primary btn-full" onClick={() => (last ? finish() : setSlide(slide + 1))}>

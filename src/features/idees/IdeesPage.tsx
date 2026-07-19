@@ -85,11 +85,12 @@ export function IdeesPage({ memberName }: IdeesPageProps) {
       </div>
 
       <>
-          <div className="sec">Nouvelle idée</div>
+          <h2 className="sec">Nouvelle idée</h2>
           <div className="card" style={{ marginBottom: 14 }}>
             <div style={{ marginBottom: 9 }}>
-              <label className="form-lbl">Ton idée</label>
+              <label className="form-lbl" htmlFor="idee-text">Ton idée</label>
               <textarea
+                id="idee-text"
                 className="form-input"
                 rows={3}
                 placeholder="ex: Filtrer par dénivelé max..."
@@ -99,8 +100,8 @@ export function IdeesPage({ memberName }: IdeesPageProps) {
               />
             </div>
             <div style={{ marginBottom: 9 }}>
-              <label className="form-lbl">Catégorie</label>
-              <select className="form-input" value={cat} onChange={(e) => setCat(e.target.value)}>
+              <label className="form-lbl" htmlFor="idee-cat">Catégorie</label>
+              <select id="idee-cat" className="form-input" value={cat} onChange={(e) => setCat(e.target.value)}>
                 <option value="feature">Fonctionnalité</option>
                 <option value="ux">UX / Design</option>
                 <option value="bug">Bug</option>
@@ -112,7 +113,7 @@ export function IdeesPage({ memberName }: IdeesPageProps) {
             </button>
           </div>
 
-          <div className="sec">Idées du groupe</div>
+          <h2 className="sec">Idées du groupe</h2>
           {loading && (
             <div className="spinner-wrap">
               <div className="spinner" />
@@ -171,6 +172,7 @@ export function IdeesPage({ memberName }: IdeesPageProps) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
                   <button
                     className={myVote === 'up' ? 'vote-chip up-active' : 'vote-chip'}
+                    aria-pressed={myVote === 'up'}
                     onClick={() => void voteFeedback(f, memberName, 'up')}
                   >
                     <ThumbIcon />
@@ -178,6 +180,7 @@ export function IdeesPage({ memberName }: IdeesPageProps) {
                   </button>
                   <button
                     className={myVote === 'down' ? 'vote-chip down-active' : 'vote-chip'}
+                    aria-pressed={myVote === 'down'}
                     onClick={() => void voteFeedback(f, memberName, 'down')}
                   >
                     <span style={{ display: 'inline-flex', transform: 'rotate(180deg)' }}>
@@ -199,6 +202,7 @@ export function IdeesPage({ memberName }: IdeesPageProps) {
                       onClick={() => startEdit(f)}
                       style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', padding: 3, color: 'var(--ink4)', display: 'flex', alignItems: 'center' }}
                       title="Éditer"
+                      aria-label="Éditer"
                     >
                       <EditIcon />
                     </button>
@@ -207,6 +211,7 @@ export function IdeesPage({ memberName }: IdeesPageProps) {
                     onClick={() => confirm('Supprimer cette idée ?') && void deleteFeedback(f.docId)}
                     style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', padding: 3, color: 'var(--ink4)', display: 'flex', alignItems: 'center' }}
                     title="Supprimer"
+                    aria-label="Supprimer"
                   >
                     <TrashIcon />
                   </button>
@@ -215,6 +220,7 @@ export function IdeesPage({ memberName }: IdeesPageProps) {
                   {STATUSES.map((s) => (
                     <button
                       key={s}
+                      aria-pressed={status === s}
                       onClick={() => void setFeedbackStatus(f.docId, s)}
                       style={{
                         fontSize: 9,
@@ -245,6 +251,7 @@ export function IdeesPage({ memberName }: IdeesPageProps) {
                           <button
                             onClick={() => void deleteFeedbackComment(f, ci)}
                             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--ink4)', flexShrink: 0, opacity: 0.4 }}
+                            aria-label="Supprimer"
                           >
                             <TrashIcon size={11} />
                           </button>
@@ -255,7 +262,8 @@ export function IdeesPage({ memberName }: IdeesPageProps) {
                       <input
                         className="form-input"
                         placeholder="Ajouter un commentaire…"
-                        style={{ fontSize: 11, padding: '6px 9px' }}
+                        aria-label="Ajouter un commentaire"
+                        style={{ fontSize: 16, padding: '6px 9px' }}
                         value={commentDrafts[f.docId] ?? ''}
                         onChange={(e) => setCommentDrafts({ ...commentDrafts, [f.docId]: e.target.value })}
                         onKeyDown={(e) => {

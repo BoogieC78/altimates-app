@@ -46,7 +46,21 @@ export function RandoCard({ rando: r, memberName }: RandoCardProps) {
   return (
     <div className="rcard">
       {/* Comme l'ancienne app : clic sur la zone principale = ouverture du détail */}
-      <div className="rcard-top" onClick={() => setShowDetail(true)} style={{ cursor: 'pointer' }}>
+      <div
+        className="rcard-top"
+        role="button"
+        tabIndex={0}
+        aria-label="Détails de la rando"
+        onClick={() => setShowDetail(true)}
+        onKeyDown={(e) => {
+          if (e.target !== e.currentTarget) return
+          if (e.key === 'Enter' || e.key === ' ') {
+            if (e.key === ' ') e.preventDefault()
+            setShowDetail(true)
+          }
+        }}
+        style={{ cursor: 'pointer' }}
+      >
         <div className="rcard-main">
           <div
             style={{
@@ -115,6 +129,7 @@ export function RandoCard({ rando: r, memberName }: RandoCardProps) {
           <div className="vrow">
             <button
               className={myVote === 'oui' ? 'vbtn vyes' : 'vbtn'}
+              aria-pressed={myVote === 'oui'}
               onClick={(e) => {
                 e.stopPropagation()
                 vote('oui')
@@ -124,6 +139,7 @@ export function RandoCard({ rando: r, memberName }: RandoCardProps) {
             </button>
             <button
               className={myVote === 'peut' ? 'vbtn vmay' : 'vbtn'}
+              aria-pressed={myVote === 'peut'}
               onClick={(e) => {
                 e.stopPropagation()
                 vote('peut')
@@ -133,12 +149,13 @@ export function RandoCard({ rando: r, memberName }: RandoCardProps) {
             </button>
             <button
               className={myVote === 'non' ? 'vbtn vno' : 'vbtn'}
+              aria-pressed={myVote === 'non'}
               onClick={(e) => {
                 e.stopPropagation()
                 vote('non')
               }}
             >
-              🇨🇳 PAS PARTANT
+              ❌ PAS PARTANT
             </button>
             <span className="vtally">
               {r.votes?.oui ?? 0}✓ {r.votes?.peut ?? 0}? {r.votes?.non ?? 0}✗
@@ -150,12 +167,14 @@ export function RandoCard({ rando: r, memberName }: RandoCardProps) {
                   remove()
                 }}
                 title="Supprimer"
+                aria-label="Supprimer"
                 style={{
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  padding: 3,
-                  color: 'var(--ink4)',
+                  padding: 8,
+                  margin: -5,
+                  color: 'var(--ink3)',
                   display: 'flex',
                   alignItems: 'center',
                 }}
@@ -181,7 +200,9 @@ export function RandoCard({ rando: r, memberName }: RandoCardProps) {
         )}
         {weather && weather !== 'error' && (
           <div className={`rcard-wx wx-${weather.quality}`}>
-            <div className="wx-icon">{weather.icon}</div>
+            <div className="wx-icon">
+              <span aria-hidden="true">{weather.icon}</span>
+            </div>
             <div className="wx-temp">{weather.temp}°</div>
             <div className="wx-wind">
               {weather.wind}km/h

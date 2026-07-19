@@ -36,7 +36,8 @@ Pièges UI déjà rencontrés (ne pas re-diagnostiquer de zéro) :
   collage et la notation `-4454.7e2` passent. Pattern retenu (`digitsOnlyInput` dans
   AddRandoModal.tsx) : `type=text inputMode=numeric` + strip des non-chiffres à l'`onInput`,
   et garde `positive()` au submit.
-- Votes rando : `VoteValue = 'oui' | 'peut' | 'non'` — boutons ✅ PARTANT / 🤔 PEUT-ÊTRE / 🇨🇳 PAS PARTANT.
+- Votes rando : `VoteValue = 'oui' | 'peut' | 'non'` — boutons ✅ PARTANT / 🤔 PEUT-ÊTRE / ❌ PAS PARTANT
+  (🇨🇳 remplacé par ❌ à l'audit accessibilité du 2026-07-19).
 
 ## 3. Vérifier
 

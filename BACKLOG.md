@@ -1,7 +1,7 @@
 # Backlog ALTImates
 
 Tâches reportées et pistes d'optimisation. Cochez au fur et à mesure.
-Dernière mise à jour : 2026-07-15.
+Dernière mise à jour : 2026-07-19.
 
 ---
 
@@ -81,7 +81,13 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
 - [~] **Onglet Fenêtre** : calendrier de disponibilités de la cordée (chacun renseigne ses jours ;
   l'app calcule les meilleures fenêtres communes). Livré en **staging** le 2026-07-15 (commit 61ad023,
   règles Firestore déployées) — en attente de validation avant prod. Carte Trello ZYp4GMYV.
-- [ ] **Audit accessibilité / responsive** de l'app (contrastes, focus clavier, mobile).
+- [~] **Audit accessibilité / responsive** de l'app — 2 audits complets menés le 2026-07-19
+  (a11y WCAG 2.1 AA : 34 constats ; responsive mobile 360–430px : 29 constats) puis corrections :
+  modales accessibles (dialog/focus trap/Escape), labels/aria-pressed partout, contrastes,
+  focus visible, safe-area iPhone, inputs 16px anti-zoom iOS, nav 8 onglets en 360px,
+  0 débordement horizontal vérifié à 360/375/430px. Livré en **staging** — en attente de
+  validation avant prod. Cartes Trello 6a5cc983e49b9df519f8efca (a11y) et
+  6a5cc983aed8b84ea7109036 (responsive). Note : vote « Pas partant » passé de 🇨🇳 à ❌.
 - [ ] **Staging isolé** : projet Firebase dédié (données de test seedées) + auto-login compte de test
   en preview uniquement — permet de tester sans connexion, sans risque prod. Carte Trello détaillée.
 - [x] **Rando : votes ✅ Partant / 🤔 Peut-être / 🇨🇳 Pas partant** — livré prod v0.3.1.

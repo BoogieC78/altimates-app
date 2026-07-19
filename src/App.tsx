@@ -40,15 +40,17 @@ function friendlyAuthError(err: Error): string {
   return msg || 'Connexion impossible pour le moment. Réessaie dans un instant.'
 }
 
-const TABS = [
+// `short` : texte affiché dans la nav quand le libellé complet ne tient pas en
+// 360px — le nom accessible reste `label` (aria-label), les tests e2e en dépendent.
+const TABS: ReadonlyArray<{ key: string; label: string; short?: string }> = [
   { key: 'sommets', label: 'Sommets' },
   { key: 'kit', label: 'Kit' },
   { key: 'radio', label: 'Radio' },
   { key: 'fenetre', label: 'Fenêtre' },
   { key: 'idees', label: 'Idées' },
   { key: 'cordee', label: 'Cordée' },
-  { key: 'basecamp', label: 'Base Camp' },
-] as const
+  { key: 'basecamp', label: 'Base Camp', short: 'Camp' },
+]
 
 export default function App() {
   const { user, loading } = useAuth()
@@ -58,6 +60,12 @@ export default function App() {
   const [email, setEmail] = useState('')
   const [emailSent, setEmailSent] = useState(false)
   const [showTour, setShowTour] = useState(shouldShowTour)
+
+  // Titre de page reflétant l'onglet actif (SPA : sinon le titre reste figé).
+  useEffect(() => {
+    const label = TABS.find((t) => t.key === tab)?.label ?? (tab === 'admin' ? 'Admin' : '')
+    document.title = label ? `${label} · Altimates` : 'Altimates'
+  }, [tab])
 
   // Si on revient d'un lien de connexion e-mail, on termine la connexion au chargement.
   useEffect(() => {
@@ -98,7 +106,7 @@ export default function App() {
           <div
             style={{
               fontSize: 9,
-              color: 'var(--ink4)',
+              color: 'var(--ink3)',
               fontFamily: 'var(--mono)',
               letterSpacing: '.1em',
               marginTop: 4,
@@ -107,8 +115,8 @@ export default function App() {
             PLAN · GEAR UP · SUMMIT TOGETHER
           </div>
         </div>
-        <div className="auth-card">
-          <div className="auth-title">Bienvenue dans la cordée</div>
+        <main className="auth-card">
+          <h1 className="auth-title">Bienvenue dans la cordée</h1>
           <div className="auth-sub">Connecte-toi pour accéder à l'app et rejoindre ton groupe</div>
           <button
             className="auth-google-btn"
@@ -146,6 +154,7 @@ export default function App() {
                 className="form-input"
                 type="email"
                 name="email"
+                aria-label="Adresse e-mail"
                 placeholder="ton@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -158,16 +167,16 @@ export default function App() {
           )}
 
           {loginError && (
-            <div className="auth-error" style={{ display: 'block' }}>
+            <div className="auth-error" role="alert" style={{ display: 'block' }}>
               {loginError}
             </div>
           )}
-        </div>
+        </main>
       </div>
     )
   }
 
-  const tabs = isAdmin(user) ? [...TABS, { key: 'admin', label: 'Admin' } as const] : [...TABS]
+  const tabs = isAdmin(user) ? [...TABS, { key: 'admin', label: 'Admin' }] : [...TABS]
 
   if (showTour) {
     return <GuidedTour onDone={() => setShowTour(false)} />
@@ -200,7 +209,7 @@ export default function App() {
       )}
       <TopoBackground />
       <div className="app">
-        <div className="header">
+        <header className="header">
           <div className="logo">
             <LogoIcon />
             <div>
@@ -219,8 +228,9 @@ export default function App() {
           >
             {memberName}
           </button>
-        </div>
+        </header>
 
+        <main style={{ display: 'contents' }}>
         {tab === 'sommets' ? (
           <SommetsPage memberName={memberName} />
         ) : tab === 'radio' ? (
@@ -245,16 +255,19 @@ export default function App() {
             </div>
           </div>
         )}
+        </main>
 
-        <nav className="nav">
+        <nav className="nav" aria-label="Navigation principale">
           {tabs.map((t) => (
             <button
               key={t.key}
               className={t.key === tab ? 'nav-btn active' : 'nav-btn'}
+              aria-label={t.label}
+              aria-current={t.key === tab ? 'page' : undefined}
               onClick={() => setTab(t.key)}
             >
               {NAV_ICONS[t.key]}
-              {t.label}
+              {t.short ?? t.label}
             </button>
           ))}
         </nav>

@@ -69,7 +69,7 @@ export function FenetrePage({ user, memberName }: FenetrePageProps) {
         <p>Renseigne tes disponibilités : choisis un statut puis touche les jours. La cordée voit les fenêtres communes.</p>
       </div>
 
-      <div className="sec">Mon statut</div>
+      <h2 className="sec">Mon statut</h2>
       <div className="fen-status-cards">
         {STATUSES.map((s) => (
           <button
@@ -77,6 +77,7 @@ export function FenetrePage({ user, memberName }: FenetrePageProps) {
             className={brush === s ? 'fen-status-card active' : 'fen-status-card'}
             style={{ ['--brush' as string]: STATUS_META[s].color }}
             aria-label={STATUS_META[s].label}
+            aria-pressed={brush === s}
             onClick={() => setBrush(s)}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -121,11 +122,17 @@ export function FenetrePage({ user, memberName }: FenetrePageProps) {
                 style={my ? { background: STATUS_META[my].color, color: '#fff', borderColor: 'transparent' } : undefined}
                 onClick={() => paint(d.iso)}
                 aria-label={`${d.day} ${MONTH_LABELS[ym.month]}`}
+                aria-pressed={Boolean(my)}
               >
                 {d.day}
                 <span className="fen-dots">
                   {others.slice(0, 4).map((m) => (
-                    <i key={m.name} style={{ background: STATUS_META[m.days[d.iso]].color }} title={m.name} />
+                    <i
+                      key={m.name}
+                      style={{ background: STATUS_META[m.days[d.iso]].color }}
+                      role="img"
+                      aria-label={`${m.name} : ${STATUS_META[m.days[d.iso]].label}`}
+                    />
                   ))}
                 </span>
               </button>
@@ -134,7 +141,7 @@ export function FenetrePage({ user, memberName }: FenetrePageProps) {
         </div>
       </div>
 
-      <div className="sec">Meilleures fenêtres du mois</div>
+      <h2 className="sec">Meilleures fenêtres du mois</h2>
       {loading && (
         <div className="spinner-wrap">
           <div className="spinner" />

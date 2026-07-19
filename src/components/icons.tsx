@@ -1,7 +1,15 @@
 // Icônes SVG reprises telles quelles de l'ancienne app (index.html).
 
 export const LogoIcon = ({ size = 30 }: { size?: number }) => (
-  <svg className="logo-icon" width={size} height={size} viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+  <svg
+    className="logo-icon"
+    width={size}
+    height={size}
+    viewBox="0 0 44 44"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+    focusable="false"
+  >
     <rect width="44" height="44" rx="10" fill="#2D2D2A" />
     <path
       d="M4,36 L14,10 L24,28 L34,8 L44,36"
@@ -20,6 +28,8 @@ const stroke = {
   strokeWidth: 2,
   strokeLinecap: 'round',
   strokeLinejoin: 'round',
+  'aria-hidden': true,
+  focusable: false,
 } as const
 
 export const NAV_ICONS: Record<string, React.ReactNode> = {

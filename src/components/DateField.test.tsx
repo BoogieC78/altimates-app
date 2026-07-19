@@ -40,7 +40,7 @@ describe('DateField', () => {
     // Mois affiché en français, jours de semaine français
     expect(screen.getByText('juillet 2026')).toBeTruthy()
     expect(screen.getByText('lun')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: '25' }))
+    fireEvent.click(screen.getByRole('button', { name: '25 juillet 2026' }))
     expect(screen.getByLabelText<HTMLInputElement>('Date').value).toBe('25/07/2026')
   })
 

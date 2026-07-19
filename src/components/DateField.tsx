@@ -5,6 +5,8 @@ interface DateFieldProps {
   /** Valeur initiale au format ISO (AAAA-MM-JJ), comme stockée en base. */
   defaultValue?: string
   required?: boolean
+  /** Nom accessible du champ (ex : "Date de début") — "Date" par défaut. */
+  label?: string
 }
 
 const MONTHS = [
@@ -46,7 +48,7 @@ function maskFr(raw: string): string {
 // garantir un calendrier en français avec <input type="date">.
 // La valeur soumise via FormData est au format JJ/MM/AAAA : convertir avec
 // frToIso() côté submit.
-export function DateField({ name, defaultValue, required }: DateFieldProps) {
+export function DateField({ name, defaultValue, required, label = 'Date' }: DateFieldProps) {
   const [text, setText] = useState(defaultValue ? isoToFr(defaultValue) : '')
   const [open, setOpen] = useState(false)
   const today = new Date()
@@ -93,7 +95,17 @@ export function DateField({ name, defaultValue, required }: DateFieldProps) {
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate()
 
   return (
-    <div className="date-field" ref={wrapRef}>
+    <div
+      className="date-field"
+      ref={wrapRef}
+      onKeyDown={(e) => {
+        if (open && e.key === 'Escape') {
+          e.stopPropagation()
+          setOpen(false)
+          wrapRef.current?.querySelector<HTMLElement>('.date-field-btn')?.focus()
+        }
+      }}
+    >
       <button type="button" className="date-field-btn" aria-label="Ouvrir le calendrier" onClick={openCalendar}>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <rect x="3" y="4" width="18" height="18" rx="2" />
@@ -110,12 +122,12 @@ export function DateField({ name, defaultValue, required }: DateFieldProps) {
         inputMode="numeric"
         placeholder="JJ/MM/AAAA"
         pattern="\d{2}/\d{2}/\d{4}"
-        aria-label="Date"
+        aria-label={label}
         onChange={(e) => setText(maskFr(e.target.value))}
         onFocus={() => setOpen(false)}
       />
       {open && (
-        <div className="date-pop" role="dialog" aria-label="Calendrier">
+        <div className="date-pop" role="dialog" aria-label={`Calendrier — ${label}`}>
           <div className="date-pop-head">
             <button type="button" aria-label="Mois précédent" onClick={() => shiftMonth(-1)}>‹</button>
             <span>{MONTHS[viewMonth]} {viewYear}</span>
@@ -142,6 +154,8 @@ export function DateField({ name, defaultValue, required }: DateFieldProps) {
                     (iso === selectedIso ? ' sel' : '') +
                     (isToday ? ' today' : '')
                   }
+                  aria-label={`${day} ${MONTHS[viewMonth]} ${viewYear}`}
+                  aria-pressed={iso === selectedIso}
                   onClick={() => pick(day)}
                 >
                   {day}

@@ -68,17 +68,17 @@ export function AddRandoModal({ memberName, onClose }: AddRandoModalProps) {
     <Modal title="Proposer une rando" onClose={onClose}>
       <form onSubmit={submit}>
         <div style={{ marginBottom: 9 }}>
-          <label className="form-lbl">Nom</label>
-          <input className="form-input" name="name" required placeholder="ex: Lac Blanc" />
+          <label className="form-lbl" htmlFor="add-rando-name">Nom</label>
+          <input className="form-input" id="add-rando-name" name="name" required placeholder="ex: Lac Blanc" />
         </div>
         <div className="form-row2" style={{ marginBottom: 9 }}>
           <div>
-            <label className="form-lbl">Région</label>
-            <input className="form-input" name="region" placeholder="ex: Haute-Savoie" />
+            <label className="form-lbl" htmlFor="add-rando-region">Région</label>
+            <input className="form-input" id="add-rando-region" name="region" placeholder="ex: Haute-Savoie" />
           </div>
           <div>
-            <label className="form-lbl">Niveau</label>
-            <select className="form-input" name="diff" defaultValue="Moyen">
+            <label className="form-lbl" htmlFor="add-rando-diff">Niveau</label>
+            <select className="form-input" id="add-rando-diff" name="diff" defaultValue="Moyen">
               <option>Facile</option>
               <option>Moyen</option>
               <option>Difficile</option>
@@ -86,8 +86,8 @@ export function AddRandoModal({ memberName, onClose }: AddRandoModalProps) {
           </div>
         </div>
         <div style={{ marginBottom: 9 }}>
-          <label className="form-lbl">Lien Komoot (optionnel)</label>
-          <input className="form-input" name="komoot" placeholder="https://www.komoot.com/tour/..." />
+          <label className="form-lbl" htmlFor="add-rando-komoot">Lien Komoot (optionnel)</label>
+          <input className="form-input" id="add-rando-komoot" name="komoot" placeholder="https://www.komoot.com/tour/..." />
         </div>
         <div style={{ marginBottom: 9 }}>
           <label className="form-lbl">Durée</label>
@@ -112,33 +112,33 @@ export function AddRandoModal({ memberName, onClose }: AddRandoModalProps) {
           {!isTrek ? (
             <div>
               <label className="form-lbl">Date</label>
-              <DateField name="dateStart" />
+              <DateField name="dateStart" label="Date de début" />
             </div>
           ) : (
             <div className="form-row2">
               <div>
                 <label className="form-lbl">Du</label>
-                <DateField name="dateStart" />
+                <DateField name="dateStart" label="Date de début" />
               </div>
               <div>
                 <label className="form-lbl">Au</label>
-                <DateField name="dateEnd" />
+                <DateField name="dateEnd" label="Date de fin" />
               </div>
             </div>
           )}
         </div>
         <div className="form-row2" style={{ marginBottom: 12 }}>
           <div>
-            <label className="form-lbl">Distance (km)</label>
-            <input className="form-input" name="km" type="number" min="1" step="1" inputMode="numeric" onKeyDown={blockNonDigitKeys} onInput={digitsOnlyInput} placeholder="15" />
+            <label className="form-lbl" htmlFor="add-rando-km">Distance (km)</label>
+            <input className="form-input" id="add-rando-km" name="km" type="number" min="1" step="1" inputMode="numeric" onKeyDown={blockNonDigitKeys} onInput={digitsOnlyInput} placeholder="15" />
           </div>
           <div>
-            <label className="form-lbl">Dénivelé (m D+)</label>
-            <input className="form-input" name="dplus" type="number" min="1" step="1" inputMode="numeric" onKeyDown={blockNonDigitKeys} onInput={digitsOnlyInput} placeholder="850" />
+            <label className="form-lbl" htmlFor="add-rando-dplus">Dénivelé (m D+)</label>
+            <input className="form-input" id="add-rando-dplus" name="dplus" type="number" min="1" step="1" inputMode="numeric" onKeyDown={blockNonDigitKeys} onInput={digitsOnlyInput} placeholder="850" />
           </div>
         </div>
         {error && (
-          <div className="alert-band" style={{ marginBottom: 10 }}>
+          <div className="alert-band" role="alert" style={{ marginBottom: 10 }}>
             <div className="alert-text">{error}</div>
           </div>
         )}

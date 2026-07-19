@@ -106,6 +106,19 @@ export function BasecampPage({ user, memberName, onGoKit }: BasecampPageProps) {
         className="bc-hero"
         onClick={openNext}
         style={next ? { cursor: 'pointer' } : undefined}
+        role={next ? 'button' : undefined}
+        tabIndex={next ? 0 : undefined}
+        aria-label={next ? 'Voir la prochaine sortie' : undefined}
+        onKeyDown={
+          next
+            ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  if (e.key === ' ') e.preventDefault()
+                  openNext()
+                }
+              }
+            : undefined
+        }
       >
         <div className="bc-hero-bg">
           <svg width="100%" height="100%" viewBox="0 0 440 160" preserveAspectRatio="xMidYMid slice">
@@ -120,7 +133,7 @@ export function BasecampPage({ user, memberName, onGoKit }: BasecampPageProps) {
           <div className="bc-name">{profile?.name ?? memberName}</div>
           <div className="bc-meta">
             <span className={`tag ${lv.cls}`}>{lv.l}</span>
-            <span style={{ fontSize: 9, color: 'rgba(255,255,255,.3)', fontFamily: 'var(--mono)' }}>
+            <span style={{ fontSize: 9, color: 'rgba(255,255,255,.65)', fontFamily: 'var(--mono)' }}>
               BASE CAMP · ALTIMATES
             </span>
           </div>
@@ -343,7 +356,8 @@ function PastOutingsSection({
             <button
               onClick={() => remove(o.id)}
               title="Supprimer"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 3, color: 'var(--ink4)' }}
+              aria-label="Supprimer"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 8, margin: -5, color: 'var(--ink4)' }}
             >
               <TrashIcon size={13} />
             </button>
@@ -353,15 +367,17 @@ function PastOutingsSection({
           <input
             className="form-input"
             placeholder="ex: Mont Blanc"
-            style={{ flex: '1 1 120px', fontSize: 11, padding: '6px 9px' }}
+            aria-label="Nom de la sortie"
+            style={{ flex: '1 1 120px', fontSize: 16, padding: '6px 9px' }}
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
           <input
             className="form-input"
             placeholder="km"
+            aria-label="Distance en km"
             inputMode="numeric"
-            style={{ width: 60, fontSize: 11, padding: '6px 9px' }}
+            style={{ width: 60, fontSize: 16, padding: '6px 9px' }}
             value={km}
             onKeyDown={blockNonDigitKeys}
             onChange={(e) => setKm(e.target.value.replace(/\D/g, ''))}
@@ -369,8 +385,9 @@ function PastOutingsSection({
           <input
             className="form-input"
             placeholder="D+"
+            aria-label="Dénivelé positif en mètres"
             inputMode="numeric"
-            style={{ width: 60, fontSize: 11, padding: '6px 9px' }}
+            style={{ width: 60, fontSize: 16, padding: '6px 9px' }}
             value={dplus}
             onKeyDown={blockNonDigitKeys}
             onChange={(e) => setDplus(e.target.value.replace(/\D/g, ''))}
@@ -429,12 +446,12 @@ function EditProfileModal({
   return (
     <Modal title="Modifier profil" onClose={onClose}>
       <div style={{ marginBottom: 10 }}>
-        <label className="form-lbl">Prénom</label>
-        <input className="form-input" value={name} onChange={(e) => setName(e.target.value)} />
+        <label className="form-lbl" htmlFor="profil-prenom">Prénom</label>
+        <input id="profil-prenom" className="form-input" value={name} onChange={(e) => setName(e.target.value)} />
       </div>
       <div style={{ marginBottom: 10 }}>
-        <label className="form-lbl">Niveau</label>
-        <select className="form-input" value={level} onChange={(e) => setLevel(e.target.value as Level)}>
+        <label className="form-lbl" htmlFor="profil-niveau">Niveau</label>
+        <select id="profil-niveau" className="form-input" value={level} onChange={(e) => setLevel(e.target.value as Level)}>
           {(Object.keys(LVLS) as Level[]).map((k) => (
             <option key={k} value={k}>
               {LVLS[k].l}
@@ -445,8 +462,9 @@ function EditProfileModal({
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
         {STAT_FIELDS.map(({ k, l }) => (
           <div key={k}>
-            <label className="form-lbl">{l}</label>
+            <label className="form-lbl" htmlFor={`profil-stat-${k}`}>{l}</label>
             <input
+              id={`profil-stat-${k}`}
               className="form-input"
               type="text"
               inputMode="numeric"

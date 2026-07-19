@@ -47,17 +47,17 @@ export function EditRandoModal({ rando: r, onClose }: EditRandoModalProps) {
     <Modal title="Modifier la rando" onClose={onClose}>
       <form onSubmit={submit}>
         <div style={{ marginBottom: 9 }}>
-          <label className="form-lbl">Nom</label>
-          <input className="form-input" name="name" required defaultValue={r.name} placeholder="ex: Lac Blanc" />
+          <label className="form-lbl" htmlFor="edit-rando-name">Nom</label>
+          <input className="form-input" id="edit-rando-name" name="name" required defaultValue={r.name} placeholder="ex: Lac Blanc" />
         </div>
         <div className="form-row2" style={{ marginBottom: 9 }}>
           <div>
-            <label className="form-lbl">Région</label>
-            <input className="form-input" name="region" defaultValue={r.region} placeholder="ex: Haute-Savoie" />
+            <label className="form-lbl" htmlFor="edit-rando-region">Région</label>
+            <input className="form-input" id="edit-rando-region" name="region" defaultValue={r.region} placeholder="ex: Haute-Savoie" />
           </div>
           <div>
-            <label className="form-lbl">Niveau</label>
-            <select className="form-input" name="diff" defaultValue={r.diff ?? 'Moyen'}>
+            <label className="form-lbl" htmlFor="edit-rando-diff">Niveau</label>
+            <select className="form-input" id="edit-rando-diff" name="diff" defaultValue={r.diff ?? 'Moyen'}>
               <option>Facile</option>
               <option>Moyen</option>
               <option>Difficile</option>
@@ -65,9 +65,10 @@ export function EditRandoModal({ rando: r, onClose }: EditRandoModalProps) {
           </div>
         </div>
         <div style={{ marginBottom: 9 }}>
-          <label className="form-lbl">Lien Komoot (optionnel)</label>
+          <label className="form-lbl" htmlFor="edit-rando-komoot">Lien Komoot (optionnel)</label>
           <input
             className="form-input"
+            id="edit-rando-komoot"
             name="komoot"
             defaultValue={r.traces?.[0]?.url ?? ''}
             placeholder="https://www.komoot.com/tour/..."
@@ -96,33 +97,33 @@ export function EditRandoModal({ rando: r, onClose }: EditRandoModalProps) {
           {!isTrek ? (
             <div>
               <label className="form-lbl">Date</label>
-              <DateField name="dateStart" defaultValue={r.dateStart ?? ''} />
+              <DateField name="dateStart" defaultValue={r.dateStart ?? ''} label="Date de début" />
             </div>
           ) : (
             <div className="form-row2">
               <div>
                 <label className="form-lbl">Du</label>
-                <DateField name="dateStart" defaultValue={r.dateStart ?? ''} />
+                <DateField name="dateStart" defaultValue={r.dateStart ?? ''} label="Date de début" />
               </div>
               <div>
                 <label className="form-lbl">Au</label>
-                <DateField name="dateEnd" defaultValue={r.dateEnd ?? ''} />
+                <DateField name="dateEnd" defaultValue={r.dateEnd ?? ''} label="Date de fin" />
               </div>
             </div>
           )}
         </div>
         <div className="form-row2" style={{ marginBottom: 12 }}>
           <div>
-            <label className="form-lbl">Distance (km)</label>
-            <input className="form-input" name="km" type="number" min="1" step="1" inputMode="numeric" onKeyDown={blockNonDigitKeys} onInput={digitsOnlyInput} defaultValue={r.km ?? ''} placeholder="15" />
+            <label className="form-lbl" htmlFor="edit-rando-km">Distance (km)</label>
+            <input className="form-input" id="edit-rando-km" name="km" type="number" min="1" step="1" inputMode="numeric" onKeyDown={blockNonDigitKeys} onInput={digitsOnlyInput} defaultValue={r.km ?? ''} placeholder="15" />
           </div>
           <div>
-            <label className="form-lbl">Dénivelé (m D+)</label>
-            <input className="form-input" name="dplus" type="number" min="1" step="1" inputMode="numeric" onKeyDown={blockNonDigitKeys} onInput={digitsOnlyInput} defaultValue={r.dplus ?? ''} placeholder="850" />
+            <label className="form-lbl" htmlFor="edit-rando-dplus">Dénivelé (m D+)</label>
+            <input className="form-input" id="edit-rando-dplus" name="dplus" type="number" min="1" step="1" inputMode="numeric" onKeyDown={blockNonDigitKeys} onInput={digitsOnlyInput} defaultValue={r.dplus ?? ''} placeholder="850" />
           </div>
         </div>
         {error && (
-          <div className="alert-band" style={{ marginBottom: 10 }}>
+          <div className="alert-band" role="alert" style={{ marginBottom: 10 }}>
             <div className="alert-text">{error}</div>
           </div>
         )}

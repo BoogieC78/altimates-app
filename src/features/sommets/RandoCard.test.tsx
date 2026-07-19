@@ -45,7 +45,7 @@ describe('RandoCard', () => {
     expect(voteRando).toHaveBeenCalledWith(rando, 'Wacil', 'oui')
     fireEvent.click(screen.getByRole('button', { name: '🤔 PEUT-ÊTRE' }))
     expect(voteRando).toHaveBeenCalledWith(rando, 'Wacil', 'peut')
-    fireEvent.click(screen.getByRole('button', { name: '🇨🇳 PAS PARTANT' }))
+    fireEvent.click(screen.getByRole('button', { name: '❌ PAS PARTANT' }))
     expect(voteRando).toHaveBeenCalledWith(rando, 'Wacil', 'non')
   })
 

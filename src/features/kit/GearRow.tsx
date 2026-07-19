@@ -51,7 +51,8 @@ export function GearRow({ item: g, status, share, onStatus, onShareToggle, onSha
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                padding: 1,
+                padding: 8,
+                margin: -7,
                 display: 'flex',
                 alignItems: 'center',
                 flexShrink: 0,
@@ -69,16 +70,32 @@ export function GearRow({ item: g, status, share, onStatus, onShareToggle, onSha
         </div>
         {g.note && !status && <div className="gear-note">{g.note}</div>}
         <div className="kit-status-bar">
-          <button className={status === 'have' ? 'ks-btn have' : 'ks-btn'} onClick={() => onStatus(g.id, 'have')}>
+          <button
+            className={status === 'have' ? 'ks-btn have' : 'ks-btn'}
+            aria-pressed={status === 'have'}
+            onClick={() => onStatus(g.id, 'have')}
+          >
             ✓ J'ai
           </button>
-          <button className={status === 'want' ? 'ks-btn want' : 'ks-btn'} onClick={() => onStatus(g.id, 'want')}>
+          <button
+            className={status === 'want' ? 'ks-btn want' : 'ks-btn'}
+            aria-pressed={status === 'want'}
+            onClick={() => onStatus(g.id, 'want')}
+          >
             🛒 Je prends
           </button>
-          <button className={status === 'maybe' ? 'ks-btn maybe' : 'ks-btn'} onClick={() => onStatus(g.id, 'maybe')}>
+          <button
+            className={status === 'maybe' ? 'ks-btn maybe' : 'ks-btn'}
+            aria-pressed={status === 'maybe'}
+            onClick={() => onStatus(g.id, 'maybe')}
+          >
             ? Réfléchir
           </button>
-          <button className={status === 'skip' ? 'ks-btn skip' : 'ks-btn'} onClick={() => onStatus(g.id, 'skip')}>
+          <button
+            className={status === 'skip' ? 'ks-btn skip' : 'ks-btn'}
+            aria-pressed={status === 'skip'}
+            onClick={() => onStatus(g.id, 'skip')}
+          >
             ✕ Skip
           </button>
         </div>
@@ -86,6 +103,9 @@ export function GearRow({ item: g, status, share, onStatus, onShareToggle, onSha
           <div className="kit-share-row">
             <button
               className={share.shared ? 'kit-share-toggle on' : 'kit-share-toggle off'}
+              role="switch"
+              aria-checked={share.shared}
+              aria-label="Partager cet équipement"
               onClick={() => onShareToggle(g.id)}
               title={share.shared ? 'Partage activé' : 'Partage désactivé'}
             />
@@ -95,6 +115,7 @@ export function GearRow({ item: g, status, share, onStatus, onShareToggle, onSha
             {share.shared && (
               <select
                 value={share.capacity}
+                aria-label="Capacité de partage"
                 onChange={(e) => onShareCapacity(g.id, Number(e.target.value))}
                 style={{
                   fontSize: 10,

@@ -9,8 +9,10 @@ describe('buildKitEmailLines', () => {
     expect(lines).toContain('INDISPENSABLES')
     expect(lines).toContain('RECOMMANDÉS')
     expect(lines).toContain('FACULTATIFS')
-    // Article coché vs non coché, avec prix et note
-    expect(lines).toContain('[x] Chaussures de rando · 80–180€ · Gore-Tex si saison humide · Vibram recommandée')
+    // Article coché vs non coché, avec prix, poids et note
+    expect(lines).toContain(
+      '[x] Chaussures de rando · Quechua MH500 imperméables · 80–180€ · 1000–1300 g · Porté sur soi · membrane imperméable, semelle crantée',
+    )
     expect(lines.some((l) => l.startsWith('[ ] Bâtons de rando'))).toBe(true)
     // Les liens sont indentés sous l’article
     expect(lines.some((l) => l.startsWith('    → MT900 · 50+10L: https://'))).toBe(true)

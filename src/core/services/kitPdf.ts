@@ -2,7 +2,7 @@
 // (mêmes couleurs, mêmes sections, même mise en page A4).
 // jspdf est importé dynamiquement : ~400 Ko chargés uniquement au clic sur PDF.
 import { GEAR_INFO, type KitMode, type KitStatus } from '../constants/gear'
-import { allItems } from './kit'
+import { allItems, formatWeight, weightRange } from './kit'
 
 export async function generateKitPdf(mode: KitMode, kitStatus: Record<string, KitStatus>, userName: string): Promise<void> {
   const { jsPDF } = await import('jspdf')
@@ -13,6 +13,8 @@ export async function generateKitPdf(mode: KitMode, kitStatus: Record<string, Ki
   const toThink = all.filter((g) => kitStatus[g.id] === 'maybe')
   const have = all.filter((g) => kitStatus[g.id] === 'have')
   const skip = all.filter((g) => kitStatus[g.id] === 'skip')
+  const carried = all.filter((g) => kitStatus[g.id] !== 'skip')
+  const packWeight = weightRange(carried)
 
   const W = 210
   const M = 16
@@ -41,7 +43,17 @@ export async function generateKitPdf(mode: KitMode, kitStatus: Record<string, Ki
   doc.setFontSize(8)
   doc.setTextColor(140, 112, 0)
   doc.text('RAPPEL : Prévoir au moins 1 gourde de 1L par personne + filtrante si ruisseau sur le tracé', M + 4, y + 6.5)
-  y += 15
+  y += 14
+
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8)
+  doc.setTextColor(107, 101, 96)
+  doc.text(
+    `Poids du sac estimé : ${formatWeight(packWeight.min)} – ${formatWeight(packWeight.max)} · ${carried.length} article${carried.length > 1 ? 's' : ''} emporté${carried.length > 1 ? 's' : ''} (hors ignorés)`,
+    M,
+    y + 4,
+  )
+  y += 9
 
   const sectionHeader = (label: string, color: [number, number, number]) => {
     doc.setFillColor(...color)
@@ -80,7 +92,7 @@ export async function generateKitPdf(mode: KitMode, kitStatus: Record<string, Ki
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(8)
     doc.setTextColor(107, 101, 96)
-    doc.text(g.price, M + CW - 2, y + 5.5, { align: 'right' })
+    doc.text(`${g.price}  ·  ${g.weight}`, M + CW - 2, y + 5.5, { align: 'right' })
 
     if (showLinks && links.length) {
       const ORDER = ['Decathlon', 'Vinted', 'Amazon', 'LeBonCoin']

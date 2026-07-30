@@ -153,6 +153,7 @@ export function GearRow({ item: g, status, share, onStatus, onShareToggle, onSha
       </div>
       <div className="gear-right">
         <span className={status === 'have' ? 'gear-price owned' : 'gear-price'}>{g.price}</span>
+        <span className="gear-weight">{g.weight}</span>
       </div>
     </div>
   )

@@ -23,26 +23,64 @@ export function isOwned(status: KitStatus | undefined): boolean {
   return status === 'have'
 }
 
+export interface Range {
+  min: number
+  max: number
+}
+
 /**
- * Budget des articles manquants, à partir des fourchettes de prix "80–180€".
+ * Parse une fourchette du type "80–180€" ou "400–800 g" (tiret demi-cadratin).
  * Mêmes règles que l'ancienne app : min = premier nombre, max = second (ou unique).
  */
-export function budgetRange(missing: GearItem[]): { min: number; max: number } {
-  const min = missing.reduce((acc, g) => {
-    const p = g.price.split('–')[0].replace(/[^0-9]/g, '')
-    return acc + (parseInt(p) || 0)
-  }, 0)
-  const max = missing.reduce((acc, g) => {
-    const p = g.price.split('–')[1] || g.price
-    return acc + (parseInt(p.replace(/[^0-9]/g, '')) || 0)
-  }, 0)
-  return { min, max }
+export function parseRange(range: string): Range {
+  const parts = range.split('–')
+  const num = (s: string) => parseInt(s.replace(/[^0-9]/g, '')) || 0
+  return { min: num(parts[0]), max: num(parts[1] ?? range) }
+}
+
+function sumRanges(items: GearItem[], field: (g: GearItem) => string): Range {
+  return items.reduce<Range>(
+    (acc, g) => {
+      const r = parseRange(field(g))
+      return { min: acc.min + r.min, max: acc.max + r.max }
+    },
+    { min: 0, max: 0 },
+  )
+}
+
+/** Budget des articles manquants, à partir des fourchettes de prix "80–180€". */
+export function budgetRange(missing: GearItem[]): Range {
+  return sumRanges(missing, (g) => g.price)
+}
+
+/** Poids en grammes des articles emportés, à partir des fourchettes "400–800 g". */
+export function weightRange(carried: GearItem[]): Range {
+  return sumRanges(carried, (g) => g.weight)
+}
+
+/**
+ * Affichage d'un poids en grammes : "850 g" en dessous du kilo, "9,4 kg" au-dessus.
+ * Formatage manuel (pas de toLocaleString) pour rester identique quelle que soit
+ * la locale de la machine ou du navigateur.
+ */
+export function formatWeight(grams: number): string {
+  if (grams <= 0) return '—'
+  if (grams < 1000) return `${grams} g`
+  return `${(grams / 1000).toFixed(1).replace('.', ',')} kg`
 }
 
 export interface KitStats {
   done: number
   total: number
   missing: (GearItem & { cat: string })[]
+  /**
+   * Ce qui finit DANS LE SAC : tout sauf les articles « Skip » et sauf ceux portés
+   * sur soi pendant la marche (`worn`). C'est le poids que le dos encaisse — les
+   * chaussures aux pieds et les bâtons en main n'en font pas partie.
+   */
+  carried: (GearItem & { cat: string })[]
+  /** Articles retenus mais portés sur soi — sert à expliquer ce qui est exclu du total. */
+  worn: (GearItem & { cat: string })[]
   pct: number
 }
 
@@ -50,5 +88,13 @@ export function kitStats(mode: KitMode, kitStatus: Record<string, KitStatus>): K
   const all = allItems(mode)
   const done = all.filter((g) => isOwned(kitStatus[g.id])).length
   const missing = all.filter((g) => !isOwned(kitStatus[g.id]) && kitStatus[g.id] !== 'skip')
-  return { done, total: all.length, missing, pct: Math.round((done / all.length) * 100) }
+  const kept = all.filter((g) => kitStatus[g.id] !== 'skip')
+  return {
+    done,
+    total: all.length,
+    missing,
+    carried: kept.filter((g) => !g.worn),
+    worn: kept.filter((g) => g.worn),
+    pct: Math.round((done / all.length) * 100),
+  }
 }

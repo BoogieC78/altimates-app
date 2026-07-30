@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { User } from 'firebase/auth'
 import { GEAR, GEAR_INFO, LVLS, type KitMode, type KitStatus, type Level } from '../../core/constants/gear'
-import { budgetRange, findGearItem, kitStats } from '../../core/services/kit'
+import { budgetRange, findGearItem, formatWeight, kitStats, weightRange } from '../../core/services/kit'
 import { buildKitEmailLines, EMAIL_SECTION_LABELS, kitMailtoUrl } from '../../core/services/kitEmail'
 import { generateKitPdf } from '../../core/services/kitPdf'
 import { useUserProfile } from '../../hooks/useUserProfile'
@@ -57,6 +57,7 @@ export function KitPage({ user, memberName }: KitPageProps) {
   const gear = GEAR[mode]
   const stats = kitStats(mode, kitStatus)
   const { min: budgetMin, max: budgetMax } = budgetRange(stats.missing)
+  const { min: weightMin, max: weightMax } = weightRange(stats.carried)
 
   const setStatus = (id: string, status: KitStatus) => {
     const next = { ...kitStatus }
@@ -130,6 +131,22 @@ export function KitPage({ user, memberName }: KitPageProps) {
               <div className="budget-stat-lbl">Complet</div>
             </div>
           </div>
+          <div className="budget-weight">
+            <div>
+              <div className="budget-weight-lbl">POIDS DU SAC ESTIMÉ *</div>
+              <div className="budget-weight-sub">
+                {stats.carried.length} article{stats.carried.length > 1 ? 's' : ''} dans le sac · hors « Skip »
+              </div>
+            </div>
+            <div className="budget-weight-val">
+              {formatWeight(weightMin)}
+              <span className="budget-weight-max"> – {formatWeight(weightMax)}</span>
+            </div>
+          </div>
+          <p className="budget-weight-note">
+            * Poids porté <strong>dans le sac</strong>. L'équipement porté sur soi pendant la marche en est
+            exclu{stats.worn.length > 0 ? ` (${stats.worn.map((g) => g.id === 'batons' ? 'bâtons' : g.name.split(' · ')[0].toLowerCase()).join(', ')})` : ''}.
+          </p>
         </div>
       </div>
 

@@ -75,9 +75,6 @@ export function KitTriage({ items, onStatus, onClose }: KitTriageProps) {
         <button type="button" className="triage-link" onClick={() => decide('skip')}>
           ✕ Pas besoin
         </button>
-        <button type="button" className="triage-link" onClick={advance}>
-          Décider plus tard →
-        </button>
       </div>
     </div>
   )

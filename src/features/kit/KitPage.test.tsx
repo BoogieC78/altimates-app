@@ -127,7 +127,7 @@ describe('KitPage', () => {
     expect(screen.getByText('TRIAGE · 2/14')).toBeTruthy()
   })
 
-  it('triage : « Pas besoin » écrit skip, « Décider plus tard » ne touche à rien', () => {
+  it('triage : « Pas besoin » écrit skip et avance ; pas de saut de carte possible', () => {
     state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus: {} }
     render(<KitPage user={user} memberName="Wacil" />)
     fireEvent.click(screen.getByText('✕ Pas besoin'))
@@ -135,10 +135,9 @@ describe('KitPage', () => {
       kitStatus: { chaussures: 'skip' },
       checked: { chaussures: false },
     })
-    state.update.mockClear()
-    fireEvent.click(screen.getByText('Décider plus tard →'))
-    expect(state.update).not.toHaveBeenCalled()
-    expect(screen.getByText('TRIAGE · 3/14')).toBeTruthy()
+    expect(screen.getByText('TRIAGE · 2/14')).toBeTruthy()
+    // Chaque carte exige une réponse : le « Décider plus tard » a été retiré (retour 30/07).
+    expect(screen.queryByText(/Décider plus tard/)).toBeNull()
   })
 
   it('triage : « Voir la liste » sort vers la checklist classique', () => {

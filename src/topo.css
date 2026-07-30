@@ -578,6 +578,6 @@ button,[role="button"],a{touch-action:manipulation}
 .triage-have:hover{background:var(--ink2)}
 .triage-want{background:var(--gold);color:var(--ink);border-color:var(--gold2)}
 .triage-want:hover{background:var(--gold2)}
-.triage-secondary{display:flex;justify-content:space-between}
+.triage-secondary{display:flex;justify-content:center}
 .triage-link{border:none;background:none;cursor:pointer;font-size:12px;font-family:var(--mono);color:var(--ink3);padding:10px 8px}
 .triage-link:hover{color:var(--ink)}

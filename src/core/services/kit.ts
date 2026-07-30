@@ -87,14 +87,20 @@ export interface KitStats {
 export function kitStats(mode: KitMode, kitStatus: Record<string, KitStatus>): KitStats {
   const all = allItems(mode)
   const done = all.filter((g) => isOwned(kitStatus[g.id])).length
-  const missing = all.filter((g) => !isOwned(kitStatus[g.id]) && kitStatus[g.id] !== 'skip')
+  // « À acheter » = ni possédé, ni écarté (skip), ni en réflexion (maybe).
+  const missing = all.filter((g) => {
+    const s = kitStatus[g.id]
+    return !isOwned(s) && s !== 'skip' && s !== 'maybe'
+  })
   const kept = all.filter((g) => kitStatus[g.id] !== 'skip')
+  // % complet sur les articles pertinents (possédés + à acheter) : skip/maybe hors dénominateur.
+  const relevant = done + missing.length
   return {
     done,
     total: all.length,
     missing,
     carried: kept.filter((g) => !g.worn),
     worn: kept.filter((g) => g.worn),
-    pct: Math.round((done / all.length) * 100),
+    pct: relevant === 0 ? 100 : Math.round((done / relevant) * 100),
   }
 }

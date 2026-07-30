@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { allItems, budgetRange, formatWeight, kitStats, parseRange, weightRange } from './kit'
-import { GEAR, type GearItem } from '../constants/gear'
+import { GEAR, type GearItem, type KitStatus } from '../constants/gear'
 
 const item = (over: Partial<GearItem> & { id: string }): GearItem => ({
   name: over.id.toUpperCase(),
@@ -93,6 +93,35 @@ describe('kitStats', () => {
     expect(stats.missing.find((g) => g.id === first.id)).toBeUndefined()
     expect(stats.missing.find((g) => g.id === second.id)).toBeUndefined()
     expect(stats.total).toBe(allItems('journee').length)
+  })
+
+  it('exclut les maybe (réfléchir) des manquants', () => {
+    const first = allItems('journee')[0]
+    const stats = kitStats('journee', { [first.id]: 'maybe' })
+    expect(stats.missing.find((g) => g.id === first.id)).toBeUndefined()
+  })
+
+  it('calcule le % complet hors skip et maybe (retour 30/07 : 24/28 = 86 %, pas 24/32)', () => {
+    const items = allItems('trek')
+    expect(items.length).toBeGreaterThanOrEqual(32)
+    const kitStatus: Record<string, KitStatus> = {}
+    items.slice(0, 24).forEach((g) => (kitStatus[g.id] = 'have'))
+    kitStatus[items[24].id] = 'skip'
+    kitStatus[items[25].id] = 'skip'
+    kitStatus[items[26].id] = 'maybe'
+    kitStatus[items[27].id] = 'maybe'
+    items.slice(28).forEach((g) => (kitStatus[g.id] = 'want'))
+    const stats = kitStats('trek', kitStatus)
+    expect(stats.done).toBe(24)
+    expect(stats.missing).toHaveLength(items.length - 28)
+    expect(stats.pct).toBe(Math.round((24 / (24 + stats.missing.length)) * 100))
+  })
+
+  it('affiche 100 % quand tout le pertinent est possédé ou écarté', () => {
+    const items = allItems('journee')
+    const kitStatus: Record<string, KitStatus> = {}
+    items.forEach((g) => (kitStatus[g.id] = 'skip'))
+    expect(kitStats('journee', kitStatus).pct).toBe(100)
   })
 
   it('carried garde le possédé et le manquant, mais jamais le skip', () => {

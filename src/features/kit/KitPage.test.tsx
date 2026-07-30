@@ -41,13 +41,13 @@ describe('KitPage', () => {
 
   it('affiche les stats budget correspondant au kitStatus', () => {
     // Mode journée (14 articles) : 2 'have' (chaussures, batons), 1 'skip' (sac20)
-    // → 11 manquants, 14 %, budget 161–410 € (sommes des fourchettes de gear.ts).
+    // → 11 manquants, 15 % (2/13 pertinents, skip hors dénominateur), budget 161–410 €.
     const kitStatus: Record<string, KitStatus> = { chaussures: 'have', batons: 'have', sac20: 'skip' }
     state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus }
     render(<KitPage user={user} memberName="Wacil" />)
     expect(screen.getByText('2/14')).toBeTruthy()
     expect(screen.getByText('11')).toBeTruthy()
-    expect(screen.getByText('14%')).toBeTruthy()
+    expect(screen.getByText('15%')).toBeTruthy()
     const total = document.querySelector('.budget-total')!.textContent
     expect(total).toContain('161€')
     expect(total).toContain('410€')

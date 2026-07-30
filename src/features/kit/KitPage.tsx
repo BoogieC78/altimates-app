@@ -23,7 +23,7 @@ interface KitPageProps {
 }
 
 export function KitPage({ user, memberName }: KitPageProps) {
-  const { profile, loading, update } = useUserProfile(user)
+  const { profile, loading, update, resetKit } = useUserProfile(user)
   const [openSec, setOpenSec] = useState<Record<SectionKey, boolean>>({
     indispensable: true,
     recommande: false,
@@ -34,6 +34,8 @@ export function KitPage({ user, memberName }: KitPageProps) {
   const [emailAddr, setEmailAddr] = useState('')
   // null = pas encore décidé (profil en cours de chargement) ; fixé au premier rendu utile.
   const [triageOpen, setTriageOpen] = useState<boolean | null>(null)
+  // 'undecided' = seulement les articles sans statut ; 'all' = tout retrier (les réponses écrasent).
+  const [triageScope, setTriageScope] = useState<'undecided' | 'all'>('undecided')
 
   if (loading) {
     return (
@@ -61,6 +63,15 @@ export function KitPage({ user, memberName }: KitPageProps) {
   const stats = kitStats(mode, kitStatus)
   const { min: budgetMin, max: budgetMax } = budgetRange(stats.missing)
   const { min: weightMin, max: weightMax } = weightRange(stats.carried)
+
+  // Version triage de setStatus : écrit toujours, sans le toggle « re-cliquer retire »
+  // (au Tout retrier, répondre « J'ai » sur un article déjà possédé doit le GARDER).
+  const setStatusDirect = (id: string, status: KitStatus) => {
+    void update({
+      kitStatus: { ...kitStatus, [id]: status },
+      checked: { ...(profile.checked ?? {}), [id]: status === 'have' },
+    })
+  }
 
   const setStatus = (id: string, status: KitStatus) => {
     const next = { ...kitStatus }
@@ -96,7 +107,16 @@ export function KitPage({ user, memberName }: KitPageProps) {
     return null
   }
   if (triageOpen) {
-    return <KitTriage items={undecided} onStatus={setStatus} onClose={() => setTriageOpen(false)} />
+    return (
+      <KitTriage
+        items={triageScope === 'all' ? allItems(mode) : undecided}
+        onStatus={setStatusDirect}
+        onClose={() => {
+          setTriageOpen(false)
+          setTriageScope('undecided')
+        }}
+      />
+    )
   }
 
   return (
@@ -185,6 +205,17 @@ export function KitPage({ user, memberName }: KitPageProps) {
               Trier ({undecided.length})
             </button>
           )}
+          {undecided.length < allItems(mode).length && (
+            <button
+              className="btn btn-sm"
+              onClick={() => {
+                setTriageScope('all')
+                setTriageOpen(true)
+              }}
+            >
+              Tout retrier
+            </button>
+          )}
           <button className="btn btn-gold btn-sm" onClick={() => void generateKitPdf(mode, kitStatus, memberName)}>
             PDF
           </button>
@@ -248,6 +279,24 @@ export function KitPage({ user, memberName }: KitPageProps) {
             </div>
           )
         })}
+      </div>
+
+      <div style={{ textAlign: 'center', marginTop: 14, marginBottom: 4 }}>
+        <button
+          className="btn btn-sm btn-danger"
+          onClick={() => {
+            if (
+              window.confirm(
+                'Réinitialiser ton kit ? Tes statuts (J’ai, À acheter…) et ta configuration niveau/mode seront effacés — tes stats de sorties sont conservées.',
+              )
+            ) {
+              void resetKit()
+              setTriageOpen(null)
+            }
+          }}
+        >
+          Réinitialiser mon kit
+        </button>
       </div>
 
       {emailOpen && (

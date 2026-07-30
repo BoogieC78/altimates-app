@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { doc, onSnapshot, setDoc } from 'firebase/firestore'
+import { deleteField, doc, onSnapshot, setDoc } from 'firebase/firestore'
 import type { User } from 'firebase/auth'
 import { db } from '../core/firebase/app'
 import type { KitMode, KitStatus, Level } from '../core/constants/gear'
@@ -36,6 +36,8 @@ interface UserProfileState {
   update: (patch: Partial<Profile>) => Promise<void>
   /** Réinitialise le profil (efface profile + kitChecked), équivalent de resetUser(). */
   reset: () => Promise<void>
+  /** Réinitialise uniquement le kit (statuts + niveau/mode) — les stats perso survivent. */
+  resetKit: () => Promise<void>
 }
 
 export function useUserProfile(user: User | null): UserProfileState {
@@ -65,5 +67,25 @@ export function useUserProfile(user: User | null): UserProfileState {
     await setDoc(doc(db, 'users', user.uid), { profile: null, kitChecked: {} }, { merge: true })
   }
 
-  return { profile, loading, update, reset }
+  const resetKit = async () => {
+    if (!user) return
+    // setDoc merge fusionne les maps en profondeur : écrire `{}` ne viderait rien,
+    // il faut supprimer les champs explicitement (deleteField) pour revenir au vierge.
+    await setDoc(
+      doc(db, 'users', user.uid),
+      {
+        profile: {
+          level: deleteField(),
+          mode: deleteField(),
+          kitStatus: deleteField(),
+          checked: deleteField(),
+          kitShare: deleteField(),
+        },
+        kitChecked: deleteField(),
+      },
+      { merge: true },
+    )
+  }
+
+  return { profile, loading, update, reset, resetKit }
 }

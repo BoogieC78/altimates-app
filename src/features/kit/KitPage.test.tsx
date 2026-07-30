@@ -2,12 +2,14 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import type { User } from 'firebase/auth'
 import type { KitStatus } from '../../core/constants/gear'
+import { allItems } from '../../core/services/kit'
 import type { Profile } from '../../hooks/useUserProfile'
 
 const state = {
   profile: null as Profile | null,
   loading: false,
   update: vi.fn(() => Promise.resolve()),
+  resetKit: vi.fn(() => Promise.resolve()),
 }
 
 vi.mock('../../hooks/useUserProfile', () => ({ useUserProfile: () => state }))
@@ -155,5 +157,51 @@ describe('KitPage', () => {
     fireEvent.click(screen.getByText('Trier (13)'))
     // Le triage relancé ne repropose pas les articles déjà statués.
     expect(screen.getByText('TRIAGE · 1/13')).toBeTruthy()
+  })
+
+  it('« Tout retrier » relance le triage sur TOUS les articles, statués compris', () => {
+    state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus: { chaussures: 'have' } }
+    render(<KitPage user={user} memberName="Wacil" />)
+    fireEvent.click(screen.getByText('Tout retrier'))
+    expect(screen.getByText('TRIAGE · 1/14')).toBeTruthy()
+  })
+
+  it("triage : répondre « J'ai » sur un article déjà possédé le GARDE (pas de toggle)", () => {
+    state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus: { chaussures: 'have' } }
+    render(<KitPage user={user} memberName="Wacil" />)
+    fireEvent.click(screen.getByText('Tout retrier'))
+    // Carte 1 = chaussures, déjà 'have' : setStatus togglerait vers rien, le triage non.
+    fireEvent.click(screen.getByText("✓ J'ai"))
+    expect(state.update).toHaveBeenCalledWith({
+      kitStatus: { chaussures: 'have' },
+      checked: { chaussures: true },
+    })
+  })
+
+  it('kit complet : « Trier (N) » disparaît mais « Tout retrier » reste', () => {
+    const kitStatus: Record<string, KitStatus> = {}
+    for (const g of allItems('journee')) kitStatus[g.id] = 'have'
+    state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus }
+    render(<KitPage user={user} memberName="Wacil" />)
+    expect(screen.queryByText(/^Trier \(/)).toBeNull()
+    expect(screen.getByText('Tout retrier')).toBeTruthy()
+  })
+
+  it('« Réinitialiser mon kit » appelle resetKit après confirmation', () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
+    state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus: { chaussures: 'have' } }
+    render(<KitPage user={user} memberName="Wacil" />)
+    fireEvent.click(screen.getByText('Réinitialiser mon kit'))
+    expect(state.resetKit).toHaveBeenCalledOnce()
+    confirmSpy.mockRestore()
+  })
+
+  it('« Réinitialiser mon kit » annulé ne touche à rien', () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus: { chaussures: 'have' } }
+    render(<KitPage user={user} memberName="Wacil" />)
+    fireEvent.click(screen.getByText('Réinitialiser mon kit'))
+    expect(state.resetKit).not.toHaveBeenCalled()
+    confirmSpy.mockRestore()
   })
 })

@@ -40,6 +40,20 @@ test.describe('Kit — onboarding et checklist', () => {
     await expect(page.locator('.budget-stat-val').first()).toHaveText(/^1\/\d+$/)
     // Bouton de relance sur les articles restants (14 - 3 = 11 en journée).
     await expect(page.getByRole('button', { name: /^Trier \(\d+\)$/ })).toBeVisible()
+
+    // « Tout retrier » repasse sur TOUS les articles (14 en journée), et répondre
+    // « J'ai » sur un article déjà possédé le garde (pas de toggle qui l'effacerait).
+    await page.getByRole('button', { name: 'Tout retrier' }).click()
+    await expect(page.getByText('TRIAGE · 1/14')).toBeVisible()
+    await page.getByRole('button', { name: "✓ J'ai" }).click()
+    await page.getByRole('button', { name: 'Voir la liste →' }).click()
+    await expect(page.locator('.budget-stat-val').first()).toHaveText('1/14')
+
+    // « Réinitialiser mon kit » (avec confirm) → retour à l'onboarding, comme un
+    // nouveau membre — stats de sorties conservées côté profil.
+    page.once('dialog', (d) => void d.accept())
+    await page.getByRole('button', { name: 'Réinitialiser mon kit' }).click()
+    await expect(page.getByText('Ton niveau en rando ?')).toBeVisible()
   })
 
   test('le poids du sac estimé baisse quand on skippe un article', async ({ page }) => {

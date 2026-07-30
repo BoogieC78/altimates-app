@@ -73,8 +73,14 @@ export interface KitStats {
   done: number
   total: number
   missing: (GearItem & { cat: string })[]
-  /** Tout ce qui finit dans le sac : possédé + à acheter + à réfléchir, hors "skip". */
+  /**
+   * Ce qui finit DANS LE SAC : tout sauf les articles « Skip » et sauf ceux portés
+   * sur soi pendant la marche (`worn`). C'est le poids que le dos encaisse — les
+   * chaussures aux pieds et les bâtons en main n'en font pas partie.
+   */
   carried: (GearItem & { cat: string })[]
+  /** Articles retenus mais portés sur soi — sert à expliquer ce qui est exclu du total. */
+  worn: (GearItem & { cat: string })[]
   pct: number
 }
 
@@ -82,6 +88,13 @@ export function kitStats(mode: KitMode, kitStatus: Record<string, KitStatus>): K
   const all = allItems(mode)
   const done = all.filter((g) => isOwned(kitStatus[g.id])).length
   const missing = all.filter((g) => !isOwned(kitStatus[g.id]) && kitStatus[g.id] !== 'skip')
-  const carried = all.filter((g) => kitStatus[g.id] !== 'skip')
-  return { done, total: all.length, missing, carried, pct: Math.round((done / all.length) * 100) }
+  const kept = all.filter((g) => kitStatus[g.id] !== 'skip')
+  return {
+    done,
+    total: all.length,
+    missing,
+    carried: kept.filter((g) => !g.worn),
+    worn: kept.filter((g) => g.worn),
+    pct: Math.round((done / all.length) * 100),
+  }
 }

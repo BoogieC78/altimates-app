@@ -27,11 +27,16 @@ test.describe('Kit — onboarding et checklist', () => {
     const poids = page.locator('.budget-weight-val')
     await expect(poids).toBeVisible()
     const avant = (await poids.textContent()) ?? ''
-    await expect(page.getByText(/14 articles emportés/)).toBeVisible()
+    await expect(page.getByText(/9 articles dans le sac/)).toBeVisible()
 
-    // Skip du premier article (chaussures) : il sort du sac, le total doit changer.
+    // Skipper les chaussures (portées sur soi) ne doit RIEN changer au poids du sac.
     await page.locator('.gear-item').first().getByRole('button', { name: '✕ Skip' }).click()
-    await expect(page.getByText(/13 articles emportés/)).toBeVisible()
+    await expect(page.getByText(/9 articles dans le sac/)).toBeVisible()
+    await expect(poids).toHaveText(avant)
+
+    // Skipper le sac à dos (3e article, porté dans le dos) doit alléger le total.
+    await page.locator('.gear-item').nth(2).getByRole('button', { name: '✕ Skip' }).click()
+    await expect(page.getByText(/8 articles dans le sac/)).toBeVisible()
     await expect(poids).not.toHaveText(avant)
   })
 })

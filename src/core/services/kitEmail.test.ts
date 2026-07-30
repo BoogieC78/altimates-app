@@ -11,7 +11,7 @@ describe('buildKitEmailLines', () => {
     expect(lines).toContain('FACULTATIFS')
     // Article coché vs non coché, avec prix, poids et note
     expect(lines).toContain(
-      '[x] Chaussures de rando · 80–180€ · 800–1400 g · Gore-Tex si saison humide · Vibram recommandée',
+      '[x] Chaussures de rando · Quechua MH500 imperméables · 80–180€ · 1000–1300 g · Porté sur soi · membrane imperméable, semelle crantée',
     )
     expect(lines.some((l) => l.startsWith('[ ] Bâtons de rando'))).toBe(true)
     // Les liens sont indentés sous l’article

@@ -133,10 +133,9 @@ export function KitPage({ user, memberName }: KitPageProps) {
           </div>
           <div className="budget-weight">
             <div>
-              <div className="budget-weight-lbl">POIDS DU SAC ESTIMÉ</div>
+              <div className="budget-weight-lbl">POIDS DU SAC ESTIMÉ *</div>
               <div className="budget-weight-sub">
-                {stats.carried.length} article{stats.carried.length > 1 ? 's' : ''} emporté
-                {stats.carried.length > 1 ? 's' : ''} · hors « Skip »
+                {stats.carried.length} article{stats.carried.length > 1 ? 's' : ''} dans le sac · hors « Skip »
               </div>
             </div>
             <div className="budget-weight-val">
@@ -144,6 +143,10 @@ export function KitPage({ user, memberName }: KitPageProps) {
               <span className="budget-weight-max"> – {formatWeight(weightMax)}</span>
             </div>
           </div>
+          <p className="budget-weight-note">
+            * Poids porté <strong>dans le sac</strong>. L'équipement porté sur soi pendant la marche en est
+            exclu{stats.worn.length > 0 ? ` (${stats.worn.map((g) => g.id === 'batons' ? 'bâtons' : g.name.split(' · ')[0].toLowerCase()).join(', ')})` : ''}.
+          </p>
         </div>
       </div>
 

@@ -96,13 +96,33 @@ describe('kitStats', () => {
   })
 
   it('carried garde le possédé et le manquant, mais jamais le skip', () => {
-    const [first, second, third] = allItems('journee')
-    const stats = kitStats('journee', { [first.id]: 'have', [second.id]: 'skip', [third.id]: 'want' })
+    const sac = allItems('journee').find((g) => g.id === 'sac20')!
+    const solaire = allItems('journee').find((g) => g.id === 'solaire')!
+    const powerbank = allItems('journee').find((g) => g.id === 'powerbank')!
+    const stats = kitStats('journee', { [sac.id]: 'have', [solaire.id]: 'skip', [powerbank.id]: 'want' })
     const ids = stats.carried.map((g) => g.id)
-    expect(ids).toContain(first.id)
-    expect(ids).toContain(third.id)
-    expect(ids).not.toContain(second.id)
-    expect(stats.carried).toHaveLength(allItems('journee').length - 1)
+    expect(ids).toContain(sac.id)
+    expect(ids).toContain(powerbank.id)
+    expect(ids).not.toContain(solaire.id)
+  })
+
+  it('exclut du sac ce qui est porté sur soi', () => {
+    const stats = kitStats('journee', {})
+    const carried = stats.carried.map((g) => g.id)
+    // Chaussures aux pieds et bâtons en main : retenus dans le kit, absents du sac.
+    expect(carried).not.toContain('chaussures')
+    expect(carried).not.toContain('batons')
+    expect(stats.worn.map((g) => g.id)).toContain('chaussures')
+    expect(stats.worn.map((g) => g.id)).toContain('batons')
+    // Le sac à dos lui-même, lui, pèse bien sur le dos.
+    expect(carried).toContain('sac20')
+    expect(stats.carried.length + stats.worn.length).toBe(allItems('journee').length)
+  })
+
+  it('skipper un article porté sur soi ne change pas le poids du sac', () => {
+    const avant = weightRange(kitStats('journee', {}).carried)
+    const apres = weightRange(kitStats('journee', { chaussures: 'skip' }).carried)
+    expect(apres).toEqual(avant)
   })
 
   it('retirer un article du sac allège le poids estimé', () => {

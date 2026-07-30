@@ -54,14 +54,15 @@ describe('KitPage', () => {
   })
 
   it('affiche le poids du sac estimé, hors articles skippés', () => {
-    // Mode journée, sac20 (600–1100 g) skippé → 13 articles emportés sur 14,
-    // soit 2580–4650 g (sommes des fourchettes `weight` de gear.ts).
+    // Mode journée : 14 articles, dont 5 portés sur soi (chaussures, bâtons, casquette,
+    // t-shirt, chaussettes) exclus du sac. sac20 (1100–1270 g) skippé → 8 articles dans
+    // le sac, soit 1560–2470 g (sommes des fourchettes `weight` de gear.ts).
     state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus: { sac20: 'skip' } }
     render(<KitPage user={user} memberName="Wacil" />)
     const poids = document.querySelector('.budget-weight-val')!.textContent
-    expect(poids).toContain('2,6 kg')
-    expect(poids).toContain('4,7 kg')
-    expect(screen.getByText(/13 articles emportés/)).toBeTruthy()
+    expect(poids).toContain('1,6 kg')
+    expect(poids).toContain('2,5 kg')
+    expect(screen.getByText(/8 articles dans le sac/)).toBeTruthy()
   })
 
   it('le poids augmente quand on ré-intègre un article au sac', () => {
@@ -69,9 +70,20 @@ describe('KitPage', () => {
     state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus: {} }
     render(<KitPage user={user} memberName="Wacil" />)
     const poids = document.querySelector('.budget-weight-val')!.textContent
-    expect(poids).toContain('3,2 kg')
-    expect(poids).toContain('5,8 kg')
-    expect(screen.getByText(/14 articles emportés/)).toBeTruthy()
+    expect(poids).toContain('2,7 kg')
+    expect(poids).toContain('3,7 kg')
+    expect(screen.getByText(/9 articles dans le sac/)).toBeTruthy()
+  })
+
+  it('signale par un astérisque que le porté-sur-soi est exclu', () => {
+    state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus: {} }
+    render(<KitPage user={user} memberName="Wacil" />)
+    const note = document.querySelector('.budget-weight-note')!.textContent!
+    expect(note).toContain('dans le sac')
+    expect(note).toContain('porté sur soi')
+    // La note nomme ce qui est exclu, sinon l'astérisque n'explique rien.
+    expect(note).toContain('bâtons')
+    expect(note).toContain('chaussures')
   })
 
   it("un clic sur un statut appelle update avec le kitStatus modifié", () => {

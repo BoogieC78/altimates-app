@@ -4,74 +4,87 @@
 export interface GearLink { l: string; u: string }
 /**
  * `weight` : fourchette de poids en grammes, même format que `price` ("400–800 g").
- * Valeurs indicatives (ordres de grandeur constatés sur les gammes rando courantes),
- * pas des poids relevés sur une référence produit précise — elles servent à estimer
- * le poids du sac, pas à comparer deux modèles.
+ * La plupart des valeurs viennent de la fiche technique d'une référence Decathlon
+ * précise (celle du champ `links`) — la fourchette couvre alors les variations de
+ * taille. Les articles sans référence unique (consommables, accessoires génériques)
+ * gardent un ordre de grandeur estimé, signalé par `weightEstimated: true`.
+ *
+ * `worn` : article porté sur soi pendant la marche (chaussures, bâtons, couches de
+ * base). Il est EXCLU du poids du sac — voir `kitStats().carried` dans services/kit.ts.
  */
-export interface GearItem { id: string; name: string; note: string | null; price: string; weight: string; links: GearLink[] }
+export interface GearItem {
+  id: string
+  name: string
+  note: string | null
+  price: string
+  weight: string
+  weightEstimated?: boolean
+  worn?: boolean
+  links: GearLink[]
+}
 export interface GearMode { indispensable: GearItem[]; recommande: GearItem[]; facultatif: GearItem[] }
 
 export const GEAR: Record<'trek' | 'journee', GearMode> = {
   trek:{
     indispensable:[
-      {id:'chaussures',name:'Chaussures de rando',note:'Gore-Tex si saison humide · Vibram recommandée',price:'80–180€',weight:'800–1400 g',links:[]},
-      {id:'batons',name:'Bâtons de rando',note:null,price:'30–90€',weight:'400–600 g',links:[]},
-      {id:'sac50',name:'Sac à dos trek 50+10L',note:null,price:'60–150€',weight:'1400–2200 g',links:[{l:'MT900 · 50+10L',u:'https://www.decathlon.fr/p/sac-a-dos-de-trekking-homme-50-10l-mt900-symbium/_/R-p-342061'}]},
-      {id:'frontale',name:'Frontale',note:null,price:'15–50€',weight:'60–120 g',links:[]},
-      {id:'powerbank',name:'Power bank',note:null,price:'20–60€',weight:'180–350 g',links:[]},
-      {id:'matelas',name:'Matelas gonflable',note:null,price:'40–90€',weight:'400–800 g',links:[{l:'MT500 Air',u:'https://www.decathlon.fr/p/matelas-gonflable-de-trekking-mt500-air-isolant-l-180-x-52-cm-1-personne/_/R-p-311475'}]},
-      {id:'duvet',name:'Duvet / sac de couchage',note:'0°C · synthétique ou duvet selon budget',price:'50–180€',weight:'800–1600 g',links:[{l:'Synthétique 0°C',u:'https://www.decathlon.fr/p/sac-de-couchage-de-trekking-mt500-0degc-synthetique/_/R-p-346447'},{l:'Duvet 0°C',u:'https://www.decathlon.fr/p/sac-de-couchage-de-trekking-mt900-0degc-duvet/_/R-p-309272'}]},
-      {id:'oreiller',name:'Oreiller gonflable',note:'Sommeil de qualité = récupération',price:'15–35€',weight:'50–100 g',links:[{l:'MT500',u:'https://www.decathlon.fr/p/oreiller-de-trekking-gonflable-mt500/_/R-p-343604'}]},
-      {id:'coupevent',name:'Coupe-vent',note:null,price:'30–80€',weight:'150–350 g',links:[]},
-      {id:'polaire',name:'Polaire',note:null,price:'25–70€',weight:'250–450 g',links:[]},
-      {id:'raincover',name:'Raincover',note:'Souvent fourni avec le sac',price:'0–25€',weight:'60–120 g',links:[]},
-      {id:'calecons',name:'Caleçons longs Merinos',note:'Évite les brûlures par frottement',price:'30–60€',weight:'120–200 g',links:[{l:'Merinos MT500',u:'https://www.decathlon.fr/p/sous-vetement-boxer-en-laine-merinos-de-trek-montagne-mt500-homme/_/R-p-306561'}]},
-      {id:'chaussettes',name:'Chaussettes techniques',note:'Séchage rapide · éviter le coton',price:'8–20€',weight:'100–180 g',links:[]},
-      {id:'claquettes',name:'Claquettes (camp)',note:null,price:'10–25€',weight:'200–400 g',links:[]},
-      {id:'bonnet',name:'Bonnet ou buff',note:null,price:'10–30€',weight:'30–80 g',links:[]},
-      {id:'camelbak',name:'Camelbak 3L',note:null,price:'20–50€',weight:'200–350 g',links:[]},
-      {id:'lifestraw',name:'Lifestraw gourde filtrante',note:null,price:'25–45€',weight:'80–200 g',links:[]},
-      {id:'barres',name:'Barres · fruits secs · noix',note:null,price:'15–30€',weight:'500–1000 g',links:[]},
-      {id:'lyophilise',name:'Lyophilisés · 2 repas/jour',note:null,price:'10–18€/repas',weight:'500–1000 g',links:[]},
-      {id:'cuillere',name:'Cuillère trek pliable',note:null,price:'5–15€',weight:'15–40 g',links:[]},
+      {id:'chaussures',name:'Chaussures de rando · Quechua MH500 imperméables',note:'Porté sur soi · membrane imperméable, semelle crantée',price:'80–180€',weight:'1000–1300 g',weightEstimated:true,worn:true,links:[{l:'MH500 imperméables',u:'https://www.decathlon.fr/p/chaussures-de-randonnee-impermeables-homme-mh500/_/R-p-330812'}]},
+      {id:'batons',name:'Bâtons de rando · Forclaz MT500 (x2)',note:'Portés en main · vendus à l’unité, en prendre 2',price:'30–90€',weight:'440–520 g',weightEstimated:true,worn:true,links:[{l:'MT500 réglage rapide',u:'https://www.decathlon.fr/p/1-baton-reglage-rapide-et-precis-de-randonnee-mt500-gris/_/R-p-173277'}]},
+      {id:'sac50',name:'Sac à dos trek 50+10L · Forclaz MT900 Symbium',note:'Housse de pluie intégrée · 10 rangements',price:'60–150€',weight:'2460–2560 g',links:[{l:'MT900 · 50+10L',u:'https://www.decathlon.fr/p/sac-a-dos-de-trekking-homme-50-10l-mt900-symbium/_/R-p-342061'}]},
+      {id:'frontale',name:'Frontale · Forclaz HL500 USB V3',note:'300 lumens · rechargeable USB-C',price:'15–50€',weight:'80–100 g',weightEstimated:true,links:[{l:'HL500 USB V3',u:'https://www.decathlon.fr/p/lampe-frontale-rechargeable-300-lumens-hl500-usb-v3/_/R-p-339061'}]},
+      {id:'powerbank',name:'Power bank 10 000 mAh USB-C',note:null,price:'20–60€',weight:'180–350 g',weightEstimated:true,links:[{l:'Amazon',u:'https://www.amazon.fr/s?k=powerbank+10000mah+usb-c+leger+randonnee'}]},
+      {id:'matelas',name:'Matelas gonflable · Forclaz MT500 Air L',note:'510 g en taille L · R-value 1,5',price:'40–90€',weight:'510–600 g',links:[{l:'MT500 Air',u:'https://www.decathlon.fr/p/matelas-gonflable-de-trekking-mt500-air-isolant-l-180-x-52-cm-1-personne/_/R-p-311475'}]},
+      {id:'duvet',name:'Duvet · Forclaz MT500 0°C synthétique',note:'Confort 0°C / limite -5°C · poids selon taille',price:'50–180€',weight:'1150–1540 g',links:[{l:'Synthétique 0°C',u:'https://www.decathlon.fr/p/sac-de-couchage-de-trekking-mt500-0degc-synthetique/_/R-p-346447'},{l:'Duvet 0°C',u:'https://www.decathlon.fr/p/sac-de-couchage-de-trekking-mt900-0degc-duvet/_/R-p-309272'}]},
+      {id:'oreiller',name:'Oreiller gonflable · Forclaz MT500',note:'135 g · sommeil de qualité = récupération',price:'15–35€',weight:'135 g',links:[{l:'MT500',u:'https://www.decathlon.fr/p/oreiller-de-trekking-gonflable-mt500/_/R-p-343604'}]},
+      {id:'coupevent',name:'Veste imperméable · Forclaz MT500 20 000 mm',note:'530 g en taille L · coutures étanches',price:'30–80€',weight:'450–530 g',links:[{l:'MT500 imperméable',u:'https://www.decathlon.fr/p/veste-impermeable-20000-mm-coutures-etanches-mt500-homme/_/R-p-172306'}]},
+      {id:'polaire',name:'Polaire · Quechua MH120 full zip',note:'336 g en taille L · 200 g/m²',price:'25–70€',weight:'300–360 g',links:[{l:'MH120 full zip',u:'https://www.decathlon.fr/p/veste-polaire-de-randonnee-mh120-homme/_/R-p-333908'}]},
+      {id:'raincover',name:'Housse de pluie sac à dos 40/60L · Forclaz',note:'60 g · souvent fournie avec le sac',price:'0–25€',weight:'60–90 g',links:[{l:'Housse renforcée 40/60L',u:'https://www.decathlon.fr/p/housse-de-pluie-renforcee-pour-sac-a-dos-de-trekking-40-60l/_/R-p-309833'}]},
+      {id:'calecons',name:'Boxer Merinos · Forclaz MT500',note:'Porté sur soi · évite les brûlures par frottement',price:'30–60€',weight:'50–80 g',worn:true,links:[{l:'Merinos MT500',u:'https://www.decathlon.fr/p/sous-vetement-boxer-en-laine-merinos-de-trek-montagne-mt500-homme/_/R-p-306561'}]},
+      {id:'chaussettes',name:'Chaussettes trek Merinos (x2 paires)',note:'Portées sur soi · séchage rapide, éviter le coton',price:'8–20€',weight:'110–130 g',weightEstimated:true,worn:true,links:[{l:'Chaussettes trek',u:'https://www.decathlon.fr/tous-les-sports/randonnee-trek/chaussettes-randonnee'}]},
+      {id:'claquettes',name:'Sandales de bivouac · Forclaz MT500',note:'356 g la paire (43) · hydrophobes',price:'10–25€',weight:'330–380 g',links:[{l:'MT500 ultra-légères',u:'https://www.decathlon.fr/p/sandales-de-bivouac-hydrophobe-semelle-caoutchouc-mt500/_/R-p-174331'}]},
+      {id:'bonnet',name:'Bonnet ou buff multifonction',note:null,price:'10–30€',weight:'30–80 g',weightEstimated:true,links:[{l:'Tours de cou',u:'https://www.decathlon.fr/tous-les-sports/randonnee-trek/bonnets-tours-de-cou'}]},
+      {id:'camelbak',name:'Poche à eau 3L · Forclaz TREK500',note:'119 g à vide · tétine marche/arrêt',price:'20–50€',weight:'119–130 g',links:[{l:'TREK500 3L',u:'https://www.decathlon.fr/p/poche-a-eau-trekking-trek500-3-litres-bleue/_/R-p-184893'}]},
+      {id:'lifestraw',name:'Gourde filtrante 1L · Forclaz MT900',note:'180 g (gourde + filtre) · 99,9999% des bactéries',price:'25–45€',weight:'180 g',links:[{l:'MT900 filtrante 1L',u:'https://www.decathlon.fr/p/gourde-filtrante-souple-et-compressible-1-litre-mt900/_/R-p-346520'}]},
+      {id:'barres',name:'Barres · fruits secs · noix',note:'Consommable · ~250 g/jour',price:'15–30€',weight:'500–1000 g',weightEstimated:true,links:[{l:'Barres énergie',u:'https://www.decathlon.fr/tous-les-sports/nutrition-sportive/barres-energetiques'}]},
+      {id:'lyophilise',name:'Lyophilisés · 2 repas/jour',note:'Consommable · ~130 g/repas',price:'10–18€/repas',weight:'500–1000 g',weightEstimated:true,links:[{l:'Repas lyophilisés',u:'https://www.decathlon.fr/tous-les-sports/nutrition-sportive/repas-lyophilises'}]},
+      {id:'cuillere',name:'Couvert pliant fourchette/cuillère · Forclaz MT500',note:'11 g · polyamide résistant à 100°C',price:'5–15€',weight:'11 g',links:[{l:'MT500 couvert pliant',u:'https://www.decathlon.fr/p/couvert-pliant-plastique-fourchette-cuillere-mt500/_/R-p-159037'}]},
     ],
     recommande:[
-      {id:'tshirt',name:'T-shirt Merinos',note:'Sèche vite · ne sent pas mauvais',price:'25–60€',weight:'130–200 g',links:[{l:'Merinos resist',u:'https://www.decathlon.fr/p/t-shirt-manches-courtes-en-laine-merinos-homme-merino-resist-kaki/_/R-p-356413'}]},
-      {id:'serviette',name:'Serviette microfibre',note:null,price:'8–20€',weight:'60–150 g',links:[]},
-      {id:'chaisecamp',name:'Chaise de camping pliante ultra-compacte MH500',note:'Confort au bivouac · compacte',price:'30–50€',weight:'450–700 g',links:[{l:'Decathlon',u:'https://www.decathlon.fr/p/chaise-basse-de-camping-pliante-et-ultra-compacte-500-m-vert/375910/c311c1m8975150'}]},
-      {id:'solaire',name:'Protection solaire SPF50 (spray/stick)',note:'Altitude = UV x2',price:'5–15€',weight:'80–200 g',links:[{l:'Spray SPF50',u:'https://www.decathlon.fr/p/spray-solaire-active-spf-50-150-ml/351956/m8862018'}]},
+      {id:'tshirt',name:'T-shirt Merinos MC · Forclaz MT500',note:'Porté sur soi · sèche vite, ne sent pas mauvais',price:'25–60€',weight:'140–170 g',worn:true,links:[{l:'MT500 Merinos MC',u:'https://www.decathlon.fr/p/t-shirt-de-trek-manches-courtes-en-laine-merinos-homme-mt500/_/R-p-331113'}]},
+      {id:'serviette',name:'Serviette microfibre trek (taille L)',note:null,price:'8–20€',weight:'60–150 g',weightEstimated:true,links:[{l:'Serviettes microfibre',u:'https://www.decathlon.fr/equipements-loisirs/serviettes-microfibre'}]},
+      {id:'chaisecamp',name:'Chaise de camping pliante ultra-compacte MH500',note:'Confort au bivouac · compacte',price:'30–50€',weight:'450–700 g',weightEstimated:true,links:[{l:'Decathlon',u:'https://www.decathlon.fr/p/chaise-basse-de-camping-pliante-et-ultra-compacte-500-m-vert/375910/c311c1m8975150'}]},
+      {id:'solaire',name:'Protection solaire SPF50 (spray/stick)',note:'Altitude = UV x2',price:'5–15€',weight:'80–200 g',weightEstimated:true,links:[{l:'Spray SPF50',u:'https://www.decathlon.fr/p/spray-solaire-active-spf-50-150-ml/351956/m8862018'}]},
     ],
     facultatif:[
-      {id:'pochefiltre',name:'Poche à eau filtrante par gravité 6L',note:'Filtre 0,1µm · idéale bivouac',price:'25–45€',weight:'250–400 g',links:[{l:'Amazon',u:'https://www.amazon.fr/dp/B08ZYMXLMH'}]},
-      {id:'pantpluie',name:'Pantalon de pluie',note:null,price:'20–60€',weight:'200–400 g',links:[]},
-      {id:'sacetanche',name:'Sac étanche 13L',note:null,price:'20–40€',weight:'60–120 g',links:[{l:'Sea to Summit',u:'https://www.decathlon.fr/p/mp/sea-to-summit/sac-etanche-ultra-leger-sea-to-summit-13l/_/R-p-1a4f06ca'}]},
-      {id:'crampons',name:'Crampons',note:'Début/fin de saison uniquement',price:'15–40€',weight:'300–500 g',links:[{l:'Amazon',u:'https://www.amazon.fr/s?k=crampons+randonn%C3%A9e+neige'}]},
-      {id:'savon',name:'Savon multi-usages (camping)',note:'Corps · vaisselle · linge',price:'3–8€',weight:'50–120 g',links:[{l:'Decathlon',u:'https://www.decathlon.fr/p/savon-multi-usages-pour-le-camping/X8598405/m8598405'}]},
-      {id:'rondelles',name:'Rondelles hiver pour bâtons (x2)',note:'Neige profonde · évite l’enfoncement',price:'3–8€',weight:'20–40 g',links:[{l:'Decathlon',u:'https://www.decathlon.fr/p/2-rondelles-hiver-de-baton-randonnee/346054/c1m8796724'}]},
-      {id:'adaptgazcampingaz',name:'Adaptateur recharge gaz (Campingaz → vis 7/16")',note:'Recharge cartouches à valve',price:'8–15€',weight:'40–80 g',links:[{l:'Amazon',u:'https://www.amazon.fr/dp/B08PZ8X5N2'}]},
-      {id:'adaptgazlindal',name:'Adaptateur recharge gaz (valve Lindal · Z15)',note:'Transfert entre cartouches',price:'8–15€',weight:'30–60 g',links:[{l:'Amazon',u:'https://www.amazon.fr/dp/B07SZLM17Y'}]},
+      {id:'pochefiltre',name:'Poche à eau filtrante par gravité 6L',note:'Filtre 0,1µm · idéale bivouac',price:'25–45€',weight:'250–400 g',weightEstimated:true,links:[{l:'Amazon',u:'https://www.amazon.fr/dp/B08ZYMXLMH'}]},
+      {id:'pantpluie',name:'Sur-pantalon imperméable · Forclaz MT900',note:'450 g en taille L · 20 000 Schmerber, zips latéraux',price:'20–60€',weight:'380–450 g',links:[{l:'MT900 sur-pantalon',u:'https://www.decathlon.fr/p/sur-pantalon-impermeable-20-0000-mm-h20-mt900-noir-homme/_/R-p-338663'}]},
+      {id:'sacetanche',name:'Sac étanche 13L',note:null,price:'20–40€',weight:'60–120 g',weightEstimated:true,links:[{l:'Sea to Summit',u:'https://www.decathlon.fr/p/mp/sea-to-summit/sac-etanche-ultra-leger-sea-to-summit-13l/_/R-p-1a4f06ca'}]},
+      {id:'crampons',name:'Mini-crampons rando · Simond Bobcat',note:'Début/fin de saison uniquement · 6 pointes',price:'15–40€',weight:'300–450 g',weightEstimated:true,links:[{l:'Simond Bobcat',u:'https://www.decathlon.fr/p/mini-crampons-d-appoint-pour-randonnee-bobcat/_/R-p-342903'}]},
+      {id:'savon',name:'Savon multi-usages (camping)',note:'Corps · vaisselle · linge',price:'3–8€',weight:'50–120 g',weightEstimated:true,links:[{l:'Decathlon',u:'https://www.decathlon.fr/p/savon-multi-usages-pour-le-camping/X8598405/m8598405'}]},
+      {id:'rondelles',name:'Rondelles hiver pour bâtons (x2)',note:'Neige profonde · évite l’enfoncement',price:'3–8€',weight:'20–40 g',weightEstimated:true,links:[{l:'Decathlon',u:'https://www.decathlon.fr/p/2-rondelles-hiver-de-baton-randonnee/346054/c1m8796724'}]},
+      {id:'adaptgazcampingaz',name:'Adaptateur recharge gaz (Campingaz → vis 7/16")',note:'Recharge cartouches à valve',price:'8–15€',weight:'40–80 g',weightEstimated:true,links:[{l:'Amazon',u:'https://www.amazon.fr/dp/B08PZ8X5N2'}]},
+      {id:'adaptgazlindal',name:'Adaptateur recharge gaz (valve Lindal · Z15)',note:'Transfert entre cartouches',price:'8–15€',weight:'30–60 g',weightEstimated:true,links:[{l:'Amazon',u:'https://www.amazon.fr/dp/B07SZLM17Y'}]},
     ]
   },
   journee:{
     indispensable:[
-      {id:'chaussures',name:'Chaussures de rando',note:'Gore-Tex si saison humide',price:'60–150€',weight:'700–1200 g',links:[]},
-      {id:'batons',name:'Bâtons de marche',note:null,price:'25–70€',weight:'350–550 g',links:[]},
-      {id:'sac20',name:'Sac à dos 20–30L',note:'Pour plusieurs jours : plutôt un 50+10L (voir kit trek)',price:'25–80€',weight:'600–1100 g',links:[]},
-      {id:'coupevent',name:'Coupe-vent / imperméable',note:null,price:'30–80€',weight:'150–350 g',links:[]},
-      {id:'camelbak',name:'Gourde / Camelbak 1.5–2L',note:null,price:'15–40€',weight:'150–250 g',links:[]},
-      {id:'frontale',name:'Frontale',note:'Même en journée',price:'15–45€',weight:'60–120 g',links:[]},
-      {id:'barres',name:'Barres · fruits secs · noix',note:null,price:'8–20€',weight:'200–400 g',links:[]},
-      {id:'bonnet',name:'Casquette + buff',note:null,price:'10–25€',weight:'60–120 g',links:[]},
+      {id:'chaussures',name:'Chaussures de rando · Quechua MH500 imperméables',note:'Porté sur soi · membrane imperméable',price:'60–150€',weight:'900–1200 g',weightEstimated:true,worn:true,links:[{l:'MH500 imperméables',u:'https://www.decathlon.fr/p/chaussures-de-randonnee-impermeables-homme-mh500/_/R-p-330812'}]},
+      {id:'batons',name:'Bâtons de marche · Forclaz MT500 (x2)',note:'Portés en main · vendus à l’unité, en prendre 2',price:'25–70€',weight:'390–460 g',weightEstimated:true,worn:true,links:[{l:'MT500 réglage rapide',u:'https://www.decathlon.fr/p/1-baton-reglage-rapide-et-precis-de-randonnee-mt500-gris/_/R-p-173277'}]},
+      {id:'sac20',name:'Sac à dos 20L · Quechua MH500',note:'Dos ventilé · pour plusieurs jours, voir le kit trek',price:'25–80€',weight:'1100–1270 g',links:[{l:'MH500 20L',u:'https://www.decathlon.fr/p/sac-a-dos-de-randonnee-montagne-20l-mh500/_/R-p-310057'}]},
+      {id:'coupevent',name:'Veste imperméable · Forclaz MT500 20 000 mm',note:'530 g en taille L · coutures étanches',price:'30–80€',weight:'450–530 g',links:[{l:'MT500 imperméable',u:'https://www.decathlon.fr/p/veste-impermeable-20000-mm-coutures-etanches-mt500-homme/_/R-p-172306'}]},
+      {id:'camelbak',name:'Poche à eau 2L · Forclaz',note:'~100 g à vide · tétine marche/arrêt',price:'15–40€',weight:'100–120 g',links:[{l:'Poches à eau',u:'https://www.decathlon.fr/tous-les-sports/camping-bivouac/poche-a-eau'}]},
+      {id:'frontale',name:'Frontale · Forclaz HL500 USB V3',note:'Même en journée · 300 lumens',price:'15–45€',weight:'80–100 g',weightEstimated:true,links:[{l:'HL500 USB V3',u:'https://www.decathlon.fr/p/lampe-frontale-rechargeable-300-lumens-hl500-usb-v3/_/R-p-339061'}]},
+      {id:'barres',name:'Barres · fruits secs · noix',note:'Consommable',price:'8–20€',weight:'200–400 g',weightEstimated:true,links:[{l:'Barres énergie',u:'https://www.decathlon.fr/tous-les-sports/nutrition-sportive/barres-energetiques'}]},
+      {id:'bonnet',name:'Casquette + buff',note:'Porté sur soi',price:'10–25€',weight:'60–120 g',weightEstimated:true,worn:true,links:[{l:'Tours de cou',u:'https://www.decathlon.fr/tous-les-sports/randonnee-trek/bonnets-tours-de-cou'}]},
     ],
     recommande:[
-      {id:'tshirt',name:'T-shirt Merinos',note:'Sèche vite · ne sent pas',price:'25–55€',weight:'130–200 g',links:[{l:'Merinos resist',u:'https://www.decathlon.fr/p/t-shirt-manches-courtes-en-laine-merinos-homme-merino-resist-kaki/_/R-p-356413'}]},
-      {id:'chaussettes',name:'Chaussettes techniques',note:'Éviter le coton',price:'8–18€',weight:'50–90 g',links:[]},
-      {id:'solaire',name:'Stick solaire SPF50',note:null,price:'5–12€',weight:'50–120 g',links:[]},
-      {id:'powerbank',name:'Power bank',note:null,price:'20–50€',weight:'180–350 g',links:[]},
+      {id:'tshirt',name:'T-shirt Merinos MC · Forclaz MT500',note:'Porté sur soi · sèche vite, ne sent pas',price:'25–55€',weight:'140–170 g',worn:true,links:[{l:'MT500 Merinos MC',u:'https://www.decathlon.fr/p/t-shirt-de-trek-manches-courtes-en-laine-merinos-homme-mt500/_/R-p-331113'}]},
+      {id:'chaussettes',name:'Chaussettes trek Merinos',note:'Portées sur soi · éviter le coton',price:'8–18€',weight:'50–70 g',weightEstimated:true,worn:true,links:[{l:'Chaussettes trek',u:'https://www.decathlon.fr/tous-les-sports/randonnee-trek/chaussettes-randonnee'}]},
+      {id:'solaire',name:'Stick solaire SPF50',note:null,price:'5–12€',weight:'50–120 g',weightEstimated:true,links:[{l:'Solaires',u:'https://www.decathlon.fr/p/spray-solaire-active-spf-50-150-ml/351956/m8862018'}]},
+      {id:'powerbank',name:'Power bank 10 000 mAh USB-C',note:null,price:'20–50€',weight:'180–350 g',weightEstimated:true,links:[{l:'Amazon',u:'https://www.amazon.fr/s?k=powerbank+10000mah+usb-c+leger+randonnee'}]},
     ],
     facultatif:[
-      {id:'poncho',name:'Poncho pluie',note:null,price:'10–30€',weight:'200–400 g',links:[]},
-      {id:'crampons',name:'Crampons',note:'Début/fin de saison',price:'15–35€',weight:'300–500 g',links:[{l:'Amazon',u:'https://www.amazon.fr/s?k=crampons+randonn%C3%A9e+neige'}]},
+      {id:'poncho',name:'Poncho pluie',note:null,price:'10–30€',weight:'200–400 g',weightEstimated:true,links:[{l:'Ponchos',u:'https://www.decathlon.fr/tous-les-sports/randonnee-trek/ponchos-capes-de-pluie'}]},
+      {id:'crampons',name:'Mini-crampons rando · Simond Bobcat',note:'Début/fin de saison · 6 pointes',price:'15–35€',weight:'300–450 g',weightEstimated:true,links:[{l:'Simond Bobcat',u:'https://www.decathlon.fr/p/mini-crampons-d-appoint-pour-randonnee-bobcat/_/R-p-342903'}]},
     ]
   }
 };

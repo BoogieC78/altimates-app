@@ -97,10 +97,17 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
 - [~] **Kit : reclassement d'articles** (2026-07-30, staging) — cuillère trek pliable et oreiller
   gonflable passés en **Indispensables** côté trek (l'oreiller reste absent du kit journée).
   La protection solaire était déjà en Recommandés dans les deux modes : aucun changement.
-- [ ] **Poids : distinguer le porté-sur-soi du porté-dans-le-sac** — chaussures, t-shirt et
-  chaussettes sont comptés dans le total alors qu'ils sont sur le dos du randonneur (~1 kg de
-  surestimation en trek). Piste : un drapeau `worn` sur `GearItem` + un second total « poids de
-  base ». À arbitrer avec Wacil.
+- [x] **Poids : distinguer le porté-sur-soi du porté-dans-le-sac** — fait 2026-07-30 : drapeau
+  `worn` sur `GearItem` (chaussures, bâtons, t-shirt, chaussettes, boxer mérinos, casquette),
+  exclus du total, avec un astérisque sous le chiffre qui nomme ce qui est retiré.
+- [x] **Kit : références produit réelles** — chaque article porte désormais une référence
+  Decathlon nommée + son lien. Les poids sont repris de la fiche technique quand elle a pu
+  être trouvée ; les articles sans référence unique (consommables, accessoires génériques)
+  gardent un ordre de grandeur, marqué `weightEstimated: true` dans `gear.ts`.
+- [ ] **Poids : compléter les fiches manquantes** — les articles encore en `weightEstimated`
+  (chaussures, bâtons, chaussettes, serviette, poncho, power bank, solaire, crampons, savon,
+  adaptateurs gaz, consommables) attendent un poids constaté. Decathlon renvoie un 403 au
+  scraping : à relever à la main en magasin/sur fiche produit.
 - [ ] **Staging isolé** : projet Firebase dédié (données de test seedées) + auto-login compte de test
   en preview uniquement — permet de tester sans connexion, sans risque prod. Carte Trello détaillée.
 - [x] **Rando : votes ✅ Partant / 🤔 Peut-être / 🇨🇳 Pas partant** — livré prod v0.3.1.

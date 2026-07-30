@@ -123,6 +123,17 @@ jobs:
     # Bloqué par l'environnement GitHub "production" (required reviewer) :
     # le job ne démarre qu'après approbation manuelle dans l'onglet Actions.
     needs: smoke-staging
+    # Un seul déploiement prod en attente à la fois : quand un nouveau push
+    # atteint cette étape, il annule celui qui attendait encore une approbation.
+    #
+    # Sans ça, les runs non approuvés s'empilent (9 en file le 2026-07-30, dont
+    # certains vieux de deux semaines) et la file devient un piège : approuver
+    # plusieurs runs les déploie dans l'ordre de fin des jobs, donc un vieux run
+    # terminé en dernier réécrit les alias prod ET staging avec du code antérieur.
+    # C'est le rollback silencieux vécu le 2026-07-17 (v0.3.4 a écrasé v0.3.5).
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     environment:
       name: production

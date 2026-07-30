@@ -1,7 +1,7 @@
 # Backlog ALTImates
 
 Tâches reportées et pistes d'optimisation. Cochez au fur et à mesure.
-Dernière mise à jour : 2026-07-30.
+Dernière mise à jour : 2026-07-30 (release prod v0.3.9).
 
 ---
 
@@ -78,25 +78,32 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
   arrivée en boîte principale garantie, et adresse d'envoi propre.
 - [ ] **Version riche du mail de connexion** : une fois le domaine pris, remplacer le bandeau texte par le
   design topographique complet (image hébergée). Aperçu de référence déjà conçu (bandeau topo + ligne de crête).
-- [~] **Onglet Fenêtre** : calendrier de disponibilités de la cordée (chacun renseigne ses jours ;
+- [x] **Onglet Fenêtre** : calendrier de disponibilités de la cordée (chacun renseigne ses jours ;
   l'app calcule les meilleures fenêtres communes). Livré en **staging** le 2026-07-15 (commit 61ad023,
-  règles Firestore déployées) — en attente de validation avant prod. Carte Trello ZYp4GMYV.
-- [~] **Audit accessibilité / responsive** de l'app — 2 audits complets menés le 2026-07-19
+  règles Firestore déployées) — passé en **PRODUCTION** avec la release v0.3.9 le 2026-07-30.
+  Carte Trello ZYp4GMYV.
+- [x] **Audit accessibilité / responsive** de l'app — 2 audits complets menés le 2026-07-19
   (a11y WCAG 2.1 AA : 34 constats ; responsive mobile 360–430px : 29 constats) puis corrections :
   modales accessibles (dialog/focus trap/Escape), labels/aria-pressed partout, contrastes,
   focus visible, safe-area iPhone, inputs 16px anti-zoom iOS, nav 8 onglets en 360px,
-  0 débordement horizontal vérifié à 360/375/430px. Livré en **staging** — en attente de
-  validation avant prod. Cartes Trello 6a5cc983e49b9df519f8efca (a11y) et
+  0 débordement horizontal vérifié à 360/375/430px. Passé en **PRODUCTION** avec la release
+  v0.3.9 le 2026-07-30. Cartes Trello 6a5cc983e49b9df519f8efca (a11y) et
   6a5cc983aed8b84ea7109036 (responsive). Note : vote « Pas partant » passé de 🇨🇳 à ❌.
-- [~] **Kit : poids du sac estimé** — chaque article de `gear.ts` porte désormais une fourchette
+- [x] **Kit : poids du sac estimé** — chaque article de `gear.ts` porte désormais une fourchette
   `weight` en grammes ; le bloc en-tête du Kit affiche le poids total du sac, recalculé
   dynamiquement comme le budget (tous les articles sauf ceux marqués « Skip »). Poids repris
-  aussi dans l'export PDF et l'e-mail du kit. Poids **indicatifs** (ordres de grandeur des gammes
-  rando courantes), pas relevés sur une référence produit précise. Livré en **staging** le
-  2026-07-30 — en attente de validation avant prod.
-- [~] **Kit : reclassement d'articles** (2026-07-30, staging) — cuillère trek pliable et oreiller
+  aussi dans l'export PDF et l'e-mail du kit. Livré en **PRODUCTION** v0.3.9 le 2026-07-30
+  (carte Trello EBJHNtpY).
+- [x] **Kit : reclassement d'articles** (2026-07-30, prod v0.3.9) — cuillère trek pliable et oreiller
   gonflable passés en **Indispensables** côté trek (l'oreiller reste absent du kit journée).
   La protection solaire était déjà en Recommandés dans les deux modes : aucun changement.
+- [x] **CI : un seul déploiement prod en attente à la fois** — 9 runs non approuvés s'étaient
+  empilés sur l'environnement `production` (dont certains du 17/07). Une file qui grossit est un
+  piège : approuver plusieurs runs les déploie dans l'ordre de fin des jobs, donc un vieux run
+  terminé en dernier réécrit les alias prod ET staging (rollback silencieux du 17/07, v0.3.4 a
+  écrasé v0.3.5). Correctif : `concurrency: {group: deploy-production, cancel-in-progress: true}`
+  dans [ci.yml](.github/workflows/ci.yml) — un nouveau push annule le run encore en attente.
+  Les 8 runs périmés ont été purgés. Gate humaine inchangée. Commit b6cf451, carte Trello OoSJG7rp.
 - [x] **Poids : distinguer le porté-sur-soi du porté-dans-le-sac** — fait 2026-07-30 : drapeau
   `worn` sur `GearItem` (chaussures, bâtons, t-shirt, chaussettes, boxer mérinos, casquette),
   exclus du total, avec un astérisque sous le chiffre qui nomme ce qui est retiré.

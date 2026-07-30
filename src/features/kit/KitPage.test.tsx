@@ -53,6 +53,27 @@ describe('KitPage', () => {
     expect(total).toContain('410€')
   })
 
+  it('affiche le poids du sac estimé, hors articles skippés', () => {
+    // Mode journée, sac20 (600–1100 g) skippé → 13 articles emportés sur 14,
+    // soit 2580–4650 g (sommes des fourchettes `weight` de gear.ts).
+    state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus: { sac20: 'skip' } }
+    render(<KitPage user={user} memberName="Wacil" />)
+    const poids = document.querySelector('.budget-weight-val')!.textContent
+    expect(poids).toContain('2,6 kg')
+    expect(poids).toContain('4,7 kg')
+    expect(screen.getByText(/13 articles emportés/)).toBeTruthy()
+  })
+
+  it('le poids augmente quand on ré-intègre un article au sac', () => {
+    // Contraste avec le test précédent : sans skip, le sac à dos revient dans le total.
+    state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus: {} }
+    render(<KitPage user={user} memberName="Wacil" />)
+    const poids = document.querySelector('.budget-weight-val')!.textContent
+    expect(poids).toContain('3,2 kg')
+    expect(poids).toContain('5,8 kg')
+    expect(screen.getByText(/14 articles emportés/)).toBeTruthy()
+  })
+
   it("un clic sur un statut appelle update avec le kitStatus modifié", () => {
     state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus: {} }
     render(<KitPage user={user} memberName="Wacil" />)

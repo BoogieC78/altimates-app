@@ -1,7 +1,7 @@
 # Backlog ALTImates
 
 Tâches reportées et pistes d'optimisation. Cochez au fur et à mesure.
-Dernière mise à jour : 2026-07-19.
+Dernière mise à jour : 2026-07-30.
 
 ---
 
@@ -88,6 +88,19 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
   0 débordement horizontal vérifié à 360/375/430px. Livré en **staging** — en attente de
   validation avant prod. Cartes Trello 6a5cc983e49b9df519f8efca (a11y) et
   6a5cc983aed8b84ea7109036 (responsive). Note : vote « Pas partant » passé de 🇨🇳 à ❌.
+- [~] **Kit : poids du sac estimé** — chaque article de `gear.ts` porte désormais une fourchette
+  `weight` en grammes ; le bloc en-tête du Kit affiche le poids total du sac, recalculé
+  dynamiquement comme le budget (tous les articles sauf ceux marqués « Skip »). Poids repris
+  aussi dans l'export PDF et l'e-mail du kit. Poids **indicatifs** (ordres de grandeur des gammes
+  rando courantes), pas relevés sur une référence produit précise. Livré en **staging** le
+  2026-07-30 — en attente de validation avant prod.
+- [~] **Kit : reclassement d'articles** (2026-07-30, staging) — cuillère trek pliable et oreiller
+  gonflable passés en **Indispensables** côté trek (l'oreiller reste absent du kit journée).
+  La protection solaire était déjà en Recommandés dans les deux modes : aucun changement.
+- [ ] **Poids : distinguer le porté-sur-soi du porté-dans-le-sac** — chaussures, t-shirt et
+  chaussettes sont comptés dans le total alors qu'ils sont sur le dos du randonneur (~1 kg de
+  surestimation en trek). Piste : un drapeau `worn` sur `GearItem` + un second total « poids de
+  base ». À arbitrer avec Wacil.
 - [ ] **Staging isolé** : projet Firebase dédié (données de test seedées) + auto-login compte de test
   en preview uniquement — permet de tester sans connexion, sans risque prod. Carte Trello détaillée.
 - [x] **Rando : votes ✅ Partant / 🤔 Peut-être / 🇨🇳 Pas partant** — livré prod v0.3.1.

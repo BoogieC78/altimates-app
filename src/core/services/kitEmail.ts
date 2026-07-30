@@ -29,7 +29,7 @@ export function buildKitEmailLines(
     lines.push(l)
     gear[k].forEach((g) => {
       const ch = checked[g.id] ? '[x]' : '[ ]'
-      lines.push(`${ch} ${g.name} · ${g.price}${g.note ? ' · ' + g.note : ''}`)
+      lines.push(`${ch} ${g.name} · ${g.price} · ${g.weight}${g.note ? ' · ' + g.note : ''}`)
       g.links.forEach((lk) => lines.push(`    → ${lk.l}: ${lk.u}`))
     })
     lines.push('')

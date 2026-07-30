@@ -14,15 +14,42 @@ test.describe('Kit — onboarding et checklist', () => {
     await expect(page.getByText('Plutôt journée ou trek ?')).toBeVisible()
     await page.getByRole('button', { name: 'Journée' }).click()
 
-    // La checklist personnalisée s'affiche.
+    // Kit vierge : le triage express démarre ; on le quitte pour voir la checklist.
+    await expect(page.getByText(/TRIAGE · 1\/\d+/)).toBeVisible()
+    await page.getByRole('button', { name: 'Voir la liste →' }).click()
     await expect(page.getByText('Indispensables')).toBeVisible()
   })
 
-  test('le poids du sac estimé baisse quand on skippe un article', async ({ page }) => {
-    await login(page, { name: 'Wacil' })
+  test('le triage express écrit les statuts carte par carte', async ({ page }) => {
+    // Email dédié à ce test : uid distinct → profil garanti vierge, quel que soit
+    // l'ordre d'exécution (l'uid de Wacil est partagé et peut fuiter entre tests).
+    await login(page, { email: 'mrbouchemoua.ismail@gmail.com', name: 'Ismail' })
     await page.getByRole('button', { name: 'Kit' }).click()
     await page.locator('.btn.btn-full').first().click()
     await page.getByRole('button', { name: 'Journée' }).click()
+
+    // Carte 1 (chaussures) : « J'ai ». Carte 2 : « À acheter ». Carte 3 : « Pas besoin ».
+    await expect(page.getByText(/TRIAGE · 1\/\d+/)).toBeVisible()
+    await page.getByRole('button', { name: "✓ J'ai" }).click()
+    await expect(page.getByText(/TRIAGE · 2\/\d+/)).toBeVisible()
+    await page.getByRole('button', { name: '🛒 À acheter' }).click()
+    await page.getByRole('button', { name: '✕ Pas besoin' }).click()
+
+    // Sortie vers la liste : les statuts sont persistés dans les stats.
+    await page.getByRole('button', { name: 'Voir la liste →' }).click()
+    await expect(page.locator('.budget-stat-val').first()).toHaveText(/^1\/\d+$/)
+    // Bouton de relance sur les articles restants (14 - 3 = 11 en journée).
+    await expect(page.getByRole('button', { name: /^Trier \(\d+\)$/ })).toBeVisible()
+  })
+
+  test('le poids du sac estimé baisse quand on skippe un article', async ({ page }) => {
+    // Email dédié (voir test précédent) : les compteurs absolus (9 articles, poids)
+    // supposent un kit vierge, un statut fuité d'un autre test les fausserait.
+    await login(page, { email: 'david.agbodjanprince@gmail.com', name: 'David' })
+    await page.getByRole('button', { name: 'Kit' }).click()
+    await page.locator('.btn.btn-full').first().click()
+    await page.getByRole('button', { name: 'Journée' }).click()
+    await page.getByRole('button', { name: 'Voir la liste →' }).click()
 
     const poids = page.locator('.budget-weight-val')
     await expect(poids).toBeVisible()

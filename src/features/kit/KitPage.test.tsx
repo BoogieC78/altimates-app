@@ -67,7 +67,9 @@ describe('KitPage', () => {
 
   it('le poids augmente quand on ré-intègre un article au sac', () => {
     // Contraste avec le test précédent : sans skip, le sac à dos revient dans le total.
-    state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus: {} }
+    // 'have' sur un article porté sur soi : ne change ni le sac ni son poids,
+    // mais évite le triage express (réservé au kit 100 % vierge).
+    state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus: { chaussures: 'have' } }
     render(<KitPage user={user} memberName="Wacil" />)
     const poids = document.querySelector('.budget-weight-val')!.textContent
     expect(poids).toContain('2,7 kg')
@@ -76,7 +78,7 @@ describe('KitPage', () => {
   })
 
   it('signale par un astérisque que le porté-sur-soi est exclu', () => {
-    state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus: {} }
+    state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus: { chaussures: 'have' } }
     render(<KitPage user={user} memberName="Wacil" />)
     const note = document.querySelector('.budget-weight-note')!.textContent!
     expect(note).toContain('dans le sac')
@@ -87,12 +89,12 @@ describe('KitPage', () => {
   })
 
   it("un clic sur un statut appelle update avec le kitStatus modifié", () => {
-    state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus: {} }
+    state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus: { batons: 'have' } }
     render(<KitPage user={user} memberName="Wacil" />)
     // Premier article de la section Indispensables (ouverte par défaut) : chaussures
     fireEvent.click(screen.getAllByText("✓ J'ai")[0])
     expect(state.update).toHaveBeenCalledWith({
-      kitStatus: { chaussures: 'have' },
+      kitStatus: { batons: 'have', chaussures: 'have' },
       checked: { chaussures: true },
     })
   })
@@ -102,5 +104,56 @@ describe('KitPage', () => {
     render(<KitPage user={user} memberName="Wacil" />)
     fireEvent.click(screen.getAllByText("✓ J'ai")[0])
     expect(state.update).toHaveBeenCalledWith({ kitStatus: {}, checked: { chaussures: false } })
+  })
+
+  it('kit vierge : le triage express démarre à la place de la liste', () => {
+    state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus: {} }
+    render(<KitPage user={user} memberName="Wacil" />)
+    expect(screen.getByText('TRIAGE · 1/14')).toBeTruthy()
+    // La liste classique n'est pas rendue derrière.
+    expect(document.querySelector('.gear-item')).toBeNull()
+  })
+
+  it("triage : « J'ai » écrit le statut et passe à l'article suivant", () => {
+    state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus: {} }
+    render(<KitPage user={user} memberName="Wacil" />)
+    fireEvent.click(screen.getByText("✓ J'ai"))
+    expect(state.update).toHaveBeenCalledWith({
+      kitStatus: { chaussures: 'have' },
+      checked: { chaussures: true },
+    })
+    expect(screen.getByText('TRIAGE · 2/14')).toBeTruthy()
+  })
+
+  it('triage : « Pas besoin » écrit skip, « Décider plus tard » ne touche à rien', () => {
+    state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus: {} }
+    render(<KitPage user={user} memberName="Wacil" />)
+    fireEvent.click(screen.getByText('✕ Pas besoin'))
+    expect(state.update).toHaveBeenCalledWith({
+      kitStatus: { chaussures: 'skip' },
+      checked: { chaussures: false },
+    })
+    state.update.mockClear()
+    fireEvent.click(screen.getByText('Décider plus tard →'))
+    expect(state.update).not.toHaveBeenCalled()
+    expect(screen.getByText('TRIAGE · 3/14')).toBeTruthy()
+  })
+
+  it('triage : « Voir la liste » sort vers la checklist classique', () => {
+    state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus: {} }
+    render(<KitPage user={user} memberName="Wacil" />)
+    fireEvent.click(screen.getByText('Voir la liste →'))
+    expect(screen.getByText('Indispensables')).toBeTruthy()
+    // Le bouton de relance affiche le nombre d'articles non triés.
+    expect(screen.getByText('Trier (14)')).toBeTruthy()
+  })
+
+  it('kit déjà entamé : pas de triage, mais bouton « Trier (N) » pour les restants', () => {
+    state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus: { chaussures: 'have' } }
+    render(<KitPage user={user} memberName="Wacil" />)
+    expect(screen.queryByText(/^TRIAGE/)).toBeNull()
+    fireEvent.click(screen.getByText('Trier (13)'))
+    // Le triage relancé ne repropose pas les articles déjà statués.
+    expect(screen.getByText('TRIAGE · 1/13')).toBeTruthy()
   })
 })

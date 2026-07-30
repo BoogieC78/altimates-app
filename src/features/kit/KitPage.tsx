@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import type { User } from 'firebase/auth'
 import { GEAR, GEAR_INFO, LVLS, type KitMode, type KitStatus, type Level } from '../../core/constants/gear'
-import { budgetRange, findGearItem, formatWeight, kitStats, weightRange } from '../../core/services/kit'
+import { allItems, budgetRange, findGearItem, formatWeight, kitStats, weightRange } from '../../core/services/kit'
 import { buildKitEmailLines, EMAIL_SECTION_LABELS, kitMailtoUrl } from '../../core/services/kitEmail'
 import { generateKitPdf } from '../../core/services/kitPdf'
 import { useUserProfile } from '../../hooks/useUserProfile'
 import { Modal } from '../../components/Modal'
 import { GearRow, type ShareData } from './GearRow'
+import { KitTriage } from './KitTriage'
 
 type SectionKey = 'indispensable' | 'recommande' | 'facultatif'
 
@@ -31,6 +32,8 @@ export function KitPage({ user, memberName }: KitPageProps) {
   const [infoId, setInfoId] = useState<string | null>(null)
   const [emailOpen, setEmailOpen] = useState(false)
   const [emailAddr, setEmailAddr] = useState('')
+  // null = pas encore décidé (profil en cours de chargement) ; fixé au premier rendu utile.
+  const [triageOpen, setTriageOpen] = useState<boolean | null>(null)
 
   if (loading) {
     return (
@@ -85,6 +88,16 @@ export function KitPage({ user, memberName }: KitPageProps) {
   }
 
   const info = infoId ? GEAR_INFO[infoId] : null
+
+  // Triage express : kit vierge → premier remplissage carte par carte (variante A, 30/07).
+  const undecided = allItems(mode).filter((g) => !kitStatus[g.id])
+  if (triageOpen === null) {
+    setTriageOpen(undecided.length === allItems(mode).length)
+    return null
+  }
+  if (triageOpen) {
+    return <KitTriage items={undecided} onStatus={setStatus} onClose={() => setTriageOpen(false)} />
+  }
 
   return (
     <div className="tab active">
@@ -166,7 +179,12 @@ export function KitPage({ user, memberName }: KitPageProps) {
           <span className={`tag ${LVLS[level].cls}`}>{LVLS[level].l}</span>
           <span className={`tag ${mode === 'trek' ? 'tb' : 'tg'}`}>{mode === 'trek' ? 'Trek' : 'Journée'}</span>
         </div>
-        <div style={{ display: 'flex', gap: 6 }}>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {undecided.length > 0 && (
+            <button className="btn btn-sm" onClick={() => setTriageOpen(true)}>
+              Trier ({undecided.length})
+            </button>
+          )}
           <button className="btn btn-gold btn-sm" onClick={() => void generateKitPdf(mode, kitStatus, memberName)}>
             PDF
           </button>

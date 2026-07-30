@@ -8,10 +8,10 @@ test.describe('Navigation entre les onglets', () => {
 
     await login(page, { name: 'Wacil' })
 
-    // L'onglet Kit affiche l'onboarding (profil vide) OU la checklist (profil configuré) :
-    // ce smoke ne présume pas de l'état du profil, il vérifie juste que l'onglet se rend.
+    // L'onglet Kit affiche l'onboarding (profil vide), le triage (kit vierge) OU la
+    // checklist : ce smoke ne présume pas de l'état du profil, juste que l'onglet se rend.
     await page.getByRole('button', { name: 'Kit' }).click()
-    await expect(page.getByText(/Ton niveau en rando \?|Indispensables/)).toBeVisible()
+    await expect(page.getByText(/Ton niveau en rando \?|Indispensables|TRIAGE/)).toBeVisible()
 
     await page.getByRole('button', { name: 'Cordée' }).click()
     await expect(page.getByText('Membres', { exact: true })).toBeVisible()

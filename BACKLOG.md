@@ -1,7 +1,7 @@
 # Backlog ALTImates
 
 Tâches reportées et pistes d'optimisation. Cochez au fur et à mesure.
-Dernière mise à jour : 2026-07-30 (release prod v0.3.9).
+Dernière mise à jour : 2026-07-31 (release prod v0.3.10).
 
 ---
 
@@ -74,6 +74,17 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
 
 ## ✨ Améliorations / plus tard
 
+- [x] **Refonte kit v0.3.10** (2026-07-31, prod) — retours groupe du 30/07 :
+  - **Formule complétion corrigée** : % complet = possédés / (possédés + à acheter), skip et
+    réfléchir hors dénominateur et hors budget (carte Trello 2x5vn0jD).
+  - **Triage express** (variante A choisie sur maquettes) : kit vierge → onboarding puis une
+    carte par article, réponse obligatoire (J'ai / À acheter / Pas besoin), sortie libre via
+    « Voir la liste » ; boutons « Trier (N) » et « Tout retrier » (sans toggle destructif) ;
+    « Réinitialiser mon kit » (resetKit ciblé via deleteField, stats de sorties conservées).
+    Cartes YPCdBcY0, 3Uw6B33t.
+  - **Fix reset→trek** : condition d'ouverture du triage réévaluée à chaque rendu (verrou pris
+    sur un rendu périmé avant l'écho onSnapshot du reset). Carte GMkpUySj.
+  - E2E kit : emails dédiés par test sensible à l'état (fuite d'uid partagé entre tests).
 - [ ] **Nom de domaine** (ex. `altimates.fr`, ~10 €/an) → délivrabilité e-mail « pro » (SPF/DKIM),
   arrivée en boîte principale garantie, et adresse d'envoi propre.
 - [ ] **Version riche du mail de connexion** : une fois le domaine pris, remplacer le bandeau texte par le

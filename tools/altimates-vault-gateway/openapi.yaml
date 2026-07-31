@@ -1,0 +1,51 @@
+openapi: 3.1.0
+info:
+  title: Altimates Vault Gateway
+  version: 1.0.0
+  description: Read-only access to the locally generated Altimates Obsidian vault.
+servers:
+  - url: https://REPLACE_WITH_STABLE_TUNNEL_HOSTNAME
+paths:
+  /health:
+    get:
+      operationId: getVaultHealth
+      summary: Check that the local vault and Obsidian bridge are available.
+      responses:
+        '200':
+          description: Vault health and freshness information.
+  /search:
+    get:
+      operationId: searchVault
+      summary: Search the Altimates Obsidian vault before reading relevant notes.
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Concise French or English search query, at most 160 characters.
+          schema:
+            type: string
+            maxLength: 160
+      responses:
+        '200':
+          description: Matching paths and excerpts from the vault.
+  /notes/{path}:
+    get:
+      operationId: readVaultNote
+      summary: Read one Markdown note or graph.canvas from the Altimates vault.
+      parameters:
+        - name: path
+          in: path
+          required: true
+          description: Relative vault path ending in .md, or graph.canvas.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Note content.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []

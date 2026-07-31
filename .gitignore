@@ -39,3 +39,12 @@ ui-debug.log
 
 # CodeGraph (index local)
 .codegraph/
+
+# Passerelle locale du vault Obsidian (secrets personnels)
+/tools/altimates-vault-gateway/.env
+
+# Sorties générées par graphify (graphe de connaissance local)
+/graphify-out/
+
+# Miroir local des skills pour outillage agents (source de vérité : .claude/skills/)
+/.agents/

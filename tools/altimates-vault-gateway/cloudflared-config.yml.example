@@ -1,0 +1,7 @@
+# A named tunnel gives ChatGPT a stable URL. Do not use a Quick Tunnel here.
+tunnel: REPLACE_WITH_TUNNEL_UUID
+credentials-file: /Users/wacil/.cloudflared/REPLACE_WITH_TUNNEL_UUID.json
+ingress:
+  - hostname: vault-api.REPLACE_WITH_YOUR_DOMAIN
+    service: http://127.0.0.1:8787
+  - service: http_status:404

@@ -186,6 +186,23 @@ describe('KitPage', () => {
     expect(screen.getByText('Tout retrier')).toBeTruthy()
   })
 
+  it("réinitialisation : le triage repart même si un rendu a vu l'ancien profil plein (bug trek 31/07)", () => {
+    const full: Record<string, KitStatus> = {}
+    for (const g of allItems('trek')) full[g.id] = 'have'
+    state.profile = { name: 'Wacil', level: 'newbie', mode: 'trek', kitStatus: full }
+    const { rerender } = render(<KitPage user={user} memberName="Wacil" />)
+    expect(screen.queryByText(/^TRIAGE/)).toBeNull()
+    // Le reset arrive par onSnapshot : profil sans mode → onboarding…
+    state.profile = { name: 'Wacil' }
+    rerender(<KitPage user={user} memberName="Wacil" />)
+    fireEvent.click(screen.getByText('Débutant'))
+    fireEvent.click(screen.getByText('Trek (multi-jours)'))
+    // …puis profil reconfiguré, kit vierge : le triage doit démarrer malgré le rendu initial.
+    state.profile = { name: 'Wacil', level: 'newbie', mode: 'trek', kitStatus: {} }
+    rerender(<KitPage user={user} memberName="Wacil" />)
+    expect(screen.getByText('TRIAGE · 1/32')).toBeTruthy()
+  })
+
   it('« Réinitialiser mon kit » appelle resetKit après confirmation', () => {
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
     state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus: { chaussures: 'have' } }

@@ -54,6 +54,12 @@ test.describe('Kit — onboarding et checklist', () => {
     page.once('dialog', (d) => void d.accept())
     await page.getByRole('button', { name: 'Réinitialiser mon kit' }).click()
     await expect(page.getByText('Ton niveau en rando ?')).toBeVisible()
+
+    // Régression 31/07 : après le reset, choisir TREK doit relancer les cartes
+    // (un rendu ayant vu l'ancien profil plein verrouillait le triage sur la liste).
+    await page.locator('.btn.btn-full').first().click()
+    await page.getByRole('button', { name: 'Trek (multi-jours)' }).click()
+    await expect(page.getByText('TRIAGE · 1/32')).toBeVisible()
   })
 
   test('le poids du sac estimé baisse quand on skippe un article', async ({ page }) => {

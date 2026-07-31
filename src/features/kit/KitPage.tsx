@@ -32,10 +32,11 @@ export function KitPage({ user, memberName }: KitPageProps) {
   const [infoId, setInfoId] = useState<string | null>(null)
   const [emailOpen, setEmailOpen] = useState(false)
   const [emailAddr, setEmailAddr] = useState('')
-  // null = pas encore décidé (profil en cours de chargement) ; fixé au premier rendu utile.
-  const [triageOpen, setTriageOpen] = useState<boolean | null>(null)
-  // 'undecided' = seulement les articles sans statut ; 'all' = tout retrier (les réponses écrasent).
-  const [triageScope, setTriageScope] = useState<'undecided' | 'all'>('undecided')
+  // Session de triage en cours : 'auto' (kit vierge), 'manual' (bouton Trier),
+  // 'all' (Tout retrier — la file repasse sur tous les articles). null = liste.
+  const [triage, setTriage] = useState<'auto' | 'manual' | 'all' | null>(null)
+  // « Voir la liste » sur un kit resté vierge : ne pas relancer le triage automatiquement.
+  const [triageDismissed, setTriageDismissed] = useState(false)
 
   if (loading) {
     return (
@@ -101,19 +102,23 @@ export function KitPage({ user, memberName }: KitPageProps) {
   const info = infoId ? GEAR_INFO[infoId] : null
 
   // Triage express : kit vierge → premier remplissage carte par carte (variante A, 30/07).
+  // Condition RÉÉVALUÉE à chaque rendu (pas de verrou posé une fois pour toutes) : après
+  // « Réinitialiser mon kit », le premier rendu peut encore voir l'ancien profil plein —
+  // un verrou pris à ce moment-là bloquait le triage post-onboarding (bug trek du 31/07).
   const undecided = allItems(mode).filter((g) => !kitStatus[g.id])
-  if (triageOpen === null) {
-    setTriageOpen(undecided.length === allItems(mode).length)
+  const virgin = undecided.length === allItems(mode).length
+  if (triage === null && virgin && !triageDismissed) {
+    setTriage('auto')
     return null
   }
-  if (triageOpen) {
+  if (triage) {
     return (
       <KitTriage
-        items={triageScope === 'all' ? allItems(mode) : undecided}
+        items={triage === 'all' ? allItems(mode) : undecided}
         onStatus={setStatusDirect}
         onClose={() => {
-          setTriageOpen(false)
-          setTriageScope('undecided')
+          setTriage(null)
+          setTriageDismissed(true)
         }}
       />
     )
@@ -201,18 +206,12 @@ export function KitPage({ user, memberName }: KitPageProps) {
         </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {undecided.length > 0 && (
-            <button className="btn btn-sm" onClick={() => setTriageOpen(true)}>
+            <button className="btn btn-sm" onClick={() => setTriage('manual')}>
               Trier ({undecided.length})
             </button>
           )}
           {undecided.length < allItems(mode).length && (
-            <button
-              className="btn btn-sm"
-              onClick={() => {
-                setTriageScope('all')
-                setTriageOpen(true)
-              }}
-            >
+            <button className="btn btn-sm" onClick={() => setTriage('all')}>
               Tout retrier
             </button>
           )}
@@ -291,7 +290,8 @@ export function KitPage({ user, memberName }: KitPageProps) {
               )
             ) {
               void resetKit()
-              setTriageOpen(null)
+              setTriage(null)
+              setTriageDismissed(false)
             }
           }}
         >

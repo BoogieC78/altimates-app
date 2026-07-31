@@ -165,6 +165,11 @@ causes typiques sont documentées dans "Pièges connus" ci-dessous.
   entre tests via l'émail déterministe) ou vierge selon l'ordre d'exécution → teste
   `/Ton niveau en rando \?|Indispensables/` plutôt que de présumer un seul état, sauf si le test
   vient justement de le mettre dans un état connu (ex. après un `configure()` explicite).
+- **Test qui exige un profil VIERGE (compteurs absolus, onboarding, triage kit)** : ne pas se fier
+  au reset — des écritures du test précédent sur le MÊME uid peuvent lui survivre (fuite
+  reproductible vécue le 30/07 : statuts kit de Wacil survivant au beforeEach entre deux tests
+  consécutifs de kit.spec). Fix retenu : un **email dédié par test sensible à l'état** (uid
+  distinct = profil garanti vierge), pris dans `DEFAULT_MEMBERS` (ismail, david encore libres).
 - **`displayName` non propagé par l'émulateur Auth** → `useMemberName` retombe sur "Anonyme". Ne
   jamais asserter sur le prénom/les initiales affichées après un login émulateur brut ; passer par
   la configuration de profil (Base Camp → Configurer) si le nom affiché doit être vérifié.

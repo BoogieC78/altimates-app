@@ -17,6 +17,17 @@ dans la description dès qu'on les connaît.
 ## 2. Diagnostiquer puis corriger
 
 Pièges UI déjà rencontrés (ne pas re-diagnostiquer de zéro) :
+- **Kit / triage express (v0.3.10)** — trois pièges vécus le 30-31/07 :
+  - `setStatus` de KitPage.tsx est un **toggle** (re-cliquer le même statut le retire) : tout
+    parcours qui ré-écrit un statut existant (ex. « Tout retrier ») doit passer par
+    `setStatusDirect`, sinon répondre « J'ai » sur un article possédé l'efface.
+  - **Jamais de verrou d'état pris sur un seul rendu** quand la donnée vient d'`onSnapshot` :
+    après « Réinitialiser mon kit », le premier rendu peut voir l'ancien profil plein (l'écho
+    de la suppression n'est pas arrivé) — un flag figé à ce moment bloquait le triage
+    post-onboarding (bug trek, timing-dépendant). Toujours réévaluer la condition à chaque rendu.
+  - `setDoc(..., {merge:true})` **fusionne les maps en profondeur** : écrire `{}` ne vide rien.
+    Pour remettre un champ map à zéro → `deleteField()` champ par champ (voir `resetKit` dans
+    useUserProfile.ts).
 - **Popup tronquée / sous la nav** : `.modal-wrap` doit rester z-index 300 ; `.modal` en
   `max-height:85dvh` + safe-area. Le composant [Modal.tsx](../../../src/components/Modal.tsx)
   est rendu en **portal sur `<body>`** — ne jamais revenir en arrière : tout ancêtre avec

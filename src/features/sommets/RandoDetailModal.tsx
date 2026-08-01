@@ -29,6 +29,7 @@ import type {
 } from '../../core/types'
 import { EditRandoModal } from './EditRandoModal'
 import { ExpensesTab } from './ExpensesTab'
+import { TransportTab } from './TransportTab'
 
 // ── Icônes locales (mêmes tracés SVG que l'ancienne app) ──
 
@@ -216,7 +217,17 @@ function EuroTabIcon() {
   )
 }
 
-type TabId = 'info' | 'ravito' | 'hydra' | 'expenses'
+function CarTabIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" {...svgProps} style={{ display: 'inline', verticalAlign: -2, marginRight: 3 }}>
+      <path d="M5 17h14M3 13l2-5a2 2 0 0 1 2-1.4h10A2 2 0 0 1 19 8l2 5v4H3z" />
+      <circle cx="7.5" cy="17" r="1.5" />
+      <circle cx="16.5" cy="17" r="1.5" />
+    </svg>
+  )
+}
+
+type TabId = 'info' | 'ravito' | 'hydra' | 'expenses' | 'transport'
 
 interface RandoDetailModalProps {
   rando: WithDocId<Rando>
@@ -276,11 +287,16 @@ export function RandoDetailModal({ rando: r, memberName, onClose }: RandoDetailM
           <EuroTabIcon />
           Dépenses
         </button>
+        <button className={tab === 'transport' ? 'ravito-tab active' : 'ravito-tab'} aria-pressed={tab === 'transport'} onClick={() => setTab('transport')}>
+          <CarTabIcon />
+          Transport
+        </button>
       </div>
       {tab === 'info' && <InfoTab rando={r} memberName={memberName} onClose={onClose} />}
       {tab === 'ravito' && <RavitoTab rando={r} memberName={memberName} />}
       {tab === 'hydra' && <HydraTab rando={r} />}
       {tab === 'expenses' && <ExpensesTab rando={r} memberName={memberName} />}
+      {tab === 'transport' && <TransportTab rando={r} memberName={memberName} />}
     </Modal>
   )
 }

@@ -30,6 +30,11 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
 - [ ] Renseigner le **Nom public** du projet Firebase = `ALTImates` (Console → Paramètres du projet → Nom public).
   Améliore les mails de repli et l'écran OAuth Google.
 
+### Prérequis V2 premium (GPX + cartes IGN) — carte Trello 3Umpcb2X
+- [ ] **Plan Firebase Blaze** (CB + alerte budget ~5 €) — stockage des GPX.
+- [ ] **Compte Stripe** (mode test, clés dans les env Vercel, jamais dans le repo).
+- [ ] **Licence IGN SCAN 25** (offre pro Géoplateforme) — facultatif au lancement, Plan IGN v2 (libre) suffit.
+
 ---
 
 ## 🐞 Bugs à corriger
@@ -135,6 +140,28 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
 - Idées du groupe (importées sur Trello 2026-07-15) : filtrer randos par dénivelé max (Thomas ▲3),
   électrolytes/minéraux (Wacil), ravito qui-ramène-quoi (Wacil), anciennes sorties → XP (Wacil),
   éditer une idée soumise (Wacil), cost simulator Tricount (Nordine), section photos (Sofia ▲5).
+- [ ] **Photos post-rando (organisateur)** : l'organisateur (`proposedBy`) partage jusqu'à 6 photos
+  compressées (~200 Ko, Firestore seul — décision : pas de plan Blaze/Storage en V1, vidéos en V2),
+  visibles par tous les membres dans le détail de la rando. Nouvelle collection `randoMedia` +
+  règles Firestore. Carte Trello Y60EbMBD.
+- [ ] **Tricount des dépenses par sortie** : saisie des frais avancés (lyophilisés, essence, refuge…),
+  soldes par personne au centime, suggestion de remboursements minimale — sans intégration de
+  paiement. Collection `expenses` + service pur `expenses.ts` testé. Carte Trello 4afNgJ95.
+- [ ] **Organisation des voitures vers le départ** : chacun déclare voiture (3 places par défaut,
+  matos compris) / passager / non véhiculé ; l'app calcule le nombre de voitures nécessaires
+  (1 pour 3) et le manque. Collection `transport` (1 doc par membre, modèle availability).
+  Carte Trello h0Qveixj.
+- [ ] **V2 — Trajets train/bus pour les non-véhiculés** : ville de départ, regroupement par ville,
+  suggestions d'itinéraires (API Navitia à évaluer, sinon liens profonds SNCF Connect). Reporté
+  en V2 (complexité API). Carte Trello pQCNtpYa.
+- [ ] **V2 — Mode payant (Stripe + entitlements)** : Checkout + webhook serverless (modèle
+  api/send-signin-link.ts), `plan: 'premium'` écrit dans users/{uid} par le serveur seul (règle
+  Firestore anti-auto-promotion), gating 403 côté API. Carte Trello U6pLUfYb.
+- [ ] **V2 — Base GPX France + cartes IGN (sources légales)** : extraction OSM `route=hiking`
+  (ODbL, attribution obligatoire, pilote sur 1 région d'abord), GPX servis par URL signée aux
+  premium ; tuiles IGN en proxy à la demande (Plan IGN v2 libre, SCAN 25 après contrat pro) —
+  jamais de copie massive ni de scraping Visorando/AllTrails/Komoot (CGU + droit des bases de
+  données). Carte Trello XymNO9Z5.
 
 ---
 

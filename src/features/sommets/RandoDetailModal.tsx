@@ -28,6 +28,7 @@ import type {
   WaterSourceId,
 } from '../../core/types'
 import { EditRandoModal } from './EditRandoModal'
+import { ExpensesTab } from './ExpensesTab'
 
 // ── Icônes locales (mêmes tracés SVG que l'ancienne app) ──
 
@@ -205,7 +206,17 @@ function getJx(dateStart: string | null | undefined): string | null {
   return 'J-' + diff
 }
 
-type TabId = 'info' | 'ravito' | 'hydra'
+function EuroTabIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" {...svgProps} style={{ display: 'inline', verticalAlign: -2, marginRight: 3 }}>
+      <path d="M17 6.5a6 6 0 1 0 0 11" />
+      <line x1="4" y1="10" x2="13" y2="10" />
+      <line x1="4" y1="14" x2="13" y2="14" />
+    </svg>
+  )
+}
+
+type TabId = 'info' | 'ravito' | 'hydra' | 'expenses'
 
 interface RandoDetailModalProps {
   rando: WithDocId<Rando>
@@ -261,10 +272,15 @@ export function RandoDetailModal({ rando: r, memberName, onClose }: RandoDetailM
           <DropIcon />
           Hydratation
         </button>
+        <button className={tab === 'expenses' ? 'ravito-tab active' : 'ravito-tab'} aria-pressed={tab === 'expenses'} onClick={() => setTab('expenses')}>
+          <EuroTabIcon />
+          Dépenses
+        </button>
       </div>
       {tab === 'info' && <InfoTab rando={r} memberName={memberName} onClose={onClose} />}
       {tab === 'ravito' && <RavitoTab rando={r} memberName={memberName} />}
       {tab === 'hydra' && <HydraTab rando={r} />}
+      {tab === 'expenses' && <ExpensesTab rando={r} memberName={memberName} />}
     </Modal>
   )
 }

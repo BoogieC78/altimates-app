@@ -191,3 +191,58 @@ export interface HydraEntry {
 
 /** Doc hydra/shared : clé = id métier de la rando (String) */
 export type HydraDoc = Record<string, HydraEntry>
+
+// ── Dépenses partagées d'une sortie (collection expenses, 1 doc par dépense) ──
+
+export interface Expense {
+  /** id métier (Date.now() à la création), distinct de l'id du document */
+  id: number
+  /** id métier de la rando (String(rando.id)), comme les clés de ravito/hydra */
+  randoId: string
+  /** ce qui a été acheté : 'Lyophilisés', 'Péage A43', 'Refuge' */
+  label: string
+  /** montant avancé, en CENTIMES (entier) — jamais en euros flottants */
+  amount: number
+  /** prénom du membre qui a avancé l'argent (profile.name) */
+  payer: string
+  /** prénoms des membres qui profitent de la dépense ; parts égales */
+  beneficiaries: string[]
+  createdAt?: Timestamp
+}
+
+// ── Transport vers le départ (collection transport, 1 doc par rando+membre) ──
+
+export type TransportMode =
+  /** amène sa voiture */
+  | 'voiture'
+  /** cherche une place dans une voiture */
+  | 'passager'
+  /** non véhiculé : train/bus à organiser (V2) */
+  | 'non-vehicule'
+
+export interface TransportDoc {
+  /** id métier de la rando (String(rando.id)) */
+  randoId: string
+  /** prénom du membre (profile.name), dupliqué pour éviter un join côté client */
+  member: string
+  mode: TransportMode
+  /** places passagers offertes, sacs et matos compris (mode 'voiture' uniquement) */
+  seats?: number
+  updatedAt?: Timestamp
+}
+
+// ── Photos post-rando (collection randoMedia, 1 doc par photo) ──
+
+export interface RandoMedia {
+  /** id métier de la rando (String(rando.id)) */
+  randoId: string
+  /** prénom du membre qui a posté (profile.name) */
+  author: string
+  /** uid Firebase de l'auteur — c'est lui que les règles vérifient, pas le prénom */
+  authorUid: string
+  /** image JPEG compressée côté client, en data URL (≤ ~200 Ko) */
+  dataUrl: string
+  /** légende libre, facultative */
+  caption?: string
+  createdAt?: Timestamp
+}

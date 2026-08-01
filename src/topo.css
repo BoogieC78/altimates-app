@@ -395,8 +395,10 @@ body:has(.modal-wrap.open){overflow:hidden}
 .ravito-stock-input{width:58px;padding:4px 6px;border:.5px solid var(--border2);border-radius:6px;font-size:16px;font-family:var(--mono);text-align:center;background:rgba(255,255,255,.8);color:var(--ink)}
 .ravito-buy-row{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--red-bg);border:.5px solid #F0A090;border-radius:8px;margin-bottom:6px}
 .ravito-buy-ok{background:var(--green-bg);border-color:#A8D8B0}
-.ravito-tab-row{display:flex;gap:6px;margin-bottom:12px}
-.ravito-tab{flex:1;padding:7px;border-radius:8px;border:.5px solid var(--border2);background:transparent;font-size:10px;cursor:pointer;font-family:var(--mono);color:var(--ink3);text-align:center;transition:all .15s}
+/* 6 onglets ne tiennent pas sur une ligne en 360px : on enroule sur plusieurs
+   lignes plutôt que de faire déborder la modale horizontalement. */
+.ravito-tab-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.ravito-tab{flex:1 1 82px;min-width:82px;padding:7px 4px;border-radius:8px;border:.5px solid var(--border2);background:transparent;font-size:10px;cursor:pointer;font-family:var(--mono);color:var(--ink3);text-align:center;transition:all .15s}
 .ravito-tab.active{background:var(--ink);color:var(--gold);border-color:var(--ink)}
 .time-select{display:flex;gap:6px;flex-wrap:wrap}
 .time-btn{padding:8px 12px;border-radius:20px;border:.5px solid var(--border2);background:transparent;font-size:10px;cursor:pointer;font-family:var(--mono);color:var(--ink3);transition:all .15s}

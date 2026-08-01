@@ -30,6 +30,16 @@ service cloud.firestore {
         && (isAdmin() || request.auth.token.email in allowedEmails());
     }
 
+    // Prénom du membre courant (users/{uid}.profile.name). Sert d'identité dans
+    // les collections qui indexent par prénom (dépenses, transport) : sans ça,
+    // n'importe qui pourrait écrire une dépense au nom d'un autre. Renvoie ''
+    // si le profil n'existe pas encore, ce qui ne matche aucun prénom réel.
+    function memberName() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('profile', {}).get('name', '')
+        : '';
+    }
+
     // Chaque membre ne peut écrire que son propre document utilisateur.
     match /users/{userId} {
       allow read: if isMember();
@@ -68,6 +78,43 @@ service cloud.firestore {
       allow update: if isMember()
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['text', 'cat'])
           || resource.data.author == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.profile.name);
+    }
+
+    // Dépenses partagées d'une sortie (Tricount) : tout membre peut créer une
+    // dépense ; seul celui qui a avancé l'argent (ou un admin) peut la modifier
+    // ou la supprimer, sinon n'importe qui pourrait effacer la dette qu'il doit.
+    match /expenses/{doc} {
+      allow read: if isMember();
+      allow create: if isMember()
+        && request.resource.data.payer == memberName();
+      allow update, delete: if isMember()
+        && (resource.data.payer == memberName() || isAdmin());
+    }
+
+    // Transport vers le départ : un doc par (rando, membre), id = randoId_membre.
+    // Chacun ne déclare que son propre moyen de transport.
+    match /transport/{doc} {
+      allow read: if isMember();
+      allow write: if isMember()
+        && (isAdmin()
+          || (request.method == 'delete'
+            ? resource.data.member == memberName()
+            : request.resource.data.member == memberName()));
+    }
+
+    // Photos post-rando : lecture pour tous les membres, écriture réservée à
+    // l'auteur du document (vérifié sur l'uid, pas sur le prénom qui n'est pas
+    // une identité). Le filtrage "organisateur de la rando" se fait côté client :
+    // les règles ne peuvent pas retrouver la rando par son id métier sans get()
+    // coûteux, mais l'uid garantit qu'on n'écrit jamais au nom d'un autre.
+    match /randoMedia/{doc} {
+      allow read: if isMember();
+      allow create: if isMember()
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.dataUrl.size() < 400000;
+      allow delete: if isMember()
+        && (resource.data.authorUid == request.auth.uid || isAdmin());
+      allow update: if false;
     }
 
     // Collections collaboratives : lecture/écriture pour tous les membres.

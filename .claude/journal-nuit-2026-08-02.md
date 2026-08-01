@@ -1,5 +1,8 @@
 # Journal de la nuit du 2026-08-02 → 03
 
+*Versionné à dessein : sert de point de reprise si une session repart de zéro,
+et de trace de ce qui a été décidé sans Wacil éveillé.*
+
 Branche : `feat/v1-sorties`. Objectif : livrer les 3 cartes V1 en staging pour 9h.
 Autorisations données par Wacil : branche + push + staging OK, déploiement des règles
 Firestore OK, merge sur main NON (validation au réveil). Plafond ~85-90 % du quota hebdo.

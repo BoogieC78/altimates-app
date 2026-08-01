@@ -58,6 +58,9 @@ export function PhotosTab({ rando: r, memberName }: { rando: WithDocId<Rando>; m
 
       {canAdd && (
         <div style={{ marginBottom: 12 }}>
+          {/* Le sélecteur natif s'affiche en anglais et ignore les styles : on le
+              masque à l'œil (sans le retirer du DOM, pour rester accessible au
+              clavier et aux lecteurs d'écran) et on déclenche via un vrai bouton. */}
           <input
             ref={inputRef}
             id="photo-input"
@@ -66,8 +69,21 @@ export function PhotosTab({ rando: r, memberName }: { rando: WithDocId<Rando>; m
             aria-label="Ajouter une photo de la sortie"
             disabled={busy || photos.length >= MAX_PHOTOS}
             onChange={(e) => void onPick(e.target.files?.[0])}
-            style={{ fontSize: 12, width: '100%' }}
+            style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }}
           />
+          <label
+            htmlFor="photo-input"
+            className="btn btn-primary btn-sm"
+            style={{
+              width: '100%',
+              justifyContent: 'center',
+              minHeight: 44,
+              cursor: busy || photos.length >= MAX_PHOTOS ? 'default' : 'pointer',
+              opacity: busy || photos.length >= MAX_PHOTOS ? 0.5 : 1,
+            }}
+          >
+            {photos.length >= MAX_PHOTOS ? `Maximum ${MAX_PHOTOS} photos` : 'Ajouter une photo'}
+          </label>
           {busy && (
             <div style={{ fontSize: 10, color: 'var(--ink3)', fontFamily: 'var(--mono)', marginTop: 6 }}>
               Compression en cours…

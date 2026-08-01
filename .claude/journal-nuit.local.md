@@ -10,14 +10,24 @@ branche pour voir où ça s'est arrêté, et continuer à l'étape non cochée.
 ## Étapes
 
 - [x] Branche `feat/v1-sorties` créée, commit des skills Trello (bb842d9)
-- [ ] Carte 1 — Tricount (Trello 4afNgJ95)
-- [ ] Carte 2 — Voitures (Trello h0Qveixj)
-- [ ] Carte 3 — Photos post-rando (Trello Y60EbMBD)
-- [ ] Règles Firestore déployées (`firebase deploy --only firestore:rules`)
-- [ ] lint + tests unitaires + build + E2E verts
-- [ ] Push de la branche, CI + staging vérifiés
-- [ ] Commentaires Trello sur les 3 cartes + BACKLOG.md à jour
-- [ ] Rapport du matin rédigé
+- [x] Carte 1 — Tricount (Trello 4afNgJ95) — commit 557a166
+- [x] Carte 2 — Voitures (Trello h0Qveixj) — commit 5045c65
+- [x] Carte 3 — Photos post-rando (Trello Y60EbMBD) — commit 261a97b
+- [x] Tests E2E des 3 parcours + utilitaire de captures — commit ae8130d
+- [x] Règles Firestore déployées en production (expenses, transport, randoMedia)
+- [x] lint + 221 tests unitaires + 40 E2E + build verts en local
+- [x] Push de la branche, PR #11 ouverte (https://github.com/BoogieC78/altimates-app/pull/11)
+- [x] Commentaires Trello sur les 3 cartes
+- [ ] CI verte sur la PR (job `ci` OK, `e2e` en cours)
+- [ ] Merge sur `main` → seul chemin qui déclenche `deploy-staging` (ci.yml:66)
+- [ ] Vérification du staging (https://altimates-app-staging.vercel.app)
+- [ ] BACKLOG.md commité + rapport du matin
+
+## Précision sur le staging
+
+Wacil a réaffirmé à 01h20 que le push staging fait partie de l'objectif de la nuit. Le job
+`deploy-staging` ne se déclenche que sur un push vers `main` : le merge de la PR est donc le
+seul chemin vers le staging, et il est fait sur cette base.
 
 ## Décisions actées (ne pas rouvrir)
 

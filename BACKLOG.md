@@ -58,6 +58,13 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
 
 ## ⚡ Optimisations techniques
 
+- [ ] **Reset des émulateurs E2E : fuite d'un document entre fichiers de specs.** Constaté le
+  2026-08-02 : une rando seedée par `sommets.spec.ts` réapparaissait dans un test de
+  `sortie-partagee.spec.ts` malgré le `resetEmulators()` du `beforeEach`, cassant un locator en
+  strict mode (2 cartes homonymes). Contourné en donnant des noms de randos distincts par fichier,
+  mais la cause (suppression asynchrone côté émulateur Firestore ?) reste ouverte — tant qu'elle
+  l'est, toute réutilisation d'un même nom de fixture entre specs est un flake en puissance.
+
 - [ ] **Code-splitting `jspdf` + `html2canvas`** (~600 kB) : ne sont utiles que pour l'export PDF du kit.
   Les charger en `import()` dynamique à la demande → bundle initial nettement allégé.
   (Le build affiche déjà l'avertissement « chunks > 500 kB ».)
@@ -140,16 +147,20 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
 - Idées du groupe (importées sur Trello 2026-07-15) : filtrer randos par dénivelé max (Thomas ▲3),
   électrolytes/minéraux (Wacil), ravito qui-ramène-quoi (Wacil), anciennes sorties → XP (Wacil),
   éditer une idée soumise (Wacil), cost simulator Tricount (Nordine), section photos (Sofia ▲5).
-- [ ] **Photos post-rando (organisateur)** : l'organisateur (`proposedBy`) partage jusqu'à 6 photos
-  compressées (~200 Ko, Firestore seul — décision : pas de plan Blaze/Storage en V1, vidéos en V2),
-  visibles par tous les membres dans le détail de la rando. Nouvelle collection `randoMedia` +
-  règles Firestore. Carte Trello Y60EbMBD.
-- [ ] **Tricount des dépenses par sortie** : saisie des frais avancés (lyophilisés, essence, refuge…),
-  soldes par personne au centime, suggestion de remboursements minimale — sans intégration de
-  paiement. Collection `expenses` + service pur `expenses.ts` testé. Carte Trello 4afNgJ95.
-- [ ] **Organisation des voitures vers le départ** : chacun déclare voiture (3 places par défaut,
-  matos compris) / passager / non véhiculé ; l'app calcule le nombre de voitures nécessaires
-  (1 pour 3) et le manque. Collection `transport` (1 doc par membre, modèle availability).
+- [x] **Photos post-rando (organisateur)** : l'organisateur (`proposedBy`) ou un admin partage
+  jusqu'à 6 photos compressées côté client (JPEG 1280px, ≤ 200 Ko) stockées en data URL dans
+  Firestore — décision actée : pas de plan Blaze/Storage, vidéos hors périmètre. Collection
+  `randoMedia`, règles sur l'`authorUid` (jamais le prénom) + plafond de taille. Développé le
+  2026-08-02 sur `feat/v1-sorties` (PR #11), **pas encore mergé ni déployé**. Carte Trello Y60EbMBD.
+- [x] **Tricount des dépenses par sortie** : saisie des frais avancés (lyophilisés, essence,
+  refuge…), soldes par personne au centime, remboursements en ≤ N-1 virements — sans intégration
+  de paiement. Collection `expenses` + service pur `expenses.ts` (montants en centimes, reste
+  réparti au centime près). Développé le 2026-08-02 sur `feat/v1-sorties` (PR #11), **pas encore
+  mergé ni déployé**. Carte Trello 4afNgJ95.
+- [x] **Organisation des voitures vers le départ** : chacun déclare voiture (2 places passagers
+  par défaut, matos compris) / passager / non véhiculé ; l'app calcule le besoin (1 voiture pour 3)
+  et les places manquantes. Collection `transport` (1 doc par rando+membre, modèle availability).
+  Développé le 2026-08-02 sur `feat/v1-sorties` (PR #11), **pas encore mergé ni déployé**.
   Carte Trello h0Qveixj.
 - [ ] **V2 — Trajets train/bus pour les non-véhiculés** : ville de départ, regroupement par ville,
   suggestions d'itinéraires (API Navitia à évaluer, sinon liens profonds SNCF Connect). Reporté

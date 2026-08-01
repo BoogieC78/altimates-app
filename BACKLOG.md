@@ -58,12 +58,30 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
 
 ## ⚡ Optimisations techniques
 
+- [x] **Chargement initial allégé** (2026-08-02, PR #12) : le groupe de chunks nommé `jspdf` dans
+  `vite.config.ts` remontait la librairie dans le graphe initial — `index.html` la préchargeait,
+  soit ~400 kB (130 kB gzip) téléchargés à l'ouverture pour un usage limité à l'export PDF du kit.
+  Groupe supprimé → chunk asynchrone chargé au clic. Test E2E sur le téléchargement du PDF.
+  Carte Trello FYSQKIyz.
+- [x] **Revue de sécurité auth + serverless** (2026-08-02, PR #12) : 1 faille moyenne trouvée et
+  corrigée (photos publiables sur n'importe quelle sortie — restriction organisateur uniquement
+  côté client, désormais dans les règles via `randoDocId` + vérification de l'uid + charge
+  restreinte aux `data:image/`), 11 points conformes. Carte Trello qeToAb2E.
+- [x] **Cartes déjà résolues, clôturées après vérification** (2026-08-02) : `useMemberName` réactif
+  (fait le 2026-07-17 par le commit 46233db), rate-limiting de `send-signin-link` (déjà branché via
+  `api/_ratelimit.ts`), gate CI → Vercel (auto-deploy coupé dans `vercel.json`, prod sous
+  approbation manuelle). Cartes E8kNnM7k, kh7mcscm, ysayNGLC.
 - [ ] **Reset des émulateurs E2E : fuite d'un document entre fichiers de specs.** Constaté le
   2026-08-02 : une rando seedée par `sommets.spec.ts` réapparaissait dans un test de
   `sortie-partagee.spec.ts` malgré le `resetEmulators()` du `beforeEach`, cassant un locator en
   strict mode (2 cartes homonymes). Contourné en donnant des noms de randos distincts par fichier,
   mais la cause (suppression asynchrone côté émulateur Firestore ?) reste ouverte — tant qu'elle
   l'est, toute réutilisation d'un même nom de fixture entre specs est un flake en puissance.
+  Deuxième manifestation le 2026-08-02 : les **comptes Auth** fuient aussi. Un e-mail déjà utilisé
+  par un autre spec y existe comme compte Google (fédéré), sur lequel `signInWithPassword` échoue —
+  d'où les adresses dédiées `*.test@altimates.test` de `photos-securite.spec.ts`. Règle pratique
+  en attendant le correctif : **un spec sensible à l'état = ses propres e-mails et ses propres
+  noms de randos**.
 
 - [ ] **Code-splitting `jspdf` + `html2canvas`** (~600 kB) : ne sont utiles que pour l'export PDF du kit.
   Les charger en `import()` dynamique à la demande → bundle initial nettement allégé.

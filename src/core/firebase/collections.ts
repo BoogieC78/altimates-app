@@ -10,6 +10,9 @@ import type {
   RavitoDoc,
   HydraDoc,
   AvailabilityDoc,
+  Expense,
+  TransportDoc,
+  RandoMedia,
 } from '../types'
 
 // Références typées vers les collections existantes. Une seule source de vérité
@@ -28,3 +31,6 @@ export const configCol = typedCollection<AppConfig>('config')
 export const ravitoCol = typedCollection<RavitoDoc>('ravito')
 export const hydraCol = typedCollection<HydraDoc>('hydra')
 export const availabilityCol = typedCollection<AvailabilityDoc>('availability')
+export const expensesCol = typedCollection<Expense>('expenses')
+export const transportCol = typedCollection<TransportDoc>('transport')
+export const randoMediaCol = typedCollection<RandoMedia>('randoMedia')

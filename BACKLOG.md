@@ -30,6 +30,11 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
 - [ ] Renseigner le **Nom public** du projet Firebase = `ALTImates` (Console → Paramètres du projet → Nom public).
   Améliore les mails de repli et l'écran OAuth Google.
 
+### Prérequis V2 premium (GPX + cartes IGN) — carte Trello 3Umpcb2X
+- [ ] **Plan Firebase Blaze** (CB + alerte budget ~5 €) — stockage des GPX.
+- [ ] **Compte Stripe** (mode test, clés dans les env Vercel, jamais dans le repo).
+- [ ] **Licence IGN SCAN 25** (offre pro Géoplateforme) — facultatif au lancement, Plan IGN v2 (libre) suffit.
+
 ---
 
 ## 🐞 Bugs à corriger
@@ -52,6 +57,13 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
 ---
 
 ## ⚡ Optimisations techniques
+
+- [ ] **Reset des émulateurs E2E : fuite d'un document entre fichiers de specs.** Constaté le
+  2026-08-02 : une rando seedée par `sommets.spec.ts` réapparaissait dans un test de
+  `sortie-partagee.spec.ts` malgré le `resetEmulators()` du `beforeEach`, cassant un locator en
+  strict mode (2 cartes homonymes). Contourné en donnant des noms de randos distincts par fichier,
+  mais la cause (suppression asynchrone côté émulateur Firestore ?) reste ouverte — tant qu'elle
+  l'est, toute réutilisation d'un même nom de fixture entre specs est un flake en puissance.
 
 - [ ] **Code-splitting `jspdf` + `html2canvas`** (~600 kB) : ne sont utiles que pour l'export PDF du kit.
   Les charger en `import()` dynamique à la demande → bundle initial nettement allégé.
@@ -135,6 +147,32 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
 - Idées du groupe (importées sur Trello 2026-07-15) : filtrer randos par dénivelé max (Thomas ▲3),
   électrolytes/minéraux (Wacil), ravito qui-ramène-quoi (Wacil), anciennes sorties → XP (Wacil),
   éditer une idée soumise (Wacil), cost simulator Tricount (Nordine), section photos (Sofia ▲5).
+- [x] **Photos post-rando (organisateur)** : l'organisateur (`proposedBy`) ou un admin partage
+  jusqu'à 6 photos compressées côté client (JPEG 1280px, ≤ 200 Ko) stockées en data URL dans
+  Firestore — décision actée : pas de plan Blaze/Storage, vidéos hors périmètre. Collection
+  `randoMedia`, règles sur l'`authorUid` (jamais le prénom) + plafond de taille. Développé le
+  2026-08-02 sur `feat/v1-sorties` (PR #11), **pas encore mergé ni déployé**. Carte Trello Y60EbMBD.
+- [x] **Tricount des dépenses par sortie** : saisie des frais avancés (lyophilisés, essence,
+  refuge…), soldes par personne au centime, remboursements en ≤ N-1 virements — sans intégration
+  de paiement. Collection `expenses` + service pur `expenses.ts` (montants en centimes, reste
+  réparti au centime près). Développé le 2026-08-02 sur `feat/v1-sorties` (PR #11), **pas encore
+  mergé ni déployé**. Carte Trello 4afNgJ95.
+- [x] **Organisation des voitures vers le départ** : chacun déclare voiture (2 places passagers
+  par défaut, matos compris) / passager / non véhiculé ; l'app calcule le besoin (1 voiture pour 3)
+  et les places manquantes. Collection `transport` (1 doc par rando+membre, modèle availability).
+  Développé le 2026-08-02 sur `feat/v1-sorties` (PR #11), **pas encore mergé ni déployé**.
+  Carte Trello h0Qveixj.
+- [ ] **V2 — Trajets train/bus pour les non-véhiculés** : ville de départ, regroupement par ville,
+  suggestions d'itinéraires (API Navitia à évaluer, sinon liens profonds SNCF Connect). Reporté
+  en V2 (complexité API). Carte Trello pQCNtpYa.
+- [ ] **V2 — Mode payant (Stripe + entitlements)** : Checkout + webhook serverless (modèle
+  api/send-signin-link.ts), `plan: 'premium'` écrit dans users/{uid} par le serveur seul (règle
+  Firestore anti-auto-promotion), gating 403 côté API. Carte Trello U6pLUfYb.
+- [ ] **V2 — Base GPX France + cartes IGN (sources légales)** : extraction OSM `route=hiking`
+  (ODbL, attribution obligatoire, pilote sur 1 région d'abord), GPX servis par URL signée aux
+  premium ; tuiles IGN en proxy à la demande (Plan IGN v2 libre, SCAN 25 après contrat pro) —
+  jamais de copie massive ni de scraping Visorando/AllTrails/Komoot (CGU + droit des bases de
+  données). Carte Trello XymNO9Z5.
 
 ---
 

@@ -10,6 +10,15 @@ quotidien* du backlog ; [`BACKLOG.md`](../../../BACKLOG.md) à la racine du repo
 **source de référence versionnée**. Les deux doivent rester synchronisés — voir
 "Discipline de synchro" plus bas.
 
+Ce skill couvre le quotidien : lire le board, prendre une carte, en créer une, la clôturer.
+Trois skills complémentaires s'appuient sur celui-ci pour les opérations en lot :
+
+| Skill | Quand |
+|---|---|
+| [`trello-cartes-lot`](../trello-cartes-lot/SKILL.md) | créer plusieurs cartes d'un coup (fin de brainstorm) |
+| [`trello-carte-en-plan`](../trello-carte-en-plan/SKILL.md) | réécrire des descriptions en plans d'intégration exécutables |
+| [`trello-depiler`](../trello-depiler/SKILL.md) | enchaîner plusieurs cartes d'une même liste |
+
 ## Identifiants — ne jamais commiter
 
 Clé et token Trello vivent dans `.claude/trello.local.json` (gitignored, voir `.gitignore` :

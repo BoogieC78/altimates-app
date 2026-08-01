@@ -37,6 +37,9 @@ ui-debug.log
 # Identifiants locaux (jamais commités — voir skill trello-kanban)
 .claude/*.local.json
 
+# Sauvegardes des descriptions de cartes Trello (skill trello-carte-en-plan)
+.claude/trello-backup-*.md
+
 # CodeGraph (index local)
 .codegraph/
 
@@ -48,3 +51,4 @@ ui-debug.log
 
 # Miroir local des skills pour outillage agents (source de vérité : .claude/skills/)
 /.agents/
+captures/

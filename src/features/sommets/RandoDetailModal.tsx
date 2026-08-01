@@ -28,6 +28,9 @@ import type {
   WaterSourceId,
 } from '../../core/types'
 import { EditRandoModal } from './EditRandoModal'
+import { ExpensesTab } from './ExpensesTab'
+import { TransportTab } from './TransportTab'
+import { PhotosTab } from './PhotosTab'
 
 // ── Icônes locales (mêmes tracés SVG que l'ancienne app) ──
 
@@ -205,7 +208,36 @@ function getJx(dateStart: string | null | undefined): string | null {
   return 'J-' + diff
 }
 
-type TabId = 'info' | 'ravito' | 'hydra'
+function EuroTabIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" {...svgProps} style={{ display: 'inline', verticalAlign: -2, marginRight: 3 }}>
+      <path d="M17 6.5a6 6 0 1 0 0 11" />
+      <line x1="4" y1="10" x2="13" y2="10" />
+      <line x1="4" y1="14" x2="13" y2="14" />
+    </svg>
+  )
+}
+
+function CarTabIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" {...svgProps} style={{ display: 'inline', verticalAlign: -2, marginRight: 3 }}>
+      <path d="M5 17h14M3 13l2-5a2 2 0 0 1 2-1.4h10A2 2 0 0 1 19 8l2 5v4H3z" />
+      <circle cx="7.5" cy="17" r="1.5" />
+      <circle cx="16.5" cy="17" r="1.5" />
+    </svg>
+  )
+}
+
+function PhotoTabIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" {...svgProps} style={{ display: 'inline', verticalAlign: -2, marginRight: 3 }}>
+      <path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <circle cx="12" cy="13" r="3.5" />
+    </svg>
+  )
+}
+
+type TabId = 'info' | 'ravito' | 'hydra' | 'expenses' | 'transport' | 'photos'
 
 interface RandoDetailModalProps {
   rando: WithDocId<Rando>
@@ -261,10 +293,25 @@ export function RandoDetailModal({ rando: r, memberName, onClose }: RandoDetailM
           <DropIcon />
           Hydratation
         </button>
+        <button className={tab === 'expenses' ? 'ravito-tab active' : 'ravito-tab'} aria-pressed={tab === 'expenses'} onClick={() => setTab('expenses')}>
+          <EuroTabIcon />
+          Dépenses
+        </button>
+        <button className={tab === 'transport' ? 'ravito-tab active' : 'ravito-tab'} aria-pressed={tab === 'transport'} onClick={() => setTab('transport')}>
+          <CarTabIcon />
+          Transport
+        </button>
+        <button className={tab === 'photos' ? 'ravito-tab active' : 'ravito-tab'} aria-pressed={tab === 'photos'} onClick={() => setTab('photos')}>
+          <PhotoTabIcon />
+          Photos
+        </button>
       </div>
       {tab === 'info' && <InfoTab rando={r} memberName={memberName} onClose={onClose} />}
       {tab === 'ravito' && <RavitoTab rando={r} memberName={memberName} />}
       {tab === 'hydra' && <HydraTab rando={r} />}
+      {tab === 'expenses' && <ExpensesTab rando={r} memberName={memberName} />}
+      {tab === 'transport' && <TransportTab rando={r} memberName={memberName} />}
+      {tab === 'photos' && <PhotosTab rando={r} memberName={memberName} />}
     </Modal>
   )
 }

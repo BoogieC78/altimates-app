@@ -9,6 +9,8 @@ import type { RandoMedia } from '../types'
 
 export interface NewRandoMedia {
   randoId: string
+  /** id du document rando : les règles s'en servent pour vérifier l'organisateur */
+  randoDocId: string
   author: string
   /** uid Firebase : c'est lui que vérifient les règles, pas le prénom */
   authorUid: string
@@ -19,6 +21,7 @@ export interface NewRandoMedia {
 export async function addRandoMedia(input: NewRandoMedia): Promise<void> {
   await addDoc(randoMediaCol, {
     randoId: input.randoId,
+    randoDocId: input.randoDocId,
     author: input.author,
     authorUid: input.authorUid,
     dataUrl: input.dataUrl,

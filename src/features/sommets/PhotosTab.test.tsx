@@ -42,6 +42,7 @@ function photo(over: Partial<WithDocId<RandoMedia>> = {}): WithDocId<RandoMedia>
   return {
     docId: 'p1',
     randoId: '1',
+    randoDocId: 'd1',
     author: 'Nordine',
     authorUid: 'uid-nordine',
     dataUrl: 'data:image/jpeg;base64,YWJj',
@@ -82,6 +83,7 @@ describe('PhotosTab', () => {
     expect(compressImage).toHaveBeenCalled()
     expect(addRandoMedia).toHaveBeenCalledWith({
       randoId: '1',
+      randoDocId: 'd1',
       author: 'Nordine',
       authorUid: 'uid-nordine',
       dataUrl: 'data:image/jpeg;base64,YWJj',

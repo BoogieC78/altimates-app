@@ -38,7 +38,7 @@ export function PhotosTab({ rando: r, memberName }: { rando: WithDocId<Rando>; m
     setBusy(true)
     try {
       const dataUrl = await compressImage(file)
-      await addRandoMedia({ randoId, author: memberName, authorUid: user.uid, dataUrl })
+      await addRandoMedia({ randoId, randoDocId: r.docId, author: memberName, authorUid: user.uid, dataUrl })
     } catch (e) {
       // Message lisible plutôt qu'un échec silencieux : sur mobile, une photo
       // refusée sans explication laisse croire que l'app est cassée.

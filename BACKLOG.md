@@ -196,6 +196,30 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
 
 ## ✅ Déjà fait (contexte)
 
+- **v0.4.0 — la sortie partagée** (2026-08-02, prod) : trois onglets ajoutés au détail d'une rando.
+  - **Dépenses** (Tricount) : chacun saisit les frais avancés pour le groupe, l'app calcule les
+    soldes au centime et propose les remboursements en au plus N-1 virements. Montants en
+    centimes (les euros flottants font dériver les soldes). Aucun paiement encaissé.
+    Collection `expenses`, service pur `src/core/services/expenses.ts`. Carte Trello 4afNgJ95.
+  - **Transport** : chacun déclare voiture / passager / non véhiculé ; l'app calcule le nombre de
+    voitures nécessaires (règle du groupe : 3 personnes par voiture, matos compris) et les places
+    manquantes. Collection `transport` (1 doc par rando+membre, modèle `availability`).
+    Carte Trello h0Qveixj.
+  - **Photos** : l'organisateur (ou un admin) partage jusqu'à 6 photos par sortie, compressées
+    côté client en JPEG 1280px ≤ 200 Ko et stockées en data URL dans Firestore — pas de Storage,
+    donc pas de plan Blaze. Vidéos hors périmètre. Collection `randoMedia`. Carte Trello Y60EbMBD.
+  - **Sécurité** : la restriction « seul l'organisateur publie » n'existait d'abord que côté
+    client (trouvée en revue, PR #12). Les règles vérifient désormais l'uid de l'auteur, sa
+    qualité d'organisateur (champ `randoDocId` — les règles savent adresser un document, pas
+    requêter) et que la charge est bien une image sous la taille maximale.
+  - **Bug de recette** : l'upload échouait en staging (`URL.createObjectURL` → URL `blob:`, que la
+    CSP n'autorise pas dans `img-src`). Lecture en data URL désormais, CSP non élargie (PR #13).
+  - **Perf** : `jspdf` sorti du préchargement initial (~400 kB / 130 kB gzip économisés à
+    l'ouverture) — il ne sert qu'à l'export PDF du kit. Carte Trello FYSQKIyz.
+  - **Accessibilité** : la vue plein écran d'une photo est une vraie modale (dialog, focus,
+    Escape) ; cibles tactiles à 44px. Barre d'onglets passée de 3 à 6 entrées : elle enroule au
+    lieu de déborder, avec un test E2E anti-débordement en 360px.
+
 - **Modifier profil : Prénom + champs numériques durcis** (v0.3.8) : le champ "Nom" du modal
   Base Camp renommé en "Prénom" ; les 5 champs stats (Km saison, D+ saison, Sorties, Best km,
   Best D+) laissaient passer des caractères non numériques (`--71`) → saisie filtrée aux chiffres

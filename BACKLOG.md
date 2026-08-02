@@ -61,6 +61,7 @@ Le projet V2 premium (GPX + cartes IGN) exige trois démarches que seul Wacil pe
 ## Ordre
 Blaze et Stripe débloquent le dev ; la licence IGN peut arriver après (le proxy tuiles démarre sur Plan IGN v2).
 
+
 ### [Firebase : renseigner le Nom public du projet = ALTImates](https://trello.com/c/JiKOzqH8)
 
 Console Firebase → Paramètres du projet → Nom public → saisir `ALTImates`.
@@ -87,7 +88,6 @@ Tout le contenu vit dans un seul fichier : `src/features/legal/legalContent.ts`.
 - [ ] Le bandeau « Version provisoire » a disparu
 - [ ] La date de dernière mise à jour est celle de la validation
 
----
 
 ## 🐞 Bugs à corriger (1)
 
@@ -99,13 +99,8 @@ Wacil a signalé « il y a des bugs » sur le Base Camp, sans plus de détail. R
 
 Remonté depuis BACKLOG.md le 30/07/2026 : l'item y vivait depuis des semaines sans carte correspondante. Maintenant que Trello fait foi, il lui fallait une carte pour ne pas disparaître à la régénération du fichier.
 
----
 
-## ⚡ Optimisations techniques (3)
-
-### [isMemberEmail : revoir le retry](https://trello.com/c/BD8VnNrk)
-
-Le retry sur échec de lecture config/allowedEmails (src/core/firebase/auth.ts) est un contournement d'un problème de timing après connexion. Voir si une meilleure approche existe.
+## ⚡ Optimisations techniques (1)
 
 ### [Kit : relever les poids encore estimés](https://trello.com/c/2qIVsx7Q)
 
@@ -123,19 +118,6 @@ Les articles sans référence produit unique gardent un ordre de grandeur, marqu
 
 Relevé à faire à la main, en magasin ou sur la fiche produit. Retirer `weightEstimated` au fur et à mesure.
 
-### [E2E : fuite d'état entre fichiers de specs malgré resetEmulators()](https://trello.com/c/JTQppdg4)
-
-**Symptôme 1 (Firestore)** — une rando seedée par `sommets.spec.ts` réapparaît dans un test de `sortie-partagee.spec.ts` malgré le `resetEmulators()` du `beforeEach`, cassant un locator en strict mode (2 cartes homonymes). Contourné en donnant des noms de randos distincts par fichier.
-
-**Symptôme 2 (Auth)** — les comptes Auth fuient aussi. Un e-mail déjà utilisé par un autre spec existe comme compte Google fédéré, sur lequel `signInWithPassword` échoue — d'où les adresses dédiées `*.test@altimates.test` de `photos-securite.spec.ts`.
-
-**Cause** : ouverte. Piste : suppression asynchrone côté émulateur Firestore, le reset rendrait la main avant la fin effective.
-
-**Enjeu** : tant que la cause reste inconnue, toute réutilisation d'un même nom de fixture ou d'un même e-mail entre specs est un flake en puissance. Les contournements tiennent, mais ils reposent sur une discipline de nommage que rien ne vérifie.
-
-Remonté depuis BACKLOG.md le 30/07/2026 (constats du 02/08).
-
----
 
 ## ✨ Améliorations / plus tard (6)
 
@@ -182,6 +164,7 @@ Un non-véhiculé indique sa grande ville de départ ; l'app aide à organiser :
 - [ ] Carte voitures livrée et utilisée sur au moins une vraie sortie.
 - [ ] Choix d'approche API vs liens profonds tranché avec Wacil.
 
+
 ### [V2 — Mode payant : Stripe + entitlements premium](https://trello.com/c/U6pLUfYb)
 
 ## Contexte
@@ -211,6 +194,7 @@ Un membre peut souscrire l'offre premium ; son statut (`free`/`premium`) est fia
 - [ ] Un membre free appelant l'API de téléchargement reçoit 403.
 - [ ] Un membre ne peut pas écrire son propre champ `plan` (refusé par les règles).
 
+
 ### [V2 — Base GPX France + cartes IGN (sources légales)](https://trello.com/c/XymNO9Z5)
 
 ## Contexte
@@ -239,9 +223,9 @@ Un abonné premium télécharge le GPX d'une rando et affiche le fond IGN ; un m
 - [ ] Premium télécharge un GPX ; free reçoit 403 (API, pas seulement UI).
 - [ ] Fond Plan IGN v2 affiché avec attributions ; clé IGN jamais exposée au client.
 
----
 
-## 🧪 À tester (6)
+
+## 🧪 À tester (7)
 
 ### [Dépenses : écart de 2 centimes entre membres](https://trello.com/c/XViB86aS)
 
@@ -371,130 +355,72 @@ Dérouler la QA des 4 cartes de cette liste sur https://altimates-app-staging.ve
 ## Piège à ne pas répéter
 Ne jamais approuver plusieurs runs en attente : ils se déploient dans l'ordre de fin des jobs, et un run ancien terminé en dernier réécrit les alias prod ET staging avec du code antérieur (rollback silencieux vécu le 17/07, v0.3.4 avait écrasé v0.3.5). N'approuver que le run le PLUS RÉCENT.
 
----
+### [isMemberEmail : revoir le retry](https://trello.com/c/BD8VnNrk)
 
-## ✅ Déjà fait (61)
+Le retry sur échec de lecture config/allowedEmails (src/core/firebase/auth.ts) est un contournement d'un problème de timing après connexion. Voir si une meilleure approche existe.
 
-### [Idée : ajouter ses anciennes sorties (XP + reco)](https://trello.com/c/UMZwrszs)
 
-### [Idée : gestion des électrolytes/minéraux/vitamines](https://trello.com/c/sh4dnCPg)
+## ✅ Déjà fait (62)
 
-### [Audit accessibilité / responsive](https://trello.com/c/smJCQ1cc)
-
-### [Fenêtre : refonte UX du bloc Mon statut (cartes avec explication)](https://trello.com/c/FThXjAqY)
-
-### [Onglet Fenêtre : calendrier de disponibilités de la cordée](https://trello.com/c/ZYp4GMYV)
-
-### [Barre de navigation : position instable entre onglets](https://trello.com/c/5jk180LR)
-
-### [Rando : « Pas partant » avec 🇨🇳 seul](https://trello.com/c/Wh8HdFYy)
-
-### [Idée : cost simulator type Tricount](https://trello.com/c/3pVl7i79)
-
-### [Audit accessibilité complet (WCAG 2.1 AA) — corrections](https://trello.com/c/eo5TKmf3)
-
-### [Suite Playwright E2E + CI](https://trello.com/c/VXWRSRGM)
-
-### [Code-splitting jspdf + html2canvas (~600 kB)](https://trello.com/c/FYSQKIyz)
-
-### [Kit : taux de complétion faux — skip/réfléchir comptés dans le dénominateur](https://trello.com/c/2x5vn0jD)
-
-### [Modifier profil : renommer champ Nom en Prénom](https://trello.com/c/nczxBFvI)
-
-### [Rando : flèches disparues sur Distance/Dénivelé (retour Adebola)](https://trello.com/c/Z1BNIaOT)
-
-### [🐞 Bloquant : picker de date inopérant dans Proposer une rando](https://trello.com/c/kVwK6JU5)
-
-### [Membres affichés "Anonyme" (connexion lien e-mail sans displayName)](https://trello.com/c/FMl7ZRjm)
-
-### [Bouton GPX/Komoot cassé : 404 sur komoot.com/search](https://trello.com/c/WRyjPj21)
-
-### [Whitelist dynamique (config/allowedEmails)](https://trello.com/c/7ZkqW06G)
-
-### [useMemberName réactif (onSnapshot)](https://trello.com/c/E8kNnM7k)
-
-### [Kit : triage non relancé après « Réinitialiser mon kit » (repro trek)](https://trello.com/c/GMkpUySj)
-
-### [Modifier profil : bloquer caractères spéciaux dans champs numériques](https://trello.com/c/ms5VCCt2)
-
-### [🐞 Moyen : distance/dénivelé négatifs acceptés dans Proposer une rando](https://trello.com/c/C81LrmPc)
-
-### [Kit : popup info article tronquée](https://trello.com/c/ULsaLXjC)
-
-### [wacil78 ajouté comme admin](https://trello.com/c/F74OPhEm)
-
-### [Gate CI → déploiement Vercel](https://trello.com/c/ysayNGLC)
-
-### [Header : avatar "AN" incompréhensible — afficher le prénom complet](https://trello.com/c/jGR5Kq1F)
-
-### [Écran compte / Base Camp via l'avatar](https://trello.com/c/NVVpMqng)
-
-### [Rate-limiting sur api/send-signin-link](https://trello.com/c/kh7mcscm)
-
-### [Rando : ajouter option « Pas partant » (lettre chinoise + 🇨🇳)](https://trello.com/c/ESBRpPcH)
-
-### [Sommets : popup détail trek tronquée](https://trello.com/c/fOfVRpDJ)
-
-### [Connexion par e-mail (lien magique)](https://trello.com/c/FL410tii)
-
-### [Revue de sécurité — flux auth + fonction serverless](https://trello.com/c/qeToAb2E)
-
-### [Rando : emoji pour option « Peut-être »](https://trello.com/c/aeuzIxcH)
-
-### [Sommets : popup hydratation tronquée](https://trello.com/c/fNbUqaLA)
-
-### [Auto-déploiement GitHub → Vercel](https://trello.com/c/2Sigoh9D)
-
-### [Kit : logos des sites marchands absents dans la popup conseils](https://trello.com/c/Ues2px7c)
-
-### [Rando : emoji ✅ pour option « Partant »](https://trello.com/c/ixFn31Kk)
-
-### [Fonction d'envoi d'e-mail personnalisé codée](https://trello.com/c/cL2IAFkB)
-
-### [Idées : supprimer la vue Kanban (remplacée par Trello)](https://trello.com/c/cKGNrwoU)
-
-### [Trello : créer une carte par idée de l'onglet Idées](https://trello.com/c/r78G4Qmo)
-
-### [npm audit : 0 vulnérabilité en production (résolu 30/07)](https://trello.com/c/53o7yAvU)
-
-### [CI : empêcher l'accumulation de runs prod en attente](https://trello.com/c/OoSJG7rp)
-
-### [Dates au format français (JJ/MM/AAAA) partout](https://trello.com/c/07bIXK8A)
-
-### [Idée : filtrer les randos par dénivelé max](https://trello.com/c/Puc0asuv)
-
-### [Desktop : barre « Proposer une rando » par-dessus la popup rando](https://trello.com/c/jQSBtKyD)
-
-### [Popup rando délavée / cachée par la nav (sorties passées)](https://trello.com/c/v8DglJFQ)
-
-### [Idée : ravito — répartition précise de qui ramène quoi](https://trello.com/c/NGbktc3o)
-
-### [Idée : éditer/modifier une idée déjà soumise](https://trello.com/c/yIWyMYvk)
-
-### [Idée : section photos après rando](https://trello.com/c/erFQSUCR)
-
-### [Admin : modifier / supprimer n'importe quelle rando soumise](https://trello.com/c/4frTweH9)
-
-### [Checklist départ : clarifier checkbox vs prise en charge (retour Adebola)](https://trello.com/c/y9SPIHSg)
-
-### [Audit responsive mobile complet (iPhone/Android) — corrections](https://trello.com/c/tx51Nt5R)
-
-### [Base Camp : mettre en avant Modifier profil (bouton primaire pleine largeur)](https://trello.com/c/Mun13jbb)
-
-### [Photos post-rando (organisateur)](https://trello.com/c/Y60EbMBD)
-
-### [Kit : poids du sac estimé, dynamique comme le budget](https://trello.com/c/EBJHNtpY)
-
-### [Tricount des dépenses par sortie](https://trello.com/c/4afNgJ95)
-
-### [Kit : poids porté dans le sac, hors équipement porté sur soi](https://trello.com/c/bYmZfK8j)
-
-### [Organisation des voitures vers le départ](https://trello.com/c/h0Qveixj)
-
-### [Kit : références produit Decathlon réelles avec liens](https://trello.com/c/X37qYjLL)
-
-### [Kit : refonte UX écran starter pack (trop lourd, trop de saisie)](https://trello.com/c/YPCdBcY0)
-
-### [Kit : « Tout retrier » + « Réinitialiser mon kit » (test triage de bout en bout)](https://trello.com/c/3Uw6B33t)
-
----
+- [Idée : ajouter ses anciennes sorties (XP + reco)](https://trello.com/c/UMZwrszs)
+- [Idée : gestion des électrolytes/minéraux/vitamines](https://trello.com/c/sh4dnCPg)
+- [Audit accessibilité / responsive](https://trello.com/c/smJCQ1cc)
+- [Fenêtre : refonte UX du bloc Mon statut (cartes avec explication)](https://trello.com/c/FThXjAqY)
+- [Onglet Fenêtre : calendrier de disponibilités de la cordée](https://trello.com/c/ZYp4GMYV)
+- [Barre de navigation : position instable entre onglets](https://trello.com/c/5jk180LR)
+- [Rando : « Pas partant » avec 🇨🇳 seul](https://trello.com/c/Wh8HdFYy)
+- [Idée : cost simulator type Tricount](https://trello.com/c/3pVl7i79)
+- [Audit accessibilité complet (WCAG 2.1 AA) — corrections](https://trello.com/c/eo5TKmf3)
+- [Suite Playwright E2E + CI](https://trello.com/c/VXWRSRGM)
+- [Code-splitting jspdf + html2canvas (~600 kB)](https://trello.com/c/FYSQKIyz)
+- [Kit : taux de complétion faux — skip/réfléchir comptés dans le dénominateur](https://trello.com/c/2x5vn0jD)
+- [Modifier profil : renommer champ Nom en Prénom](https://trello.com/c/nczxBFvI)
+- [Rando : flèches disparues sur Distance/Dénivelé (retour Adebola)](https://trello.com/c/Z1BNIaOT)
+- [🐞 Bloquant : picker de date inopérant dans Proposer une rando](https://trello.com/c/kVwK6JU5)
+- [Membres affichés "Anonyme" (connexion lien e-mail sans displayName)](https://trello.com/c/FMl7ZRjm)
+- [Bouton GPX/Komoot cassé : 404 sur komoot.com/search](https://trello.com/c/WRyjPj21)
+- [Whitelist dynamique (config/allowedEmails)](https://trello.com/c/7ZkqW06G)
+- [useMemberName réactif (onSnapshot)](https://trello.com/c/E8kNnM7k)
+- [Kit : triage non relancé après « Réinitialiser mon kit » (repro trek)](https://trello.com/c/GMkpUySj)
+- [Modifier profil : bloquer caractères spéciaux dans champs numériques](https://trello.com/c/ms5VCCt2)
+- [🐞 Moyen : distance/dénivelé négatifs acceptés dans Proposer une rando](https://trello.com/c/C81LrmPc)
+- [Kit : popup info article tronquée](https://trello.com/c/ULsaLXjC)
+- [wacil78 ajouté comme admin](https://trello.com/c/F74OPhEm)
+- [Gate CI → déploiement Vercel](https://trello.com/c/ysayNGLC)
+- [Header : avatar "AN" incompréhensible — afficher le prénom complet](https://trello.com/c/jGR5Kq1F)
+- [Écran compte / Base Camp via l'avatar](https://trello.com/c/NVVpMqng)
+- [Rate-limiting sur api/send-signin-link](https://trello.com/c/kh7mcscm)
+- [Rando : ajouter option « Pas partant » (lettre chinoise + 🇨🇳)](https://trello.com/c/ESBRpPcH)
+- [Sommets : popup détail trek tronquée](https://trello.com/c/fOfVRpDJ)
+- [Connexion par e-mail (lien magique)](https://trello.com/c/FL410tii)
+- [Revue de sécurité — flux auth + fonction serverless](https://trello.com/c/qeToAb2E)
+- [Rando : emoji pour option « Peut-être »](https://trello.com/c/aeuzIxcH)
+- [Sommets : popup hydratation tronquée](https://trello.com/c/fNbUqaLA)
+- [Auto-déploiement GitHub → Vercel](https://trello.com/c/2Sigoh9D)
+- [Kit : logos des sites marchands absents dans la popup conseils](https://trello.com/c/Ues2px7c)
+- [Rando : emoji ✅ pour option « Partant »](https://trello.com/c/ixFn31Kk)
+- [Fonction d'envoi d'e-mail personnalisé codée](https://trello.com/c/cL2IAFkB)
+- [Idées : supprimer la vue Kanban (remplacée par Trello)](https://trello.com/c/cKGNrwoU)
+- [Trello : créer une carte par idée de l'onglet Idées](https://trello.com/c/r78G4Qmo)
+- [E2E : fuite d'état entre fichiers de specs malgré resetEmulators()](https://trello.com/c/JTQppdg4)
+- [npm audit : 0 vulnérabilité en production (résolu 30/07)](https://trello.com/c/53o7yAvU)
+- [CI : empêcher l'accumulation de runs prod en attente](https://trello.com/c/OoSJG7rp)
+- [Dates au format français (JJ/MM/AAAA) partout](https://trello.com/c/07bIXK8A)
+- [Idée : filtrer les randos par dénivelé max](https://trello.com/c/Puc0asuv)
+- [Desktop : barre « Proposer une rando » par-dessus la popup rando](https://trello.com/c/jQSBtKyD)
+- [Popup rando délavée / cachée par la nav (sorties passées)](https://trello.com/c/v8DglJFQ)
+- [Idée : ravito — répartition précise de qui ramène quoi](https://trello.com/c/NGbktc3o)
+- [Idée : éditer/modifier une idée déjà soumise](https://trello.com/c/yIWyMYvk)
+- [Idée : section photos après rando](https://trello.com/c/erFQSUCR)
+- [Admin : modifier / supprimer n'importe quelle rando soumise](https://trello.com/c/4frTweH9)
+- [Checklist départ : clarifier checkbox vs prise en charge (retour Adebola)](https://trello.com/c/y9SPIHSg)
+- [Audit responsive mobile complet (iPhone/Android) — corrections](https://trello.com/c/tx51Nt5R)
+- [Base Camp : mettre en avant Modifier profil (bouton primaire pleine largeur)](https://trello.com/c/Mun13jbb)
+- [Photos post-rando (organisateur)](https://trello.com/c/Y60EbMBD)
+- [Kit : poids du sac estimé, dynamique comme le budget](https://trello.com/c/EBJHNtpY)
+- [Tricount des dépenses par sortie](https://trello.com/c/4afNgJ95)
+- [Kit : poids porté dans le sac, hors équipement porté sur soi](https://trello.com/c/bYmZfK8j)
+- [Organisation des voitures vers le départ](https://trello.com/c/h0Qveixj)
+- [Kit : références produit Decathlon réelles avec liens](https://trello.com/c/X37qYjLL)
+- [Kit : refonte UX écran starter pack (trop lourd, trop de saisie)](https://trello.com/c/YPCdBcY0)
+- [Kit : « Tout retrier » + « Réinitialiser mon kit » (test triage de bout en bout)](https://trello.com/c/3Uw6B33t)

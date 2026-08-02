@@ -39,10 +39,26 @@ branche pour voir où ça s'est arrêté, et continuer à l'étape non cochée.
       envoie `randoDocId` avant que la règle ne l'exige)
 - [x] Rapport du matin
 
-## État final
+## État final — v0.4.0 EN PRODUCTION
 
-Staging à jour et vérifié par les smoke tests. Production **non touchée** : le job
-deploy-production reste sous approbation manuelle, c'est la décision de Wacil.
+Wacil a validé le staging puis donné le go explicite le 2026-08-02. Déployé en prod via la
+CLI Vercel (`vercel build --prod` + `vercel deploy --prebuilt --prod`), conformément au skill
+`mise-en-prod` : le classifier interdit d'approuver le job GitHub par API, la CLI est la voie
+prévue quand le go arrive dans la conversation.
+
+Prod : https://altimates-app.vercel.app — smoke tests verts, headers de sécurité vérifiés.
+
+⚠️ **Runs GitHub restés en « waiting »** : leur job `deploy-production` attend toujours une
+approbation. Wacil doit les **Reject** (surtout PAS Approve) : approuver un vieux run
+réécrirait les alias prod et staging avec du code antérieur — rollback silencieux déjà vécu
+le 2026-07-17 (v0.3.4 avait écrasé v0.3.5).
+
+## Bug de recette corrigé après coup
+
+Upload de photo cassé en staging (`URL.createObjectURL` → URL `blob:` bloquée par la CSP,
+`img-src` n'autorisant que `data:`). Corrigé PR #13 par une lecture en data URL, sans
+élargir la CSP. Messages d'erreur repris au passage (cause + manœuvre de sortie, cas HEIC
+iPhone traité à part). Validé par Wacil en staging avant la prod.
 
 Reste au board, tout bloqué sur une action de Wacil :
 - 🔧 Config : Blaze, Stripe, licence IGN, Brevo, nom public Firebase

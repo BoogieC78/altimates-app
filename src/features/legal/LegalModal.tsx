@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Modal } from '../../components/Modal'
-import { LEGAL_DOCS, LEGAL_PROVISIONAL_NOTICE, type LegalDoc } from './legalContent'
+import { LEGAL_DOCS, type LegalDoc } from './legalContent'
 
 /**
  * Visionneuse des documents légaux, utilisée aux deux endroits où ils doivent
@@ -26,10 +26,6 @@ export function LegalModal({ initial, onClose }: { initial: LegalDoc['id']; onCl
             {d.short}
           </button>
         ))}
-      </div>
-
-      <div className="legal-notice" role="note">
-        {LEGAL_PROVISIONAL_NOTICE}
       </div>
 
       <div className="legal-meta">Dernière mise à jour : {doc.updated}</div>

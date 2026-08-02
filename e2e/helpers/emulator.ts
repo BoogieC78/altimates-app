@@ -32,6 +32,35 @@ export async function resetEmulators(): Promise<void> {
     method: 'DELETE',
   })
   if (!auth.ok) throw new Error(`Reset Auth échoué: ${auth.status} ${await auth.text()}`)
+
+  await waitForFirestoreEmpty()
+}
+
+/**
+ * Attend que la suppression soit RÉELLEMENT visible.
+ *
+ * L'endpoint de reset répond 200 avant que les documents aient disparu des
+ * lectures : un `seedRando` enchaîné aussitôt cohabitait alors avec la rando du
+ * test précédent, et le mode strict de Playwright échouait sur deux cartes
+ * homonymes — sans aucun rapport avec le comportement testé. Le symptôme était
+ * documenté comme « fuite entre fichiers de specs » ; c'est en fait une simple
+ * course, qu'il suffit d'attendre.
+ */
+async function waitForFirestoreEmpty(timeoutMs = 5000): Promise<void> {
+  const deadline = Date.now() + timeoutMs
+  for (;;) {
+    const collections = await db().listCollections()
+    if (collections.length === 0) return
+
+    const counts = await Promise.all(collections.map((c) => c.limit(1).get()))
+    if (counts.every((snap) => snap.empty)) return
+
+    if (Date.now() > deadline) {
+      const restantes = collections.filter((_, i) => !counts[i].empty).map((c) => c.id)
+      throw new Error(`Reset Firestore incomplet après ${timeoutMs}ms : ${restantes.join(', ')}`)
+    }
+    await new Promise((r) => setTimeout(r, 50))
+  }
 }
 
 /**

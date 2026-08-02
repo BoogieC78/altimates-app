@@ -11,12 +11,19 @@ import type { Expense } from '../types'
  * Répartit un montant entre n parts égales, au centime près.
  * Le reste de la division est donné aux premières parts (1 centime chacune),
  * de sorte que la somme des parts égale toujours le montant d'origine.
+ *
+ * `favored` permet de désigner les indices qui reçoivent ce centime en priorité,
+ * dans l'ordre donné — c'est ce qui évite que les mêmes personnes le paient à
+ * chaque dépense (voir {@link computeBalances}). Par défaut, l'ordre naturel.
  */
-export function splitAmount(amount: number, n: number): number[] {
+export function splitAmount(amount: number, n: number, favored?: number[]): number[] {
   if (n <= 0) return []
   const base = Math.floor(amount / n)
   const rest = amount - base * n
-  return Array.from({ length: n }, (_, i) => base + (i < rest ? 1 : 0))
+  const order = favored ?? Array.from({ length: n }, (_, i) => i)
+  const parts = Array.from({ length: n }, () => base)
+  for (let i = 0; i < rest; i++) parts[order[i]] += 1
+  return parts
 }
 
 /**
@@ -34,6 +41,14 @@ export function computeBalances(expenses: Expense[]): Record<string, number> {
     balances[name] = (balances[name] ?? 0) + cents
   }
 
+  // Un montant rarement divisible par le nombre de participants : il reste
+  // quelques centimes à attribuer. Les donner aux premiers bénéficiaires à
+  // chaque dépense ferait payer TOUJOURS les mêmes — sur deux dépenses, le
+  // premier de la liste accumulait 2 centimes de plus que le dernier (constaté
+  // sur 90 € + 60 € partagés à 7). On mémorise donc ce que chacun a déjà pris
+  // en trop, et le centime suivant va à celui qui en a le moins reçu.
+  const surplus: Record<string, number> = {}
+
   for (const e of expenses) {
     const beneficiaries = e.beneficiaries ?? []
     if (!beneficiaries.length || !e.amount) {
@@ -43,8 +58,16 @@ export function computeBalances(expenses: Expense[]): Record<string, number> {
       continue
     }
     add(e.payer, e.amount)
-    const parts = splitAmount(e.amount, beneficiaries.length)
-    beneficiaries.forEach((name, i) => add(name, -parts[i]))
+    const favored = beneficiaries
+      .map((name, i) => ({ name, i }))
+      .sort((a, b) => (surplus[a.name] ?? 0) - (surplus[b.name] ?? 0) || a.name.localeCompare(b.name))
+      .map((x) => x.i)
+    const parts = splitAmount(e.amount, beneficiaries.length, favored)
+    const base = Math.floor(e.amount / beneficiaries.length)
+    beneficiaries.forEach((name, i) => {
+      add(name, -parts[i])
+      surplus[name] = (surplus[name] ?? 0) + (parts[i] - base)
+    })
   }
 
   return balances

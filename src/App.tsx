@@ -16,6 +16,8 @@ import { FenetrePage } from './features/fenetre/FenetrePage'
 import { CordeePage } from './features/cordee/CordeePage'
 import { BasecampPage } from './features/basecamp/BasecampPage'
 import { AdminPage } from './features/admin/AdminPage'
+import { LegalLinks } from './features/legal/LegalModal'
+import { Avatar } from './components/Avatar'
 import { GuidedTour, shouldShowTour } from './components/GuidedTour'
 import { NamePromptModal } from './components/NamePromptModal'
 import { TopoBackground } from './components/TopoBackground'
@@ -54,7 +56,7 @@ const TABS: ReadonlyArray<{ key: string; label: string; short?: string }> = [
 
 export default function App() {
   const { user, loading } = useAuth()
-  const { name: memberName, needsName, saveName } = useMemberName(user)
+  const { name: memberName, photo: memberPhoto, needsName, saveName } = useMemberName(user)
   const [tab, setTab] = useState('sommets')
   const [loginError, setLoginError] = useState('')
   const [email, setEmail] = useState('')
@@ -171,6 +173,13 @@ export default function App() {
               {loginError}
             </div>
           )}
+
+          {/* Les documents légaux doivent être consultables AVANT de se connecter :
+              se connecter vaut acceptation des conditions, on ne peut donc pas les
+              cacher derrière l'authentification. */}
+          <div style={{ marginTop: 16, borderTop: '.5px solid var(--border)', paddingTop: 6 }}>
+            <LegalLinks />
+          </div>
         </main>
       </div>
     )
@@ -226,6 +235,7 @@ export default function App() {
             title="Mon Base Camp"
             aria-label="Mon Base Camp"
           >
+            {memberPhoto && <Avatar name={memberName} photo={memberPhoto} size={24} />}
             {memberName}
           </button>
         </header>

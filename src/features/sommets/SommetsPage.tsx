@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
-import { randosCol } from '../../core/firebase/collections'
+import { randoMediaCol, randosCol } from '../../core/firebase/collections'
 import { isPast, todayLocalISO } from '../../core/services/dates'
 import { useCollection } from '../../hooks/useCollection'
 import { RandoCard } from './RandoCard'
 import { AddRandoModal } from './AddRandoModal'
 import { PlusIcon } from '../../components/icons'
+import type { LightboxPhoto } from './PhotoLightbox'
 
 interface SommetsPageProps {
   memberName: string
@@ -14,8 +15,21 @@ const DPLUS_MAX_OPTIONS = [500, 1000, 1500, 2000] as const
 
 export function SommetsPage({ memberName }: SommetsPageProps) {
   const { data: randos, loading, error } = useCollection(randosCol)
+  // Un seul abonnement pour toute la page : les cartes reçoivent leurs photos en
+  // props plutôt que de s'abonner chacune à la même collection.
+  const { data: media } = useCollection(randoMediaCol)
   const [showAdd, setShowAdd] = useState(false)
   const [dplusMax, setDplusMax] = useState<number | null>(null)
+
+  const photosByRando = useMemo(() => {
+    const map = new Map<string, LightboxPhoto[]>()
+    for (const m of media) {
+      const list = map.get(m.randoId) ?? []
+      list.push({ docId: m.docId, dataUrl: m.dataUrl, author: m.author })
+      map.set(m.randoId, list)
+    }
+    return map
+  }, [media])
 
   const { upcoming, past } = useMemo(() => {
     const today = todayLocalISO()
@@ -75,7 +89,12 @@ export function SommetsPage({ memberName }: SommetsPageProps) {
               </div>
             )}
             {upcoming.map((r) => (
-              <RandoCard key={r.docId} rando={r} memberName={memberName} />
+              <RandoCard
+                key={r.docId}
+                rando={r}
+                memberName={memberName}
+                photos={photosByRando.get(String(r.id))}
+              />
             ))}
 
             {past.length > 0 && (
@@ -85,7 +104,12 @@ export function SommetsPage({ memberName }: SommetsPageProps) {
                 </h2>
                 <div style={{ opacity: 0.6 }}>
                   {past.map((r) => (
-                    <RandoCard key={r.docId} rando={r} memberName={memberName} />
+                    <RandoCard
+                      key={r.docId}
+                      rando={r}
+                      memberName={memberName}
+                      photos={photosByRando.get(String(r.id))}
+                    />
                   ))}
                 </div>
               </>

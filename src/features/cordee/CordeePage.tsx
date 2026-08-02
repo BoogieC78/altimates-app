@@ -11,13 +11,7 @@ import { findGearItem } from '../../core/services/kit'
 import { LVLS, type Level } from '../../core/constants/gear'
 import { useCollection } from '../../hooks/useCollection'
 import { TrashIcon } from '../../components/icons'
-
-// Palette d'avatars de l'ancienne app (fonction avS)
-const AV_COLORS = ['#E8C84A', '#C4531A', '#4A7FA8', '#2A5C35', '#8C7000']
-
-function avatarStyle(i: number) {
-  return { background: AV_COLORS[i % AV_COLORS.length], color: '#fff' }
-}
+import { Avatar } from '../../components/Avatar'
 
 interface CordeePageProps {
   memberName: string
@@ -49,6 +43,7 @@ export function CordeePage({ memberName }: CordeePageProps) {
         u.displayName?.split(' ')[0] ||
         u.email ||
         'Inconnu',
+      photo: u.profile?.photo ?? null,
       level: ((u.profile as { level?: Level } | undefined)?.level ?? 'newbie') as Level,
       km: u.profile?.km ?? 0,
       dplus: u.profile?.dplus ?? 0,
@@ -75,11 +70,9 @@ export function CordeePage({ memberName }: CordeePageProps) {
             <div className="spinner" />
           </div>
         )}
-        {members.map((m, i) => (
+        {members.map((m) => (
           <div className="member-row" role="listitem" key={m.name}>
-            <div className="sm-av" style={avatarStyle(i)}>
-              {m.name.slice(0, 2).toUpperCase()}
-            </div>
+            <Avatar name={m.name} photo={m.photo} size={32} className="sm-av" />
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 500 }}>{m.name}</div>
               <div style={{ fontSize: 9, color: 'var(--ink3)', fontFamily: 'var(--mono)' }}>
@@ -110,7 +103,7 @@ export function CordeePage({ memberName }: CordeePageProps) {
         Déduit automatiquement du kit coché de chacun. Coche tes équipements dans l'onglet Kit pour apparaître ici.
       </div>
       <div className="card" style={{ padding: '0 14px' }}>
-        {members.map((m, i) => {
+        {members.map((m) => {
           const items = Object.entries(m.kitChecked)
             .filter(([, v]) => v)
             .map(([id]) => findGearItem(id)?.name)
@@ -121,9 +114,7 @@ export function CordeePage({ memberName }: CordeePageProps) {
               key={m.name}
               style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '9px 0', borderBottom: '.5px solid var(--border)' }}
             >
-              <div className="sm-av" style={{ ...avatarStyle(i), width: 28, height: 28, fontSize: 9 }}>
-                {m.name.slice(0, 2).toUpperCase()}
-              </div>
+              <Avatar name={m.name} photo={m.photo} size={28} />
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 12, fontWeight: 500, marginBottom: 4 }}>{m.name}</div>
                 <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>

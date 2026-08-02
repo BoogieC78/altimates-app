@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { User } from 'firebase/auth'
 import { randosCol } from '../../core/firebase/collections'
 import { GEAR, LVLS, type Level } from '../../core/constants/gear'
@@ -8,6 +8,9 @@ import { useCollection } from '../../hooks/useCollection'
 import { useUserProfile, type PastOuting, type Profile } from '../../hooks/useUserProfile'
 import { Modal } from '../../components/Modal'
 import { TrashIcon } from '../../components/icons'
+import { Avatar } from '../../components/Avatar'
+import { LegalLinks } from '../legal/LegalModal'
+import { compressAvatar, isAcceptedImage } from '../../core/services/media'
 import { RandoDetailModal } from '../sommets/RandoDetailModal'
 import { blockNonDigitKeys } from '../sommets/AddRandoModal'
 
@@ -18,7 +21,7 @@ interface BasecampPageProps {
 }
 
 export function BasecampPage({ user, memberName, onGoKit }: BasecampPageProps) {
-  const { profile, loading, update, reset } = useUserProfile(user)
+  const { profile, loading, update, setPhoto, reset } = useUserProfile(user)
   const { data: randos } = useCollection(randosCol)
   const [editing, setEditing] = useState(false)
   const [showNext, setShowNext] = useState(false)
@@ -58,12 +61,21 @@ export function BasecampPage({ user, memberName, onGoKit }: BasecampPageProps) {
               Déconnexion
             </button>
           </div>
+          {/* Aussi ici : un membre qui n'a pas encore configuré son profil ne doit
+              pas perdre l'accès aux documents légaux pour autant. */}
+          <div style={{ marginTop: 20 }}>
+            <div className="bc-section-title" style={{ marginBottom: 6 }}>
+              Informations légales
+            </div>
+            <LegalLinks />
+          </div>
         </div>
 
         {editing && (
           <EditProfileModal
             profile={profile}
             memberName={memberName}
+            onPhoto={setPhoto}
             onSave={(patch) => {
               void update(patch)
               setEditing(false)
@@ -130,6 +142,9 @@ export function BasecampPage({ user, memberName, onGoKit }: BasecampPageProps) {
           </svg>
         </div>
         <div className="bc-hero-content">
+          {profile?.photo && (
+            <Avatar name={profile?.name ?? memberName} photo={profile.photo} size={46} className="bc-avatar" />
+          )}
           <div className="bc-name">{profile?.name ?? memberName}</div>
           <div className="bc-meta">
             <span className={`tag ${lv.cls}`}>{lv.l}</span>
@@ -258,6 +273,13 @@ export function BasecampPage({ user, memberName, onGoKit }: BasecampPageProps) {
       <PastOutingsSection outings={profile?.pastOutings ?? []} onChange={(outings) => void update({ pastOutings: outings })} />
 
       <div className="bc-section">
+        <div className="bc-section-title">Informations légales</div>
+        <div className="card" style={{ padding: '10px 14px' }}>
+          <LegalLinks align="left" />
+        </div>
+      </div>
+
+      <div className="bc-section">
         <button className="btn btn-primary btn-full" onClick={() => setEditing(true)}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
@@ -286,6 +308,7 @@ export function BasecampPage({ user, memberName, onGoKit }: BasecampPageProps) {
         <EditProfileModal
           profile={profile}
           memberName={memberName}
+          onPhoto={setPhoto}
           onSave={(patch) => {
             void update(patch)
             setEditing(false)
@@ -405,11 +428,13 @@ function PastOutingsSection({
 function EditProfileModal({
   profile,
   memberName,
+  onPhoto,
   onSave,
   onClose,
 }: {
   profile: Profile | null
   memberName: string
+  onPhoto: (dataUrl: string | null) => Promise<void>
   onSave: (patch: Partial<Profile>) => void
   onClose: () => void
 }) {
@@ -445,6 +470,7 @@ function EditProfileModal({
 
   return (
     <Modal title="Modifier profil" onClose={onClose}>
+      <AvatarField name={name || memberName} photo={profile?.photo ?? null} onPhoto={onPhoto} />
       <div style={{ marginBottom: 10 }}>
         <label className="form-lbl" htmlFor="profil-prenom">Prénom</label>
         <input id="profil-prenom" className="form-input" value={name} onChange={(e) => setName(e.target.value)} />
@@ -480,5 +506,101 @@ function EditProfileModal({
         Enregistrer
       </button>
     </Modal>
+  )
+}
+
+// Choix de la photo de profil, dans le modal « Modifier profil ».
+//
+// L'enregistrement est immédiat (il ne passe pas par le bouton « Enregistrer »
+// du modal) : la photo est écrite dans son propre champ, et l'utilisateur voit
+// tout de suite le résultat de sa compression. Attendre le bouton l'obligerait à
+// choisir un fichier sans jamais savoir si l'image passe le plafond de taille.
+function AvatarField({
+  name,
+  photo,
+  onPhoto,
+}: {
+  name: string
+  photo: string | null
+  onPhoto: (dataUrl: string | null) => Promise<void>
+}) {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const pick = async (file: File | undefined) => {
+    if (!file) return
+    if (!isAcceptedImage(file.type)) {
+      setError("Ce format n'est pas accepté. Choisis un JPEG, un PNG ou un WebP.")
+      return
+    }
+    setError('')
+    setBusy(true)
+    try {
+      await onPhoto(await compressAvatar(file))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "L'enregistrement a échoué. Réessaie dans un instant.")
+    } finally {
+      setBusy(false)
+      if (inputRef.current) inputRef.current.value = ''
+    }
+  }
+
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div className="form-lbl">Photo de profil</div>
+      <div className="pp-edit">
+        {photo ? (
+          <img src={photo} alt="" aria-hidden="true" className="pp-preview" />
+        ) : (
+          <span className="pp-fallback" aria-hidden="true">
+            {name.slice(0, 2).toUpperCase()}
+          </span>
+        )}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, flex: 1, minWidth: 0 }}>
+          {/* Le sélecteur natif est illisible et non stylable : masqué à l'œil mais
+              gardé dans le DOM, le vrai déclencheur est le label ci-dessous. */}
+          <input
+            ref={inputRef}
+            id="avatar-input"
+            type="file"
+            accept="image/*"
+            aria-label="Choisir une photo de profil"
+            disabled={busy}
+            onChange={(e) => void pick(e.target.files?.[0])}
+            style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }}
+          />
+          <label
+            htmlFor="avatar-input"
+            className="btn btn-sm btn-primary"
+            style={{ minHeight: 44, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.5 : 1 }}
+          >
+            {photo ? 'Changer la photo' : 'Ajouter une photo'}
+          </label>
+          {photo && (
+            <button
+              type="button"
+              className="btn btn-sm"
+              style={{ minHeight: 44 }}
+              disabled={busy}
+              onClick={() => {
+                setError('')
+                void onPhoto(null).catch(() => setError('Le retrait a échoué. Réessaie dans un instant.'))
+              }}
+            >
+              Retirer
+            </button>
+          )}
+        </div>
+      </div>
+      {busy && (
+        <div style={{ fontSize: 10, color: 'var(--ink3)', fontFamily: 'var(--mono)' }}>Compression en cours…</div>
+      )}
+      {error && (
+        <div role="alert" style={{ fontSize: 10, color: 'var(--red)', fontFamily: 'var(--mono)', lineHeight: 1.5 }}>
+          {error}
+        </div>
+      )}
+    </div>
   )
 }

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { voteRando, deleteRando } from '../../core/firebase/randos'
 import { jMinus, todayLocalISO } from '../../core/services/dates'
 import { RandoDetailModal } from './RandoDetailModal'
+import { PhotoLightbox, type LightboxPhoto } from './PhotoLightbox'
 import { useWeather } from '../../hooks/useWeather'
 import type { Rando, VoteValue } from '../../core/types'
 import type { WithDocId } from '../../hooks/useCollection'
@@ -14,9 +15,18 @@ import {
   TrashIcon,
 } from '../../components/icons'
 
+/** Nombre de vignettes montrées sur la carte avant le raccourci « +N ». */
+const STRIP_LIMIT = 4
+
 interface RandoCardProps {
   rando: WithDocId<Rando>
   memberName: string
+  /**
+   * Photos de cette sortie. Fournies par la page plutôt que lues ici : une carte
+   * qui s'abonnerait elle-même à `randoMedia` multiplierait l'abonnement par le
+   * nombre de sorties affichées, pour la même collection.
+   */
+  photos?: LightboxPhoto[]
 }
 
 const DIFF_TAG: Record<string, string> = {
@@ -26,15 +36,22 @@ const DIFF_TAG: Record<string, string> = {
   Difficile: 'tr',
 }
 
-export function RandoCard({ rando: r, memberName }: RandoCardProps) {
+export function RandoCard({ rando: r, memberName, photos = [] }: RandoCardProps) {
   const weather = useWeather(r.lat, r.lon)
   const [showDetail, setShowDetail] = useState(false)
+  const [detailTab, setDetailTab] = useState<'info' | 'photos'>('info')
+  const [zoomed, setZoomed] = useState<number | null>(null)
   const myVote = r.memberVotes?.[memberName] ?? null
   const today = todayLocalISO()
   const jx = jMinus(r.dateStart, today)
 
   const vote = (v: VoteValue) => {
     void voteRando(r, memberName, v).catch((e) => console.warn('vote:', e))
+  }
+
+  const openDetail = (tab: 'info' | 'photos' = 'info') => {
+    setDetailTab(tab)
+    setShowDetail(true)
   }
 
   const remove = () => {
@@ -51,12 +68,12 @@ export function RandoCard({ rando: r, memberName }: RandoCardProps) {
         role="button"
         tabIndex={0}
         aria-label="Détails de la rando"
-        onClick={() => setShowDetail(true)}
+        onClick={() => openDetail()}
         onKeyDown={(e) => {
           if (e.target !== e.currentTarget) return
           if (e.key === 'Enter' || e.key === ' ') {
             if (e.key === ' ') e.preventDefault()
-            setShowDetail(true)
+            openDetail()
           }
         }}
         style={{ cursor: 'pointer' }}
@@ -225,6 +242,39 @@ export function RandoCard({ rando: r, memberName }: RandoCardProps) {
         </div>
       )}
 
+      {/* Les photos d'une sortie n'étaient visibles qu'après avoir ouvert le détail
+          PUIS l'onglet Photos. Les poser ici les rend visibles dans la liste, et
+          un clic sur une vignette ouvre directement le plein écran. */}
+      {photos.length > 0 && (
+        <div className="rphotos">
+          {photos.slice(0, STRIP_LIMIT).map((p, i) => (
+            <button
+              key={p.docId}
+              className="rphoto-btn"
+              aria-label={`Agrandir la photo de ${p.author}`}
+              onClick={(e) => {
+                e.stopPropagation()
+                setZoomed(i)
+              }}
+            >
+              <img src={p.dataUrl} alt="" aria-hidden="true" />
+            </button>
+          ))}
+          {photos.length > STRIP_LIMIT && (
+            <button
+              className="rphoto-more"
+              aria-label={`Voir les ${photos.length} photos de la sortie`}
+              onClick={(e) => {
+                e.stopPropagation()
+                openDetail('photos')
+              }}
+            >
+              +{photos.length - STRIP_LIMIT}
+            </button>
+          )}
+        </div>
+      )}
+
       {r.alert?.text && (
         <div style={{ padding: '0 13px 9px' }}>
           <div className="alert-band">
@@ -236,7 +286,18 @@ export function RandoCard({ rando: r, memberName }: RandoCardProps) {
         </div>
       )}
 
-      {showDetail && <RandoDetailModal rando={r} memberName={memberName} onClose={() => setShowDetail(false)} />}
+      {zoomed !== null && (
+        <PhotoLightbox photos={photos} startIndex={zoomed} onClose={() => setZoomed(null)} />
+      )}
+
+      {showDetail && (
+        <RandoDetailModal
+          rando={r}
+          memberName={memberName}
+          initialTab={detailTab}
+          onClose={() => setShowDetail(false)}
+        />
+      )}
     </div>
   )
 }

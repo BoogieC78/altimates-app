@@ -60,8 +60,15 @@ export function ExpensesTab({ rando: r, memberName }: { rando: WithDocId<Rando>;
       return
     }
     setFormError('')
-    void addExpense({ randoId, label: label.trim(), amount: cents, payer: memberName, beneficiaries }).catch((e) =>
-      console.warn('addExpense:', e),
+    // Un refus des règles Firestore n'était visible que dans la console : le
+    // bouton semblait ne rien faire, et la dépense disparaissait sans un mot.
+    void addExpense({ randoId, label: label.trim(), amount: cents, payer: memberName, beneficiaries }).catch(
+      (e: Error) => {
+        console.warn('addExpense:', e)
+        setFormError("La dépense n'a pas pu être enregistrée. Vérifie ta connexion et réessaie.")
+        setLabel(label)
+        setAmount(amount)
+      },
     )
     setLabel('')
     setAmount('')

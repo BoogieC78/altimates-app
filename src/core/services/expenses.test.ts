@@ -73,10 +73,30 @@ describe('computeBalances', () => {
     expect(sum(balances)).toBe(0)
     // 4999 et 2333 ne sont pas divisibles par 4 : les restes doivent être absorbés,
     // pas arrondis — sinon le groupe « perd » ou « crée » des centimes.
-    expect(balances.Nordine).toBe(4999 - 1250 - 584)
-    // Wacil est le dernier bénéficiaire : il paie la part basse des deux montants
-    // non divisibles (1249 et 583), les centimes de reste allant aux premiers.
-    expect(balances.Wacil).toBe(-1249 - 583 - 350)
+    // Sur la 1re dépense (reste de 3 centimes) Wacil est le seul à payer la part
+    // basse ; sur la 2e (reste d'un centime) c'est donc lui qui le prend, puisque
+    // les trois autres en ont déjà reçu un.
+    expect(balances.Nordine).toBe(4999 - 1250 - 583)
+    expect(balances.Wacil).toBe(-1249 - 584 - 350)
+  })
+
+  it("ne fait jamais payer plus d'un centime d'écart, même sur plusieurs dépenses", () => {
+    // Jeu d'essai réel : 90 € puis 60 € avancés par Wacil pour 7 personnes.
+    // Avant correction, le premier bénéficiaire cumulait les deux restes et se
+    // retrouvait à 21,44 € quand le dernier payait 21,42 € — deux centimes
+    // d'écart pour une part censée être identique.
+    const groupe = ['Wacil', 'Ousss', 'Anonyme', 'David', 'Ismail', 'Nordine', 'Adebola']
+    const balances = computeBalances([
+      expense({ id: 1, label: 'Lyophilisé', amount: 9000, payer: 'Wacil', beneficiaries: groupe }),
+      expense({ id: 2, label: 'Bettrave', amount: 6000, payer: 'Wacil', beneficiaries: groupe }),
+    ])
+
+    expect(sum(balances)).toBe(0)
+    // Part réellement supportée par chacun : 15000 / 7 = 2142,857…
+    const parts = groupe.map((name) => (name === 'Wacil' ? 15000 - balances.Wacil : -balances[name]))
+    expect(Math.max(...parts) - Math.min(...parts)).toBe(1)
+    expect(parts.reduce((a, b) => a + b, 0)).toBe(15000)
+    expect(new Set(parts)).toEqual(new Set([2142, 2143]))
   })
 
   it('crédite le payeur même sans bénéficiaire (aucune perte d\'argent)', () => {

@@ -143,7 +143,7 @@ describe('PhotosTab — accessibilité de la vue plein écran', () => {
     render(<PhotosTab rando={rando} memberName="Nordine" />)
 
     fireEvent.click(screen.getByLabelText('Agrandir la photo de Nordine'))
-    const dialog = screen.getByRole('dialog', { name: /plein écran/i })
+    const dialog = screen.getByRole('dialog', { name: /photo 1 sur 1, partagée par nordine/i })
     expect(dialog.getAttribute('aria-modal')).toBe('true')
 
     fireEvent.keyDown(dialog, { key: 'Escape' })

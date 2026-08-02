@@ -40,11 +40,27 @@ service cloud.firestore {
         : '';
     }
 
+    // La photo de profil est une data URL stockée DANS le document users/{uid},
+    // faute de Firebase Storage. Sans plafond ici, un membre pourrait y écrire
+    // n'importe quelle charge utile et transformer son document en espace de
+    // stockage libre — et, en dépassant la limite de 1 Mio d'un document, casser
+    // toutes ses propres écritures de profil. 80 Ko laisse largement la place au
+    // kit et aux stats qui vivent dans le même document.
+    function validProfilePhoto() {
+      return !('profile' in request.resource.data)
+        || request.resource.data.profile == null
+        || !('photo' in request.resource.data.profile)
+        || (request.resource.data.profile.photo is string
+          && request.resource.data.profile.photo.matches('^data:image/.*')
+          && request.resource.data.profile.photo.size() < 80000);
+    }
+
     // Chaque membre ne peut écrire que son propre document utilisateur.
     match /users/{userId} {
       allow read: if isMember();
       allow write: if isMember()
-        && (request.auth.uid == userId || isAdmin());
+        && (request.auth.uid == userId || isAdmin())
+        && validProfilePhoto();
     }
 
     // Whitelist lisible par les MEMBRES uniquement (pas par tout compte Google :

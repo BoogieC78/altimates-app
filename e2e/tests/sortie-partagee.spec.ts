@@ -8,15 +8,21 @@ import { seedRando } from '../helpers/emulator'
 // bien autorisées en écriture, ce que les tests de composants ne peuvent pas voir.
 
 async function openRando(page: import('@playwright/test').Page, name: string) {
-  const card = page.locator('.rcard', { hasText: name })
+  const card = page.locator('.rcard', { hasText: name }).first()
   await expect(card).toBeVisible()
-  await card.click()
+  // Cliquer la carte entière viserait son centre géométrique, qui tombe selon la
+  // hauteur du texte sur la rangée de votes — or ces boutons arrêtent la
+  // propagation, donc le détail ne s'ouvrait pas. Le nom de la sortie est
+  // toujours dans la zone cliquable (flake vécu : vert en CI, rouge en local,
+  // selon le chargement des polices).
+  await card.locator('.rname').click()
   await expect(page.locator('.modal-title', { hasText: name })).toBeVisible()
 }
 
 test.describe('Sortie partagée — dépenses, transport, photos', () => {
   test('une dépense saisie produit les soldes et le remboursement', async ({ page }) => {
     await seedRando({
+      id: 100_013,
       name: 'Dents du Midi',
       proposedBy: 'Wacil',
       votesOui: 2,
@@ -40,6 +46,7 @@ test.describe('Sortie partagée — dépenses, transport, photos', () => {
 
   test('déclarer sa voiture met à jour le récapitulatif transport', async ({ page }) => {
     await seedRando({
+      id: 100_014,
       name: 'Aiguille Verte',
       proposedBy: 'Wacil',
       votesOui: 4,
@@ -59,7 +66,11 @@ test.describe('Sortie partagée — dépenses, transport, photos', () => {
   })
 
   test('les photos sont réservées à l\'organisateur de la sortie', async ({ page }) => {
-    await seedRando({ name: 'Pic du Canigou', proposedBy: 'Nordine', memberVotes: { Nordine: 'oui' } })
+    // Id métier propre à ce test : les photos sont indexées dessus, et l'id par
+    // défaut de seedRando est partagé par toute la suite — une photo écrite par
+    // un autre test (ou survivant au reset) ferait échouer l'assertion « aucune
+    // photo » sans rapport avec la restriction testée ici.
+    await seedRando({ id: 100_012, name: 'Pic du Canigou', proposedBy: 'Nordine', memberVotes: { Nordine: 'oui' } })
     await login(page, { email: MEMBER_EMAIL, name: 'Wacil' })
     await openRando(page, 'Pic du Canigou')
 
@@ -74,6 +85,7 @@ test.describe('Sortie partagée — dépenses, transport, photos', () => {
   test('aucun débordement horizontal sur les nouveaux onglets en 360px', async ({ page }) => {
     await page.setViewportSize({ width: 360, height: 780 })
     await seedRando({
+      id: 100_015,
       name: 'Roche de Rame',
       proposedBy: 'Wacil',
       votesOui: 4,
@@ -143,5 +155,44 @@ test.describe('Sortie partagée — dépenses, transport, photos', () => {
 
     await expect(page.getByAltText(/Photo de la sortie partagée par Wacil/)).toBeVisible()
     await expect(page.getByRole('alert')).toHaveCount(0)
+  })
+})
+
+test.describe('Photos mises en avant dans la liste des sorties', () => {
+  test('les vignettes apparaissent sur la carte et s’agrandissent en un clic', async ({ page }) => {
+    await seedRando({
+      id: 100_020,
+      name: 'Grand Veymont',
+      proposedBy: 'Wacil',
+      memberVotes: { Wacil: 'oui' },
+    })
+    await login(page, { email: MEMBER_EMAIL, name: 'Wacil' })
+
+    // `.first()` : des randos d'autres specs survivent au reset des émulateurs
+    // (fuite documentée dans BACKLOG.md). Ce test ne suppose donc rien du reste
+    // de la liste — il ne parle que de SA sortie. L'absence de bandeau sur une
+    // sortie sans photo est couverte par le test unitaire de SommetsPage.
+    const carte = page.locator('.rcard', { hasText: 'Grand Veymont' }).first()
+
+    await openRando(page, 'Grand Veymont')
+    await page.getByRole('button', { name: /Photos/ }).click()
+    await page.getByLabel('Ajouter une photo de la sortie').setInputFiles('e2e/fixtures-media/photo-test.jpg')
+    await expect(page.getByAltText(/Photo de la sortie partagée par Wacil/)).toBeVisible()
+    await page.getByRole('button', { name: 'Fermer' }).click()
+
+    // Le retour de la modale suffit : la photo est visible dans la LISTE, sans
+    // rouvrir la sortie ni son onglet Photos — c'est tout l'objet du bandeau.
+    const vignette = carte.locator('.rphoto-btn').first()
+    await expect(vignette).toBeVisible()
+
+    // Un seul clic depuis la liste ouvre le plein écran.
+    await vignette.click()
+    const plein = page.getByRole('dialog', { name: /Photo 1 sur 1, partagée par Wacil/i })
+    await expect(plein).toBeVisible()
+
+    await page.keyboard.press('Escape')
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    // Le clic sur la vignette n'a pas ouvert le détail de la sortie au passage.
+    await expect(page.locator('.modal-title')).toHaveCount(0)
   })
 })

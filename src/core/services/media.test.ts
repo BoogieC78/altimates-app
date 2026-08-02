@@ -9,6 +9,10 @@ import {
   dataUrlBytes,
   fitDimensions,
   isAcceptedImage,
+  squareCrop,
+  AVATAR_EDGE,
+  AVATAR_TARGET_BYTES,
+  AVATAR_MAX_BYTES,
 } from './media'
 
 describe('fitDimensions', () => {
@@ -111,5 +115,36 @@ describe('compressImage — lecture du fichier', () => {
     expect(result).toBe('data:image/jpeg;base64,YWJj')
 
     vi.unstubAllGlobals()
+  })
+})
+
+describe('squareCrop', () => {
+  it('centre le carré sur une image en paysage', () => {
+    expect(squareCrop(1600, 900)).toEqual({ x: 350, y: 0, size: 900 })
+  })
+
+  it('centre le carré sur une image en portrait', () => {
+    expect(squareCrop(900, 1600)).toEqual({ x: 0, y: 350, size: 900 })
+  })
+
+  it('ne rogne rien sur une image déjà carrée', () => {
+    expect(squareCrop(500, 500)).toEqual({ x: 0, y: 0, size: 500 })
+  })
+})
+
+describe('seuils de la photo de profil', () => {
+  it('reste très en dessous des photos de sortie', () => {
+    // La photo de profil vit DANS users/{uid}, à côté du kit et des stats : si
+    // elle pesait autant qu'une photo de sortie, le document approcherait la
+    // limite de 1 Mio et toutes les écritures de profil échoueraient.
+    expect(AVATAR_TARGET_BYTES).toBeLessThan(TARGET_BYTES)
+    expect(AVATAR_MAX_BYTES).toBeLessThan(MAX_BYTES)
+    expect(AVATAR_EDGE).toBeLessThan(MAX_EDGE)
+  })
+
+  it('laisse une marge entre la cible de compression et le plafond dur', () => {
+    // Sans marge, une photo pile à la cible serait refusée par les règles au
+    // moindre octet de métadonnée en plus.
+    expect(AVATAR_MAX_BYTES).toBeGreaterThan(AVATAR_TARGET_BYTES)
   })
 })

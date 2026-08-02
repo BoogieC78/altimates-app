@@ -116,4 +116,20 @@ describe('ExpensesTab', () => {
       expect.objectContaining({ beneficiaries: ['Ismail', 'Nordine'], amount: 900 }),
     )
   })
+
+  it("prévient quand l'enregistrement échoue, sans effacer la saisie", async () => {
+    // Un refus des règles Firestore ne remontait qu'en console : le bouton avait
+    // l'air inerte et la saisie était perdue. Le membre doit voir la cause et
+    // pouvoir réessayer sans tout retaper.
+    addExpense.mockImplementationOnce(() => Promise.reject(new Error('permission-denied')))
+    render(<ExpensesTab rando={makeRando({ id: 1 })} memberName="Wacil" />)
+
+    fireEvent.change(screen.getByLabelText('Libellé de la dépense'), { target: { value: 'Essence' } })
+    fireEvent.change(screen.getByLabelText('Montant en euros'), { target: { value: '42' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Ajouter la dépense' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/pas pu être enregistrée/i)
+    expect((screen.getByLabelText('Libellé de la dépense') as HTMLInputElement).value).toBe('Essence')
+    expect((screen.getByLabelText('Montant en euros') as HTMLInputElement).value).toBe('42')
+  })
 })

@@ -19,6 +19,21 @@ export const TARGET_BYTES = 200_000
  */
 export const MAX_BYTES = 400_000
 
+/**
+ * Photo de profil : côté du carré, en pixels. Bien plus petite que les photos de
+ * sortie — elle n'est jamais affichée au-delà de ~64px, et elle vit dans le
+ * document `users/{uid}` qui porte déjà le kit et les stats. Un document
+ * Firestore est plafonné à 1 Mio : une photo lourde y ferait échouer TOUTES les
+ * écritures de profil, pas seulement l'ajout de la photo.
+ */
+export const AVATAR_EDGE = 256
+
+/** Cible de poids d'une photo de profil après compression (40 Ko). */
+export const AVATAR_TARGET_BYTES = 40_000
+
+/** Plafond dur d'une photo de profil, aligné sur la règle Firestore (80 Ko). */
+export const AVATAR_MAX_BYTES = 80_000
+
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
 
 /** Types d'images acceptés à l'import (les photos iPhone arrivent en HEIC). */
@@ -54,6 +69,16 @@ export function checkCanAdd(currentCount: number, type: string): string | null {
   return null
 }
 
+/**
+ * Cadrage carré centré : les coordonnées de la source à recopier pour remplir un
+ * carré sans déformer l'image. Une photo de profil est toujours rendue dans un
+ * rond — étirer un portrait pour le rendre carré écraserait les visages.
+ */
+export function squareCrop(width: number, height: number): { x: number; y: number; size: number } {
+  const size = Math.min(width, height)
+  return { x: Math.round((width - size) / 2), y: Math.round((height - size) / 2), size }
+}
+
 /** Paliers de qualité JPEG essayés successivement tant que la cible n'est pas atteinte. */
 export const QUALITY_STEPS = [0.82, 0.7, 0.6, 0.5, 0.4]
 
@@ -80,6 +105,34 @@ export async function compressImage(file: File): Promise<string> {
     if (dataUrlBytes(dataUrl) <= TARGET_BYTES) return dataUrl
   }
   if (dataUrlBytes(dataUrl) > MAX_BYTES) {
+    throw new Error('Photo trop lourde même après compression. Choisis une photo moins grande.')
+  }
+  return dataUrl
+}
+
+/**
+ * Compresse une image en vignette carrée pour servir de photo de profil.
+ * Même principe que {@link compressImage}, mais avec un cadrage carré centré et
+ * des seuils bien plus bas ({@link AVATAR_TARGET_BYTES}).
+ */
+export async function compressAvatar(file: File): Promise<string> {
+  const bitmap = await loadImage(file)
+  const { x, y, size } = squareCrop(bitmap.width, bitmap.height)
+  const edge = Math.min(size, AVATAR_EDGE)
+
+  const canvas = document.createElement('canvas')
+  canvas.width = edge
+  canvas.height = edge
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Impossible de préparer la photo. Recharge la page et réessaie.')
+  ctx.drawImage(bitmap, x, y, size, size, 0, 0, edge, edge)
+
+  let dataUrl = ''
+  for (const quality of QUALITY_STEPS) {
+    dataUrl = canvas.toDataURL('image/jpeg', quality)
+    if (dataUrlBytes(dataUrl) <= AVATAR_TARGET_BYTES) return dataUrl
+  }
+  if (dataUrlBytes(dataUrl) > AVATAR_MAX_BYTES) {
     throw new Error('Photo trop lourde même après compression. Choisis une photo moins grande.')
   }
   return dataUrl

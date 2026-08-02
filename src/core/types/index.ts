@@ -99,6 +99,8 @@ export interface UserProfile {
   photoURL?: string
   profile?: {
     name: string
+    /** photo de profil choisie par le membre, en data URL (pas de Storage) */
+    photo?: string
     level?: number
     km?: number
     dplus?: number

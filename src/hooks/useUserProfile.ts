@@ -15,6 +15,12 @@ export interface PastOuting {
 // (elle y stockait son objet `user` local entier).
 export interface Profile {
   name?: string
+  /**
+   * Photo de profil, en data URL. Stockée dans le document `users/{uid}` faute
+   * de Firebase Storage (pas de plan Blaze) — d'où la compression agressive de
+   * `compressAvatar` et le plafond de taille imposé par les règles Firestore.
+   */
+  photo?: string
   level?: Level
   mode?: KitMode
   checked?: Record<string, boolean>
@@ -34,6 +40,12 @@ interface UserProfileState {
   loading: boolean
   /** Fusionne des champs dans profile (+ maintient kitChecked en miroir, comme l'ancienne app). */
   update: (patch: Partial<Profile>) => Promise<void>
+  /**
+   * Enregistre la photo de profil, ou la retire avec `null`. Passer par `update`
+   * ne permettrait pas le retrait : `setDoc(..., {merge:true})` ignore un champ
+   * absent et refuse `undefined`, seul `deleteField()` efface réellement.
+   */
+  setPhoto: (dataUrl: string | null) => Promise<void>
   /** Réinitialise le profil (efface profile + kitChecked), équivalent de resetUser(). */
   reset: () => Promise<void>
   /** Réinitialise uniquement le kit (statuts + niveau/mode) — les stats perso survivent. */
@@ -58,6 +70,15 @@ export function useUserProfile(user: User | null): UserProfileState {
     await setDoc(
       doc(db, 'users', user.uid),
       { profile: next, kitChecked: next.checked ?? {} },
+      { merge: true },
+    )
+  }
+
+  const setPhoto = async (dataUrl: string | null) => {
+    if (!user) return
+    await setDoc(
+      doc(db, 'users', user.uid),
+      { profile: { photo: dataUrl ?? deleteField() } },
       { merge: true },
     )
   }
@@ -87,5 +108,5 @@ export function useUserProfile(user: User | null): UserProfileState {
     )
   }
 
-  return { profile, loading, update, reset, resetKit }
+  return { profile, loading, update, setPhoto, reset, resetKit }
 }

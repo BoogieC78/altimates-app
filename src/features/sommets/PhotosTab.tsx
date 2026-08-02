@@ -4,6 +4,7 @@ import { addRandoMedia, removeRandoMedia } from '../../core/firebase/randoMedia'
 import { isAdmin } from '../../core/firebase/auth'
 import { MAX_PHOTOS, checkCanAdd, compressImage } from '../../core/services/media'
 import { useAuth } from '../../hooks/useAuth'
+import { PhotoLightbox } from './PhotoLightbox'
 import { useCollection, type WithDocId } from '../../hooks/useCollection'
 import type { Rando } from '../../core/types'
 
@@ -24,7 +25,7 @@ export function PhotosTab({ rando: r, memberName }: { rando: WithDocId<Rando>; m
 
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const [zoomed, setZoomed] = useState<string | null>(null)
+  const [zoomed, setZoomed] = useState<number | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const onPick = async (file: File | undefined) => {
@@ -104,10 +105,10 @@ export function PhotosTab({ rando: r, memberName }: { rando: WithDocId<Rando>; m
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(96px, 1fr))', gap: 8 }}>
-          {photos.map((p) => (
+          {photos.map((p, i) => (
             <figure key={p.docId} style={{ margin: 0, position: 'relative' }}>
               <button
-                onClick={() => setZoomed(p.dataUrl)}
+                onClick={() => setZoomed(i)}
                 aria-label={`Agrandir la photo de ${p.author}`}
                 style={{ padding: 0, border: 'none', background: 'none', cursor: 'zoom-in', width: '100%' }}
               >
@@ -165,56 +166,8 @@ export function PhotosTab({ rando: r, memberName }: { rando: WithDocId<Rando>; m
         </div>
       )}
 
-      {zoomed && (
-        // Vue plein écran : c'est une modale, elle en respecte donc le contrat —
-        // sémantique dialog, focus déplacé dessus à l'ouverture, Escape ferme.
-        // Sans ça, un utilisateur au clavier se retrouve enfermé derrière l'image.
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Photo de la sortie en plein écran"
-          onClick={() => setZoomed(null)}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault()
-              setZoomed(null)
-            }
-          }}
-          ref={(node) => node?.focus()}
-          tabIndex={-1}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 1000,
-            padding: 16,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'rgba(20,20,18,.92)',
-            cursor: 'zoom-out',
-          }}
-        >
-          <img src={zoomed} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
-          <button
-            onClick={() => setZoomed(null)}
-            aria-label="Fermer la photo"
-            style={{
-              position: 'absolute',
-              top: 8,
-              right: 8,
-              minWidth: 44,
-              minHeight: 44,
-              border: 'none',
-              background: 'none',
-              color: '#fff',
-              fontSize: 22,
-              lineHeight: 1,
-              cursor: 'pointer',
-            }}
-          >
-            ×
-          </button>
-        </div>
+      {zoomed !== null && (
+        <PhotoLightbox photos={photos} startIndex={zoomed} onClose={() => setZoomed(null)} />
       )}
     </div>
   )

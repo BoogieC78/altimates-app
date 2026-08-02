@@ -242,13 +242,15 @@ type TabId = 'info' | 'ravito' | 'hydra' | 'expenses' | 'transport' | 'photos'
 interface RandoDetailModalProps {
   rando: WithDocId<Rando>
   memberName: string
+  /** onglet ouvert à l'arrivée — la liste des sorties y entre directement par les photos */
+  initialTab?: TabId
   onClose: () => void
 }
 
 // Modal bottom-sheet du détail de rando (port de openRando), 3 onglets :
 // Infos / Ravito / Hydratation.
-export function RandoDetailModal({ rando: r, memberName, onClose }: RandoDetailModalProps) {
-  const [tab, setTab] = useState<TabId>('info')
+export function RandoDetailModal({ rando: r, memberName, initialTab = 'info', onClose }: RandoDetailModalProps) {
+  const [tab, setTab] = useState<TabId>(initialTab)
   const [showEdit, setShowEdit] = useState(false)
   const isProposer = r.proposedBy === memberName
 

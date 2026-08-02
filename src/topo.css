@@ -284,7 +284,7 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 .onb-opt-sub{font-size:9px;color:var(--ink3);margin-top:1px;font-family:var(--mono)}
 
 /* ── MODAL ── */
-.modal-wrap{display:none;position:fixed;inset:0;z-index:300;background:rgba(45,45,42,.55);align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
+.modal-wrap{display:none;position:fixed;inset:0;z-index:600;background:rgba(45,45,42,.55);align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
 .modal-wrap.open{display:flex}
 .modal{background:var(--kraft);border-radius:18px 18px 0 0;width:100%;max-width:480px;padding:16px 18px calc(32px + env(safe-area-inset-bottom));max-height:85vh;max-height:85dvh;overflow-y:auto;overscroll-behavior:contain;border-top:.5px solid var(--border2)}
 body:has(.modal-wrap.open){overflow:hidden}
@@ -583,3 +583,30 @@ button,[role="button"],a{touch-action:manipulation}
 .triage-secondary{display:flex;justify-content:center}
 .triage-link{border:none;background:none;cursor:pointer;font-size:12px;font-family:var(--mono);color:var(--ink3);padding:10px 8px}
 .triage-link:hover{color:var(--ink)}
+
+/* ── DOCUMENTS LÉGAUX ── */
+.legal-links{display:flex;flex-wrap:wrap;align-items:center;gap:0 16px;font-family:var(--mono);font-size:10px;color:var(--ink3)}
+.legal-link{border:none;background:none;cursor:pointer;font-family:var(--mono);font-size:10px;color:var(--ink3);text-decoration:underline;padding:11px 0;min-height:44px;display:flex;align-items:center}
+.legal-link:hover{color:var(--ink)}
+.legal-notice{background:var(--gold-bg);border:.5px solid var(--gold2);border-radius:var(--r);padding:8px 10px;font-family:var(--mono);font-size:10px;line-height:1.6;color:var(--gold3);margin-bottom:10px}
+.legal-meta{font-family:var(--mono);font-size:9px;color:var(--ink4);margin-bottom:12px;text-transform:uppercase;letter-spacing:.04em}
+.legal-section{margin-bottom:14px}
+.legal-heading{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:5px}
+.legal-p{font-size:12px;line-height:1.65;color:var(--ink2);margin-bottom:6px;overflow-wrap:anywhere}
+.legal-bullet{padding-left:2px}
+
+/* ── PHOTO DE PROFIL ── */
+.pp{border-radius:50%;object-fit:cover;display:block;flex-shrink:0}
+.pp-edit{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.pp-preview{width:64px;height:64px;border-radius:50%;object-fit:cover;flex-shrink:0;border:.5px solid var(--border2)}
+.pp-fallback{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--ink);color:var(--gold);font-family:var(--mono);font-size:18px;font-weight:600;flex-shrink:0}
+.av-btn .pp{width:24px;height:24px;margin-right:6px}
+.bc-avatar{width:46px;height:46px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(255,255,255,.35);margin-bottom:8px}
+
+/* ── BANDEAU PHOTOS SUR LA CARTE DE SORTIE ── */
+.rphotos{display:flex;gap:6px;padding:0 13px 10px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
+.rphotos::-webkit-scrollbar{display:none}
+.rphoto-btn{flex:0 0 auto;padding:0;border:none;background:none;cursor:zoom-in;border-radius:8px;line-height:0}
+.rphoto-btn img{width:64px;height:64px;object-fit:cover;border-radius:8px;display:block}
+.rphoto-more{flex:0 0 auto;width:64px;height:64px;border-radius:8px;border:.5px dashed var(--border2);background:var(--kraft2);color:var(--ink3);font-family:var(--mono);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.rphoto-more:hover{color:var(--ink)}

@@ -9,6 +9,7 @@ import {
   signOut as fbSignOut,
   type User,
 } from 'firebase/auth'
+import { FirebaseError } from 'firebase/app'
 import { doc, getDoc } from 'firebase/firestore'
 import { auth, db } from './app'
 
@@ -77,20 +78,35 @@ export async function fetchAllowedEmails(): Promise<string[]> {
  * Un email a-t-il accès ? Les admins passent toujours (sans lecture Firestore).
  * Les autres sont autorisés s'ils figurent dans config/allowedEmails.
  *
- * La lecture peut échouer transitoirement juste après la connexion (jeton d'auth
- * pas encore propagé) : on réessaie brièvement avant de conclure "non autorisé".
+ * Cause racine du permission-denied transitoire juste après la connexion :
+ * Firestore est notifié du nouveau jeton d'auth de façon asynchrone, donc une
+ * lecture lancée immédiatement après signIn* peut partir sans jeton (ou avec un
+ * jeton périmé) et être refusée par les règles. Plutôt qu'un retry aveugle à
+ * délai fixe, on attend l'état d'auth stable et l'émission du jeton AVANT de
+ * lire, puis on ne réessaie qu'une fois, uniquement sur permission-denied, en
+ * forçant un rafraîchissement du jeton (resynchronise le canal Firestore).
+ * Toute autre erreur (réseau, etc.) conclut "non autorisé", comme avant.
  */
 export async function isMemberEmail(email: string | null | undefined): Promise<boolean> {
   if (!email) return false
   if (isAdminEmail(email)) return true
-  for (let attempt = 0; attempt < 3; attempt++) {
+  try {
+    await auth.authStateReady()
+    await auth.currentUser?.getIdToken()
+  } catch {
+    // Jeton indisponible : la lecture ci-dessous tranchera.
+  }
+  try {
+    return (await fetchAllowedEmails()).includes(email)
+  } catch (err) {
+    if (!(err instanceof FirebaseError) || err.code !== 'permission-denied') return false
     try {
+      await auth.currentUser?.getIdToken(true)
       return (await fetchAllowedEmails()).includes(email)
     } catch {
-      await new Promise((r) => setTimeout(r, 250))
+      return false // refus persistant : réellement non autorisé (ou hors ligne)
     }
   }
-  return false
 }
 
 /** Vérifie l'appartenance et déconnecte + throw si l'email n'est pas autorisé. */

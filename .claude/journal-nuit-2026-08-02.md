@@ -1,5 +1,8 @@
 # Journal de la nuit du 2026-08-02 → 03
 
+*Versionné à dessein : sert de point de reprise si une session repart de zéro,
+et de trace de ce qui a été décidé sans Wacil éveillé.*
+
 Branche : `feat/v1-sorties`. Objectif : livrer les 3 cartes V1 en staging pour 9h.
 Autorisations données par Wacil : branche + push + staging OK, déploiement des règles
 Firestore OK, merge sur main NON (validation au réveil). Plafond ~85-90 % du quota hebdo.
@@ -18,10 +21,23 @@ branche pour voir où ça s'est arrêté, et continuer à l'étape non cochée.
 - [x] lint + 221 tests unitaires + 40 E2E + build verts en local
 - [x] Push de la branche, PR #11 ouverte (https://github.com/BoogieC78/altimates-app/pull/11)
 - [x] Commentaires Trello sur les 3 cartes
-- [ ] CI verte sur la PR (job `ci` OK, `e2e` en cours)
-- [ ] Merge sur `main` → seul chemin qui déclenche `deploy-staging` (ci.yml:66)
-- [ ] Vérification du staging (https://altimates-app-staging.vercel.app)
-- [ ] BACKLOG.md commité + rapport du matin
+- [x] CI verte sur la PR #11 (ci + e2e)
+- [x] Merge sur `main` (71ba2de) → `deploy-staging` puis `smoke-staging` : les deux verts
+- [x] Staging à jour et vérifié par les smoke tests E2E de la CI
+- [x] BACKLOG.md commité
+
+## Deuxième temps : cartes d'optimisation (branche `chore/optimisations`, PR #12)
+
+- [x] Bundle : jspdf sorti du préchargement initial (−400 kB / −130 kB gzip) — carte FYSQKIyz
+- [x] Revue de sécurité : 1 faille corrigée (photos publiables par n'importe quel membre),
+      11 points conformes — carte qeToAb2E
+- [x] Audit accessibilité des 3 nouveaux onglets : 3 constats corrigés
+- [x] Audit responsive des 3 nouveaux onglets : 0 constat, test de débordement 360px ajouté
+- [x] 8 cartes déjà résolues clôturées avec preuve (5 idées livrées, 3 optimisations)
+- [ ] Merge de la PR #12
+- [ ] **Déployer les règles Firestore APRÈS le merge** — la règle randoMedia durcie exige
+      le champ `randoDocId`, que seul le nouveau client envoie. Ordre à respecter.
+- [ ] Rapport du matin
 
 ## Précision sur le staging
 

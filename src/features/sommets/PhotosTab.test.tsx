@@ -42,6 +42,7 @@ function photo(over: Partial<WithDocId<RandoMedia>> = {}): WithDocId<RandoMedia>
   return {
     docId: 'p1',
     randoId: '1',
+    randoDocId: 'd1',
     author: 'Nordine',
     authorUid: 'uid-nordine',
     dataUrl: 'data:image/jpeg;base64,YWJj',
@@ -82,6 +83,7 @@ describe('PhotosTab', () => {
     expect(compressImage).toHaveBeenCalled()
     expect(addRandoMedia).toHaveBeenCalledWith({
       randoId: '1',
+      randoDocId: 'd1',
       author: 'Nordine',
       authorUid: 'uid-nordine',
       dataUrl: 'data:image/jpeg;base64,YWJj',
@@ -125,5 +127,28 @@ describe('PhotosTab', () => {
     render(<PhotosTab rando={rando} memberName="Wacil" />)
     expect(screen.getByLabelText('Ajouter une photo de la sortie')).toBeTruthy()
     expect(screen.getByLabelText('Supprimer la photo de Nordine')).toBeTruthy()
+  })
+})
+
+describe('PhotosTab — accessibilité de la vue plein écran', () => {
+  it('ouvre une modale annoncée, fermable au clavier', () => {
+    photos.push(photo())
+    render(<PhotosTab rando={rando} memberName="Nordine" />)
+
+    fireEvent.click(screen.getByLabelText('Agrandir la photo de Nordine'))
+    const dialog = screen.getByRole('dialog', { name: /plein écran/i })
+    expect(dialog.getAttribute('aria-modal')).toBe('true')
+
+    fireEvent.keyDown(dialog, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('propose un bouton de fermeture explicite', () => {
+    photos.push(photo())
+    render(<PhotosTab rando={rando} memberName="Nordine" />)
+
+    fireEvent.click(screen.getByLabelText('Agrandir la photo de Nordine'))
+    fireEvent.click(screen.getByLabelText('Fermer la photo'))
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 })

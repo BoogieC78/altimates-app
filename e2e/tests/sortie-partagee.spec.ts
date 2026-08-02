@@ -70,4 +70,26 @@ test.describe('Sortie partagée — dépenses, transport, photos', () => {
     // couvert par les tests de composants et par les règles Firestore.
     await expect(page.getByLabel('Ajouter une photo de la sortie')).toBeVisible()
   })
+
+  test('aucun débordement horizontal sur les nouveaux onglets en 360px', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 780 })
+    await seedRando({
+      name: 'Roche de Rame',
+      proposedBy: 'Wacil',
+      votesOui: 4,
+      memberVotes: { Wacil: 'oui', Nordine: 'oui', Ismail: 'oui', Sofia: 'oui' },
+    })
+    await login(page, { email: MEMBER_EMAIL, name: 'Wacil' })
+    await openRando(page, 'Roche de Rame')
+
+    // 360px est la largeur la plus contrainte visée par le projet, et la barre
+    // d'onglets y est passée de 3 à 6 entrées : c'est là que ça déborderait.
+    for (const onglet of [/Dépenses/, /Transport/, /Photos/]) {
+      await page.getByRole('button', { name: onglet }).click()
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      )
+      expect(overflow, `débordement horizontal sur l'onglet ${onglet}`).toBeLessThanOrEqual(0)
+    }
+  })
 })

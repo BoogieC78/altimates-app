@@ -104,3 +104,13 @@ export async function seedRando(opts: SeedRandoOptions = {}): Promise<string> {
     memberVotes: opts.memberVotes ?? { [proposedBy]: 'oui' },
   })
 }
+
+/**
+ * Écrit users/{uid}.profile.name via le SDK Admin (donc sans passer par les
+ * règles). Indispensable aux tests qui vérifient les règles indexées sur le
+ * prénom : `memberName()` lit ce document, un membre sans profil ne correspond
+ * à aucun prénom.
+ */
+export async function seedUserProfile(uid: string, name: string): Promise<void> {
+  await db().collection('users').doc(uid).set({ profile: { name } }, { merge: true })
+}

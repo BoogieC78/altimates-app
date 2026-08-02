@@ -38,7 +38,7 @@ export function PhotosTab({ rando: r, memberName }: { rando: WithDocId<Rando>; m
     setBusy(true)
     try {
       const dataUrl = await compressImage(file)
-      await addRandoMedia({ randoId, author: memberName, authorUid: user.uid, dataUrl })
+      await addRandoMedia({ randoId, randoDocId: r.docId, author: memberName, authorUid: user.uid, dataUrl })
     } catch (e) {
       // Message lisible plutôt qu'un échec silencieux : sur mobile, une photo
       // refusée sans explication laisse croire que l'app est cassée.
@@ -124,21 +124,39 @@ export function PhotosTab({ rando: r, memberName }: { rando: WithDocId<Rando>; m
                   onClick={() => void removeRandoMedia(p.docId).catch((e) => console.warn('removeRandoMedia:', e))}
                   aria-label={`Supprimer la photo de ${p.author}`}
                   style={{
+                    // 44×44 : cible tactile minimale. Le fond visible reste petit
+                    // (le bouton est transparent sur ses bords) pour ne pas manger
+                    // la vignette, mais la zone cliquable respecte le seuil.
                     position: 'absolute',
-                    top: 4,
-                    right: 4,
-                    minWidth: 28,
-                    minHeight: 28,
-                    borderRadius: 14,
+                    top: -6,
+                    right: -6,
+                    minWidth: 44,
+                    minHeight: 44,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     border: 'none',
-                    background: 'rgba(45,45,42,.72)',
+                    background: 'none',
                     color: '#fff',
-                    fontSize: 13,
+                    fontSize: 15,
                     lineHeight: 1,
                     cursor: 'pointer',
                   }}
                 >
-                  ×
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 26,
+                      height: 26,
+                      borderRadius: 13,
+                      background: 'rgba(45,45,42,.78)',
+                    }}
+                  >
+                    ×
+                  </span>
                 </button>
               )}
             </figure>
@@ -147,21 +165,55 @@ export function PhotosTab({ rando: r, memberName }: { rando: WithDocId<Rando>; m
       )}
 
       {zoomed && (
-        <button
+        // Vue plein écran : c'est une modale, elle en respecte donc le contrat —
+        // sémantique dialog, focus déplacé dessus à l'ouverture, Escape ferme.
+        // Sans ça, un utilisateur au clavier se retrouve enfermé derrière l'image.
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Photo de la sortie en plein écran"
           onClick={() => setZoomed(null)}
-          aria-label="Fermer la photo"
+          onKeyDown={(e) => {
+            if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              setZoomed(null)
+            }
+          }}
+          ref={(node) => node?.focus()}
+          tabIndex={-1}
           style={{
             position: 'fixed',
             inset: 0,
             zIndex: 1000,
-            border: 'none',
             padding: 16,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             background: 'rgba(20,20,18,.92)',
             cursor: 'zoom-out',
           }}
         >
-          <img src={zoomed} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', margin: '0 auto', display: 'block' }} />
-        </button>
+          <img src={zoomed} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+          <button
+            onClick={() => setZoomed(null)}
+            aria-label="Fermer la photo"
+            style={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              minWidth: 44,
+              minHeight: 44,
+              border: 'none',
+              background: 'none',
+              color: '#fff',
+              fontSize: 22,
+              lineHeight: 1,
+              cursor: 'pointer',
+            }}
+          >
+            ×
+          </button>
+        </div>
       )}
     </div>
   )

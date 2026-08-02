@@ -102,16 +102,26 @@ service cloud.firestore {
             : request.resource.data.member == memberName()));
     }
 
-    // Photos post-rando : lecture pour tous les membres, écriture réservée à
-    // l'auteur du document (vérifié sur l'uid, pas sur le prénom qui n'est pas
-    // une identité). Le filtrage "organisateur de la rando" se fait côté client :
-    // les règles ne peuvent pas retrouver la rando par son id métier sans get()
-    // coûteux, mais l'uid garantit qu'on n'écrit jamais au nom d'un autre.
+    // Photos post-rando : lecture pour tous les membres. À la création, TROIS
+    // conditions sont vérifiées ici et pas seulement dans l'UI — masquer un
+    // bouton ne protège rien :
+    //  1. l'auteur déclaré est bien l'appelant (uid, jamais le prénom qui n'est
+    //     pas une identité et peut être usurpé) ;
+    //  2. seul l'organisateur de la rando (ou un admin) peut publier — le doc
+    //     porte `randoDocId` précisément pour rendre ce get() possible, l'id
+    //     métier `randoId` ne permettant pas d'adresser le document ;
+    //  3. la charge est bien une image, et sous la taille maximale — sinon la
+    //     collection devient un espace de stockage libre pour tout membre.
     match /randoMedia/{doc} {
       allow read: if isMember();
       allow create: if isMember()
         && request.resource.data.authorUid == request.auth.uid
-        && request.resource.data.dataUrl.size() < 400000;
+        && request.resource.data.dataUrl is string
+        && request.resource.data.dataUrl.matches('^data:image/.*')
+        && request.resource.data.dataUrl.size() < 400000
+        && (isAdmin()
+          || (exists(/databases/$(database)/documents/randos/$(request.resource.data.randoDocId))
+            && get(/databases/$(database)/documents/randos/$(request.resource.data.randoDocId)).data.get('proposedBy', '') == memberName()));
       allow delete: if isMember()
         && (resource.data.authorUid == request.auth.uid || isAdmin());
       allow update: if false;

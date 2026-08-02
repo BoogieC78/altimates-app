@@ -236,6 +236,13 @@ export interface TransportDoc {
 export interface RandoMedia {
   /** id métier de la rando (String(rando.id)) */
   randoId: string
+  /**
+   * id du DOCUMENT rando. Redondant avec randoId côté app, mais indispensable
+   * aux règles Firestore : elles ne savent pas requêter, seulement adresser un
+   * document par son id — c'est ce qui permet de vérifier côté serveur que
+   * l'auteur est bien l'organisateur de la sortie.
+   */
+  randoDocId: string
   /** prénom du membre qui a posté (profile.name) */
   author: string
   /** uid Firebase de l'auteur — c'est lui que les règles vérifient, pas le prénom */

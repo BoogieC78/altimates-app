@@ -5,10 +5,9 @@ description: Lit, exécute et met à jour les tâches du board Trello "ALTImates
 
 # Board Trello ALTImates — Backlog
 
-Board : https://trello.com/b/3qpIIJxH ("ALTImates — Backlog"). C'est la vue *travail au
-quotidien* du backlog ; [`BACKLOG.md`](../../../BACKLOG.md) à la racine du repo reste la
-**source de référence versionnée**. Les deux doivent rester synchronisés — voir
-"Discipline de synchro" plus bas.
+Board : https://trello.com/b/3qpIIJxH ("ALTImates — Backlog"). **C'est LA source de vérité**
+(règle posée par Wacil le 2026-07-30). [`BACKLOG.md`](../../../BACKLOG.md) à la racine du repo
+n'en est qu'un **miroir versionné**, régénéré depuis l'API — voir "Discipline de synchro" plus bas.
 
 Ce skill couvre le quotidien : lire le board, prendre une carte, en créer une, la clôturer.
 Trois skills complémentaires s'appuient sur celui-ci pour les opérations en lot :
@@ -120,8 +119,8 @@ curl -s "https://api.trello.com/1/cards/$CARD_ID?key=$KEY&token=$TOKEN&checklist
    DONE_LIST=$(jq -r '.doneListId // "6a5137d2368e8b0689574844"' .claude/trello.local.json 2>/dev/null || echo "6a5137d2368e8b0689574844")
    curl -sS -X PUT "https://api.trello.com/1/cards/$CARD_ID?key=$KEY&token=$TOKEN&idList=$DONE_LIST&dueComplete=true"
    ```
-7. **Mettre à jour `BACKLOG.md`** en conséquence (déplacer l'item vers la section "✅ Déjà fait",
-   avec la même granularité que ce qui existe déjà dans ce fichier). Voir "Discipline de synchro".
+7. **Régénérer `BACKLOG.md`** depuis le board (voir "Discipline de synchro") — ne pas éditer le
+   markdown à la main, il est reconstruit depuis l'API.
 
 ## Ajouter une nouvelle carte
 
@@ -136,19 +135,33 @@ curl -sS -X POST "https://api.trello.com/1/cards" \
   --data-urlencode "desc=<contexte : pourquoi, fichiers concernés, lien vers la conversation/PR si pertinent>"
 ```
 
-Choisis la liste selon la nature (bug → 🐞, dette technique → ⚡, nice-to-have → ✨). Ajoute la
-même entrée dans `BACKLOG.md` au même moment, pas seulement sur Trello (source de référence).
+Choisis la liste selon la nature (bug → 🐞, dette technique → ⚡, nice-to-have → ✨). La carte
+créée, régénère `BACKLOG.md` pour que le miroir reste fidèle.
 
-## Discipline de synchro Trello ↔ BACKLOG.md
+## Discipline de synchro Trello → BACKLOG.md
 
-- `BACKLOG.md` est **versionné** (revu en PR, historique git) → c'est la source de vérité en
-  cas de divergence.
-- Trello est la **vue de travail** (checklist interactive, déplacement visuel, commentaires de
-  progression) → pratique au quotidien mais pas versionné.
-- Toute tâche ajoutée/terminée/reformulée d'un côté doit être répercutée de l'autre **dans la
-  même session** — ne laisse jamais les deux diverger silencieusement plus d'une conversation.
-- Si l'utilisateur ne mentionne que Trello ("j'ai ajouté une carte X"), va la lire via l'API et
-  répercute-la dans `BACKLOG.md` toi-même plutôt que d'attendre qu'il te la redécrive.
+**Le sens est à sens unique : Trello fait foi, `BACKLOG.md` suit.** (Règle posée par Wacil le
+2026-07-30 ; avant cette date le skill disait l'inverse, d'où une divergence de plusieurs cartes.)
+
+- En cas de divergence : **corriger la carte Trello**, puis régénérer `BACKLOG.md`. Ne jamais
+  résoudre l'écart en éditant le markdown à la main.
+- `BACKLOG.md` garde sa valeur : versionné, relisible en PR, consultable hors ligne, et il
+  survit à une panne d'API Trello. Mais ce n'est plus lui qui arbitre.
+- Régénération (une liste = une section, une carte = une entrée avec son lien court) :
+
+```bash
+KEY=$(jq -r '.key' .claude/trello.local.json); TOKEN=$(jq -r '.token' .claude/trello.local.json)
+curl -sS -G "https://api.trello.com/1/boards/3qpIIJxH/lists" \
+  --data-urlencode "key=$KEY" --data-urlencode "token=$TOKEN" \
+  --data-urlencode "cards=open" --data-urlencode "card_fields=name,desc,dueComplete,shortUrl" \
+  --data-urlencode "fields=name" > /tmp/board.json
+# puis générer le markdown depuis /tmp/board.json (cf. en-tête de BACKLOG.md)
+```
+
+- Les listes ouvertes sont rendues avec la **description complète** de chaque carte ; "✅ Déjà
+  fait" se contente des titres et des liens (60+ cartes, le détail vit sur les cartes).
+- Après toute création/déplacement/clôture de carte dans une session : **régénérer et commiter**
+  `BACKLOG.md` avant de terminer.
 
 ## Chiffrage / priorisation (futur)
 

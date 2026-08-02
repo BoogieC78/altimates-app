@@ -1,287 +1,387 @@
 # Backlog ALTImates
 
-Tâches reportées et pistes d'optimisation. Cochez au fur et à mesure.
-Dernière mise à jour : 2026-08-02 (v0.4.0 en prod ; PR #14 en staging).
+> **Miroir du board Trello.** La source de vérité est le board
+> [ALTImates — Backlog](https://trello.com/b/3qpIIJxH) : ce fichier en est le reflet versionné,
+> régénéré depuis l'API à chaque synchro. En cas de divergence, **c'est Trello qui fait foi** —
+> corriger la carte, puis régénérer ce fichier. Ne jamais résoudre un écart en éditant ce
+> markdown à la main : la prochaine régénération l'écraserait. Voir le skill `trello-kanban`.
+>
+> Chaque entrée porte le lien de sa carte, pour retrouver commentaires et historique.
+
+Dernière synchro : 2026-07-30.
 
 ---
 
-## 🔧 En attente d'une action manuelle (config / accès)
+## 🔧 Config manuelle (5)
 
-### E-mail de connexion personnalisé (fonction déjà codée, en attente des secrets)
-Le code est en prod ([api/send-signin-link.ts](api/send-signin-link.ts) + [api/_email.ts](api/_email.ts)),
-avec **repli automatique** sur le mail Firebase par défaut tant que ce n'est pas configuré.
+### [E-mail de connexion personnalisé — secrets à configurer (Brevo)](https://trello.com/c/mKsewYrP)
 
-Envoi via **API Brevo** (pas SMTP Gmail — 2FA refusée par Wacil, App Password Gmail impossible
-sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
+Pivot Gmail SMTP -> API Brevo (2FA refusée sur Contact.altimates@gmail.com, App Password Gmail impossible sans elle). Code déjà en prod (api/send-signin-link.ts, api/_email.ts), repli auto sur mail Firebase tant que non configuré. Voir BACKLOG.md section config manuelle.
 
-- [x] Créer une adresse e-mail dédiée à l'envoi — `Contact.altimates@gmail.com`.
-- [ ] Créer un compte **Brevo** (https://www.brevo.com) avec cette adresse.
-- [ ] Vérifier l'expéditeur dans Brevo (Settings → Senders, e-mail de confirmation à cliquer —
-  pas de 2FA, pas de domaine requis).
-- [ ] Récupérer la **clé API** Brevo (Settings → SMTP & API → API Keys → Generate a new API key).
-- [ ] Générer la **clé de compte de service Firebase** (Console → Paramètres → Comptes de service → Générer une clé privée).
-- [ ] Ajouter les **3 variables d'env Vercel** (Production + Preview) puis **redéployer** :
-  - `FIREBASE_SERVICE_ACCOUNT` = le JSON complet de la clé de service
-  - `BREVO_API_KEY` = la clé API Brevo
-  - `BREVO_SENDER_EMAIL` = `Contact.altimates@gmail.com`
-- [ ] Test de bout en bout : demander un lien depuis l'app → vérifier réception du **mail ALTImates stylé** en boîte de réception.
+### [Staging : supprimer le SSO Vercel (tester sans se reconnecter)](https://trello.com/c/6KA850Mg)
 
-### Firebase / divers
-- [ ] Renseigner le **Nom public** du projet Firebase = `ALTImates` (Console → Paramètres du projet → Nom public).
-  Améliore les mails de repli et l'écran OAuth Google.
+**Objectif** : ne plus avoir à se connecter à Vercel à chaque test sur https://altimates-app-staging.vercel.app
 
-### Prérequis V2 premium (GPX + cartes IGN) — carte Trello 3Umpcb2X
-- [ ] **Plan Firebase Blaze** (CB + alerte budget ~5 €) — stockage des GPX.
-- [ ] **Compte Stripe** (mode test, clés dans les env Vercel, jamais dans le repo).
-- [ ] **Licence IGN SCAN 25** (offre pro Géoplateforme) — facultatif au lancement, Plan IGN v2 (libre) suffit.
+**Pourquoi pas d'auto-login dev sur staging** : le staging utilise la base Firebase de PROD (mêmes données). L'auto-login déployé = accès admin public aux vraies données. Interdit par les invariants sécurité du projet.
 
----
+**La bonne solution (2 clics)** : désactiver la protection Vercel sur les previews.
+1. https://vercel.com/altimates/altimates-app/settings/deployment-protection
+2. Vercel Authentication → passer de « Standard Protection » à « Only Production » (ou « Disabled »)
+3. Sauvegarder
 
-## 🐞 Bugs à corriger
+**Résultat** : staging accessible directement. L'app garde son propre login Google (whitelist membres) — tu te connectes UNE fois, la session Firebase persiste dans le navigateur. Même niveau de sécurité que la prod (qui est déjà publique avec ce même login).
 
-- [x] **Membres affichés « Anonyme »** — connexion lien e-mail sans displayName : fallback 'Anonyme'
-  persisté par l'onboarding Kit. Fix : modal prénom obligatoire au premier login, 'Anonyme' traité
-  comme absent, email/displayName persistés dans users/{uid}. Livré prod v0.3.3 (2026-07-17,
-  carte Trello FMl7ZRjm).
-- [x] **Header : avatar « AN » incompréhensible** — prénom complet affiché en pastille dans le
-  header (retour Adebola). Livré prod 2026-07-17 (carte Trello jGR5Kq1F).
-- [x] **Dépenses : écart de 2 centimes entre membres** (2026-08-02, PR #14) — `splitAmount`
-  donnait le reste de la division toujours aux **premiers** bénéficiaires : sur plusieurs
-  dépenses, les mêmes personnes cumulaient les centimes en trop (21,44 € contre 21,42 € pour
-  une part identique, sur 90 € + 60 € partagés à 7). `computeBalances` mémorise désormais le
-  surplus déjà attribué et donne le centime suivant à qui en a le moins reçu.
-  Carte Trello XViB86aS.
-- [x] **Dépense/transport refusés en silence pour un membre connecté par Google** (2026-08-02,
-  PR #14) — un login Google n'écrit jamais `profile.name` (la modale de prénom ne s'affiche pas,
-  le displayName existe), or les règles Firestore identifient l'auteur **par ce champ**.
-  L'écriture était refusée et l'échec partait en `console.warn` : bouton apparemment inerte,
-  saisie perdue. Le prénom affiché est maintenant adopté en base dès la connexion, et un refus
-  d'enregistrement s'affiche.
-- [ ] **Bugs Base Camp** — signalés (« il y a des bugs ») mais pas encore détaillés.
-  → À faire : lister précisément les symptômes (captures) puis corriger.
-- [x] **Kit : popup info article tronquée** — livré prod v0.3.1 (2026-07-15).
-- [x] **Barre de navigation : position instable** — livré prod v0.3.1.
-- [x] **Sommets : popups détail trek / hydratation tronquées** — livré prod v0.3.1 (z-index, dvh, portal).
-- [x] **Popup rando délavée (sorties passées) + barre Proposer par-dessus** — livré prod v0.3.1 (portal + barre 480px masquée sous modale).
-- [x] **Kit : logos marchands absents (CSP)** — livré prod v0.3.1 (img-src *.gstatic.com).
-- [x] **Dates au format JJ/MM/AAAA** — livré prod v0.3.1 (composant DateField).
+**Alternative sans toucher au réglage** : Vercel > deployment > menu ⋯ > Share → lien partageable qui bypasse le SSO.
+
+### [Configurer les secrets Vercel dans GitHub Actions](https://trello.com/c/cgDN7iPJ)
+
+**Problème** : le job deploy-staging du pipeline GitHub Actions échoue — aucun secret configuré dans le repo (« gh secret list » vide). Tant que non fait : pas de déploiement staging automatique après push sur main, pas d'approbation prod depuis l'onglet Actions. (Le staging du 15/07 a été déployé à la main via CLI Vercel locale.)
+
+**À faire — 4 secrets dans GitHub** (repo BoogieC78/altimates-app > Settings > Secrets and variables > Actions > New repository secret) :
+
+1. **VERCEL_TOKEN** — à générer : https://vercel.com/account/settings/tokens > Create Token (scope : team altimates, expiration : No Expiration ou 1 an). Copier la valeur immédiatement.
+2. **VERCEL_ORG_ID** — valeur : team_eN8LH1WWtK0aoku1wneXdPdM
+3. **VERCEL_PROJECT_ID** — valeur : prj_e5C0TNRoPMjcTyQOGRl9TwFOo75n
+4. **VERCEL_AUTOMATION_BYPASS_SECRET** — sur https://vercel.com/altimates/altimates-app/settings/deployment-protection > section « Protection Bypass for Automation » > Add secret, puis copier la valeur. (Sert aux smoke tests E2E contre le staging protégé. Si tu désactives le SSO via l'autre carte, ce secret reste utile mais non bloquant.)
+
+**Vérification** : relancer le run CI raté (Actions > run « fix(ui): popups tronquées… » > Re-run failed jobs) — deploy-staging doit passer au vert, puis smoke-staging, puis attente d'approbation prod.
+
+Cf. skill environnements + BACKLOG.md pour le détail du pipeline.
+
+### [Prérequis V2 premium : Blaze + Stripe + licence IGN](https://trello.com/c/3Umpcb2X)
+
+## Contexte
+Le projet V2 premium (GPX + cartes IGN) exige trois démarches que seul Wacil peut faire. Tout le développement des cartes « Mode payant » et « Base GPX + cartes IGN » est bloqué ou dégradé tant que ce n'est pas fait.
+
+## Actions
+- [ ] **Plan Firebase Blaze** : ajouter une CB dans la console Firebase (stockage des GPX + marge sur Firestore). Configurer une alerte budget (ex. 5 €) dès l'activation.
+- [ ] **Compte Stripe** : créer le compte, activer le mode test, récupérer les clés (test + live) et les mettre dans les env Vercel (voir skill environnements — jamais dans le repo).
+- [ ] **Licence IGN SCAN 25** : contacter l'IGN (offre professionnelle Géoplateforme) pour la diffusion du SCAN 25 dans un service payant : conditions, tarifs, quotas. Sans contrat → on reste sur Plan IGN v2 (libre), qui suffit pour lancer.
+
+## Ordre
+Blaze et Stripe débloquent le dev ; la licence IGN peut arriver après (le proxy tuiles démarre sur Plan IGN v2).
+
+### [Firebase : renseigner le Nom public du projet = ALTImates](https://trello.com/c/JiKOzqH8)
+
+Console Firebase → Paramètres du projet → Nom public → saisir `ALTImates`.
+
+Améliore les e-mails de repli (quand Brevo n'est pas configuré) et l'écran de consentement OAuth Google, qui affichent sinon l'identifiant technique du projet.
+
+Action manuelle, seul Wacil a les accès. Remonté depuis BACKLOG.md le 30/07/2026.
 
 ---
 
-## ⚡ Optimisations techniques
+## 🐞 Bugs à corriger (2)
 
-- [x] **Chargement initial allégé** (2026-08-02, PR #12) : le groupe de chunks nommé `jspdf` dans
-  `vite.config.ts` remontait la librairie dans le graphe initial — `index.html` la préchargeait,
-  soit ~400 kB (130 kB gzip) téléchargés à l'ouverture pour un usage limité à l'export PDF du kit.
-  Groupe supprimé → chunk asynchrone chargé au clic. Test E2E sur le téléchargement du PDF.
-  Carte Trello FYSQKIyz.
-- [x] **Revue de sécurité auth + serverless** (2026-08-02, PR #12) : 1 faille moyenne trouvée et
-  corrigée (photos publiables sur n'importe quelle sortie — restriction organisateur uniquement
-  côté client, désormais dans les règles via `randoDocId` + vérification de l'uid + charge
-  restreinte aux `data:image/`), 11 points conformes. Carte Trello qeToAb2E.
-- [x] **Cartes déjà résolues, clôturées après vérification** (2026-08-02) : `useMemberName` réactif
-  (fait le 2026-07-17 par le commit 46233db), rate-limiting de `send-signin-link` (déjà branché via
-  `api/_ratelimit.ts`), gate CI → Vercel (auto-deploy coupé dans `vercel.json`, prod sous
-  approbation manuelle). Cartes E8kNnM7k, kh7mcscm, ysayNGLC.
-- [ ] **Reset des émulateurs E2E : fuite d'un document entre fichiers de specs.** Constaté le
-  2026-08-02 : une rando seedée par `sommets.spec.ts` réapparaissait dans un test de
-  `sortie-partagee.spec.ts` malgré le `resetEmulators()` du `beforeEach`, cassant un locator en
-  strict mode (2 cartes homonymes). Contourné en donnant des noms de randos distincts par fichier,
-  mais la cause (suppression asynchrone côté émulateur Firestore ?) reste ouverte — tant qu'elle
-  l'est, toute réutilisation d'un même nom de fixture entre specs est un flake en puissance.
-  Deuxième manifestation le 2026-08-02 : les **comptes Auth** fuient aussi. Un e-mail déjà utilisé
-  par un autre spec y existe comme compte Google (fédéré), sur lequel `signInWithPassword` échoue —
-  d'où les adresses dédiées `*.test@altimates.test` de `photos-securite.spec.ts`. Règle pratique
-  en attendant le correctif : **un spec sensible à l'état = ses propres e-mails et ses propres
-  noms de randos**.
-  Atténué le 2026-08-02 (PR #14) : `resetEmulators()` attend maintenant que la suppression soit
-  réellement visible avant de rendre la main — l'endpoint de reset répondait 200 avant que les
-  documents aient disparu des lectures. La fuite subsiste néanmoins par moments : un spec qui
-  parle d'UNE sortie doit cadrer ses locators sur elle plutôt que supposer la liste vide.
+### [Dépenses : écart de 2 centimes entre membres](https://trello.com/c/XViB86aS)
 
-- [ ] **Code-splitting `jspdf` + `html2canvas`** (~600 kB) : ne sont utiles que pour l'export PDF du kit.
-  Les charger en `import()` dynamique à la demande → bundle initial nettement allégé.
-  (Le build affiche déjà l'avertissement « chunks > 500 kB ».)
-- [x] **`useMemberName` réactif** — passé en `onSnapshot` avec le fix « Anonyme » (commit 46233db).
-  Impacte aussi la section « Prochaine sortie » du Base Camp (clé de vote = `memberName` vs `profile.name`).
-- [x] **Gate CI → déploiement Vercel** — fait (juillet 2026) : auto-deploy Vercel désactivé sur `main`,
-  pipeline GitHub Actions ci+e2e → staging (https://altimates-app-staging.vercel.app, SSO Vercel) →
-  smoke E2E → approbation manuelle (environnement GitHub `production`) → prod. Voir skill `mise-en-prod`.
-- [x] **Rate-limiting** basique sur [api/send-signin-link.ts](api/send-signin-link.ts) (anti-abus d'envoi) —
-  fait à l'audit pré-prod 2026-07 via [api/_ratelimit.ts](api/_ratelimit.ts) (3/15 min par e-mail, 10/h par IP).
-- [x] **Revue de sécurité** sur le flux d'auth et la fonction serverless — audit complet pré-prod 2026-07 :
-  lecture `config/allowedEmails` restreinte aux membres, `safeExternalUrl()` sur les URLs de traces,
-  headers sécurité (CSP/HSTS) dans [vercel.json](vercel.json). Invariants documentés dans le skill `security-check`,
-  checklist de déploiement dans le skill `mise-en-prod`.
-- [ ] **`isMemberEmail` retry** ([src/core/firebase/auth.ts](src/core/firebase/auth.ts)) : le retry sur échec
-  de lecture `config/allowedEmails` est un contournement — revoir si une meilleure approche existe.
+## Contexte
+Jeu d'essai de Wacil : 150,00 € en deux dépenses (90 € + 60 €) partagées entre 7 personnes. Les soldes affichent 21,42 € / 21,43 € / **21,44 €** — un écart de 2 centimes, alors qu'une répartition au centime près ne devrait jamais dépasser 1 centime d'écart.
+
+## Cause
+`splitAmount()` (src/core/services/expenses.ts) donne systématiquement le reste de la division aux **premiers** bénéficiaires. Sur plusieurs dépenses, les mêmes personnes cumulent donc les centimes en trop : 9000c/7 → 5 premiers +1c ; 6000c/7 → le 1er +1c. Le bénéficiaire n°1 prend +2c.
+
+## Objectif
+L'écart maximal entre deux membres ayant la même part reste de 1 centime, quel que soit le nombre de dépenses. La somme des soldes reste exactement nulle.
+
+## Pistes techniques
+src/core/services/expenses.ts — répartir le reste dans `computeBalances` en tenant compte du surplus déjà attribué à chaque personne (les centimes vont à ceux qui en ont le moins reçu jusque-là), plutôt qu'aux premiers indices.
+
+## Critères d'acceptation
+- [ ] Sur le jeu d'essai 90+60 € / 7 pers., les parts ne prennent que deux valeurs : 21,42 et 21,43
+- [ ] Somme des soldes = 0 (test unitaire)
+- [ ] Test de non-régression sur plusieurs dépenses successives
+
+### [Base Camp : bugs signalés mais non détaillés](https://trello.com/c/sCP4WUxO)
+
+Wacil a signalé « il y a des bugs » sur le Base Camp, sans plus de détail. Rien n'est reproductible en l'état.
+
+**À faire** : lister précisément les symptômes (captures d'écran annotées), puis corriger. Écrire le test de régression avant ou en même temps que le fix (cf. skill e2e-playwright).
+
+Remonté depuis BACKLOG.md le 30/07/2026 : l'item y vivait depuis des semaines sans carte correspondante. Maintenant que Trello fait foi, il lui fallait une carte pour ne pas disparaître à la régénération du fichier.
 
 ---
 
-## ✨ Améliorations / plus tard
+## ⚡ Optimisations techniques (3)
 
-- [x] **Refonte kit v0.3.10** (2026-07-31, prod) — retours groupe du 30/07 :
-  - **Formule complétion corrigée** : % complet = possédés / (possédés + à acheter), skip et
-    réfléchir hors dénominateur et hors budget (carte Trello 2x5vn0jD).
-  - **Triage express** (variante A choisie sur maquettes) : kit vierge → onboarding puis une
-    carte par article, réponse obligatoire (J'ai / À acheter / Pas besoin), sortie libre via
-    « Voir la liste » ; boutons « Trier (N) » et « Tout retrier » (sans toggle destructif) ;
-    « Réinitialiser mon kit » (resetKit ciblé via deleteField, stats de sorties conservées).
-    Cartes YPCdBcY0, 3Uw6B33t.
-  - **Fix reset→trek** : condition d'ouverture du triage réévaluée à chaque rendu (verrou pris
-    sur un rendu périmé avant l'écho onSnapshot du reset). Carte GMkpUySj.
-  - E2E kit : emails dédiés par test sensible à l'état (fuite d'uid partagé entre tests).
-- [x] **Mentions légales, confidentialité et conditions d'utilisation** (2026-08-02, PR #14) :
-  les trois documents sont consultables avant la connexion (pied de page de l'écran de login) et
-  depuis le Base Camp. **Textes provisoires** rédigés d'après ce que fait réellement l'app, à
-  remplacer par les documents définitifs — tout le contenu est dans
-  [src/features/legal/legalContent.ts](src/features/legal/legalContent.ts), et ce qui reste à
-  renseigner (identité de l'éditeur, adresse de contact) y est marqué « [à compléter] ».
-  Carte Trello sWjOeJvt.
-- [x] **Photos mises en avant sur la carte de sortie** (2026-08-02, PR #14) : bandeau de vignettes
-  dans la liste des Sommets, plein écran en un seul clic depuis la liste, navigation
-  précédent/suivant au clic et au clavier. Visionneuse partagée avec l'onglet Photos
-  (`PhotoLightbox`). Un seul abonnement à `randoMedia` pour toute la page. Carte Trello 81Xozrb7.
-- [x] **Photo de profil des membres** (2026-08-02, PR #14) : ajout/remplacement/retrait depuis
-  « Modifier mon profil » ; affichée dans le header, le Base Camp et la Cordée, repli sur les
-  initiales colorées. Data URL compressée (carré 256 px, ~40 Ko) faute de Storage ; les règles
-  Firestore plafonnent la taille et exigent un préfixe `data:image` sur `users/{uid}`.
-  Carte Trello 6OJ9Cq7h.
-- [ ] **Nom de domaine** (ex. `altimates.fr`, ~10 €/an) → délivrabilité e-mail « pro » (SPF/DKIM),
-  arrivée en boîte principale garantie, et adresse d'envoi propre.
-- [ ] **Version riche du mail de connexion** : une fois le domaine pris, remplacer le bandeau texte par le
-  design topographique complet (image hébergée). Aperçu de référence déjà conçu (bandeau topo + ligne de crête).
-- [x] **Onglet Fenêtre** : calendrier de disponibilités de la cordée (chacun renseigne ses jours ;
-  l'app calcule les meilleures fenêtres communes). Livré en **staging** le 2026-07-15 (commit 61ad023,
-  règles Firestore déployées) — passé en **PRODUCTION** avec la release v0.3.9 le 2026-07-30.
-  Carte Trello ZYp4GMYV.
-- [x] **Audit accessibilité / responsive** de l'app — 2 audits complets menés le 2026-07-19
-  (a11y WCAG 2.1 AA : 34 constats ; responsive mobile 360–430px : 29 constats) puis corrections :
-  modales accessibles (dialog/focus trap/Escape), labels/aria-pressed partout, contrastes,
-  focus visible, safe-area iPhone, inputs 16px anti-zoom iOS, nav 8 onglets en 360px,
-  0 débordement horizontal vérifié à 360/375/430px. Passé en **PRODUCTION** avec la release
-  v0.3.9 le 2026-07-30. Cartes Trello 6a5cc983e49b9df519f8efca (a11y) et
-  6a5cc983aed8b84ea7109036 (responsive). Note : vote « Pas partant » passé de 🇨🇳 à ❌.
-- [x] **Kit : poids du sac estimé** — chaque article de `gear.ts` porte désormais une fourchette
-  `weight` en grammes ; le bloc en-tête du Kit affiche le poids total du sac, recalculé
-  dynamiquement comme le budget (tous les articles sauf ceux marqués « Skip »). Poids repris
-  aussi dans l'export PDF et l'e-mail du kit. Livré en **PRODUCTION** v0.3.9 le 2026-07-30
-  (carte Trello EBJHNtpY).
-- [x] **Kit : reclassement d'articles** (2026-07-30, prod v0.3.9) — cuillère trek pliable et oreiller
-  gonflable passés en **Indispensables** côté trek (l'oreiller reste absent du kit journée).
-  La protection solaire était déjà en Recommandés dans les deux modes : aucun changement.
-- [x] **CI : un seul déploiement prod en attente à la fois** — 9 runs non approuvés s'étaient
-  empilés sur l'environnement `production` (dont certains du 17/07). Une file qui grossit est un
-  piège : approuver plusieurs runs les déploie dans l'ordre de fin des jobs, donc un vieux run
-  terminé en dernier réécrit les alias prod ET staging (rollback silencieux du 17/07, v0.3.4 a
-  écrasé v0.3.5). Correctif : `concurrency: {group: deploy-production, cancel-in-progress: true}`
-  dans [ci.yml](.github/workflows/ci.yml) — un nouveau push annule le run encore en attente.
-  Les 8 runs périmés ont été purgés. Gate humaine inchangée. Commit b6cf451, carte Trello OoSJG7rp.
-- [x] **Poids : distinguer le porté-sur-soi du porté-dans-le-sac** — fait 2026-07-30 : drapeau
-  `worn` sur `GearItem` (chaussures, bâtons, t-shirt, chaussettes, boxer mérinos, casquette),
-  exclus du total, avec un astérisque sous le chiffre qui nomme ce qui est retiré.
-- [x] **Kit : références produit réelles** — chaque article porte désormais une référence
-  Decathlon nommée + son lien. Les poids sont repris de la fiche technique quand elle a pu
-  être trouvée ; les articles sans référence unique (consommables, accessoires génériques)
-  gardent un ordre de grandeur, marqué `weightEstimated: true` dans `gear.ts`.
-- [ ] **Poids : compléter les fiches manquantes** — les articles encore en `weightEstimated`
-  (chaussures, bâtons, chaussettes, serviette, poncho, power bank, solaire, crampons, savon,
-  adaptateurs gaz, consommables) attendent un poids constaté. Decathlon renvoie un 403 au
-  scraping : à relever à la main en magasin/sur fiche produit.
-- [ ] **Staging isolé** : projet Firebase dédié (données de test seedées) + auto-login compte de test
-  en preview uniquement — permet de tester sans connexion, sans risque prod. Carte Trello détaillée.
-- [x] **Rando : votes ✅ Partant / 🤔 Peut-être / 🇨🇳 Pas partant** — livré prod v0.3.1.
-- [x] **Idées : vue Kanban supprimée** (remplacée par le board Trello) — livré prod v0.3.1.
-- [x] **Admin : modifier/supprimer n'importe quelle rando** — livré prod v0.3.1.
-- [x] **Trello : une carte par idée de l'onglet Idées** — fait 2026-07-15 (7 idées importées depuis Firestore).
-- Idées du groupe (importées sur Trello 2026-07-15) : filtrer randos par dénivelé max (Thomas ▲3),
-  électrolytes/minéraux (Wacil), ravito qui-ramène-quoi (Wacil), anciennes sorties → XP (Wacil),
-  éditer une idée soumise (Wacil), cost simulator Tricount (Nordine), section photos (Sofia ▲5).
-- [x] **Photos post-rando (organisateur)** : l'organisateur (`proposedBy`) ou un admin partage
-  jusqu'à 6 photos compressées côté client (JPEG 1280px, ≤ 200 Ko) stockées en data URL dans
-  Firestore — décision actée : pas de plan Blaze/Storage, vidéos hors périmètre. Collection
-  `randoMedia`, règles sur l'`authorUid` (jamais le prénom) + plafond de taille. Développé le
-  2026-08-02 sur `feat/v1-sorties` (PR #11), **pas encore mergé ni déployé**. Carte Trello Y60EbMBD.
-- [x] **Tricount des dépenses par sortie** : saisie des frais avancés (lyophilisés, essence,
-  refuge…), soldes par personne au centime, remboursements en ≤ N-1 virements — sans intégration
-  de paiement. Collection `expenses` + service pur `expenses.ts` (montants en centimes, reste
-  réparti au centime près). Développé le 2026-08-02 sur `feat/v1-sorties` (PR #11), **pas encore
-  mergé ni déployé**. Carte Trello 4afNgJ95.
-- [x] **Organisation des voitures vers le départ** : chacun déclare voiture (2 places passagers
-  par défaut, matos compris) / passager / non véhiculé ; l'app calcule le besoin (1 voiture pour 3)
-  et les places manquantes. Collection `transport` (1 doc par rando+membre, modèle availability).
-  Développé le 2026-08-02 sur `feat/v1-sorties` (PR #11), **pas encore mergé ni déployé**.
-  Carte Trello h0Qveixj.
-- [ ] **V2 — Trajets train/bus pour les non-véhiculés** : ville de départ, regroupement par ville,
-  suggestions d'itinéraires (API Navitia à évaluer, sinon liens profonds SNCF Connect). Reporté
-  en V2 (complexité API). Carte Trello pQCNtpYa.
-- [ ] **V2 — Mode payant (Stripe + entitlements)** : Checkout + webhook serverless (modèle
-  api/send-signin-link.ts), `plan: 'premium'` écrit dans users/{uid} par le serveur seul (règle
-  Firestore anti-auto-promotion), gating 403 côté API. Carte Trello U6pLUfYb.
-- [ ] **V2 — Base GPX France + cartes IGN (sources légales)** : extraction OSM `route=hiking`
-  (ODbL, attribution obligatoire, pilote sur 1 région d'abord), GPX servis par URL signée aux
-  premium ; tuiles IGN en proxy à la demande (Plan IGN v2 libre, SCAN 25 après contrat pro) —
-  jamais de copie massive ni de scraping Visorando/AllTrails/Komoot (CGU + droit des bases de
-  données). Carte Trello XymNO9Z5.
+### [isMemberEmail : revoir le retry](https://trello.com/c/BD8VnNrk)
+
+Le retry sur échec de lecture config/allowedEmails (src/core/firebase/auth.ts) est un contournement d'un problème de timing après connexion. Voir si une meilleure approche existe.
+
+### [Kit : relever les poids encore estimés](https://trello.com/c/2qIVsx7Q)
+
+Les articles sans référence produit unique gardent un ordre de grandeur, marqué `weightEstimated: true` dans gear.ts plutôt que présenté comme un poids constaté.
+
+**Relevés le 30/07** via blogs et comparatifs (toporando, i-trekkings, tourdumondiste, randonner-malin, CleverHiker) — Decathlon renvoie un 403 au scraping, le contournement fonctionne :
+- Chaussures MH500 : 650–900 g la paire (860 g en 43)
+- Bâtons MT500 : 470–490 g la paire (240 g le bâton)
+- Chaussettes mérinos : 60–80 g la paire
+- Poncho MT500 60L : 340–380 g
+- Power bank 10 000 mAh : 180–280 g
+- Microcrampons Simond Bobcat : 420–465 g (avec housse)
+
+**Restent estimés** (aucune source fiable trouvée) : serviette microfibre, protection solaire, savon, adaptateurs gaz, rondelles, sac étanche, poche filtrante, chaise de camping, bonnet/buff, frontale, et les consommables (barres, lyophilisés — variables par nature).
+
+Relevé à faire à la main, en magasin ou sur la fiche produit. Retirer `weightEstimated` au fur et à mesure.
+
+### [E2E : fuite d'état entre fichiers de specs malgré resetEmulators()](https://trello.com/c/JTQppdg4)
+
+**Symptôme 1 (Firestore)** — une rando seedée par `sommets.spec.ts` réapparaît dans un test de `sortie-partagee.spec.ts` malgré le `resetEmulators()` du `beforeEach`, cassant un locator en strict mode (2 cartes homonymes). Contourné en donnant des noms de randos distincts par fichier.
+
+**Symptôme 2 (Auth)** — les comptes Auth fuient aussi. Un e-mail déjà utilisé par un autre spec existe comme compte Google fédéré, sur lequel `signInWithPassword` échoue — d'où les adresses dédiées `*.test@altimates.test` de `photos-securite.spec.ts`.
+
+**Cause** : ouverte. Piste : suppression asynchrone côté émulateur Firestore, le reset rendrait la main avant la fin effective.
+
+**Enjeu** : tant que la cause reste inconnue, toute réutilisation d'un même nom de fixture ou d'un même e-mail entre specs est un flake en puissance. Les contournements tiennent, mais ils reposent sur une discipline de nommage que rien ne vérifie.
+
+Remonté depuis BACKLOG.md le 30/07/2026 (constats du 02/08).
 
 ---
 
-## ✅ Déjà fait (contexte)
+## ✨ Améliorations / plus tard (9)
 
-- **v0.4.0 — la sortie partagée** (2026-08-02, prod) : trois onglets ajoutés au détail d'une rando.
-  - **Dépenses** (Tricount) : chacun saisit les frais avancés pour le groupe, l'app calcule les
-    soldes au centime et propose les remboursements en au plus N-1 virements. Montants en
-    centimes (les euros flottants font dériver les soldes). Aucun paiement encaissé.
-    Collection `expenses`, service pur `src/core/services/expenses.ts`. Carte Trello 4afNgJ95.
-  - **Transport** : chacun déclare voiture / passager / non véhiculé ; l'app calcule le nombre de
-    voitures nécessaires (règle du groupe : 3 personnes par voiture, matos compris) et les places
-    manquantes. Collection `transport` (1 doc par rando+membre, modèle `availability`).
-    Carte Trello h0Qveixj.
-  - **Photos** : l'organisateur (ou un admin) partage jusqu'à 6 photos par sortie, compressées
-    côté client en JPEG 1280px ≤ 200 Ko et stockées en data URL dans Firestore — pas de Storage,
-    donc pas de plan Blaze. Vidéos hors périmètre. Collection `randoMedia`. Carte Trello Y60EbMBD.
-  - **Sécurité** : la restriction « seul l'organisateur publie » n'existait d'abord que côté
-    client (trouvée en revue, PR #12). Les règles vérifient désormais l'uid de l'auteur, sa
-    qualité d'organisateur (champ `randoDocId` — les règles savent adresser un document, pas
-    requêter) et que la charge est bien une image sous la taille maximale.
-  - **Bug de recette** : l'upload échouait en staging (`URL.createObjectURL` → URL `blob:`, que la
-    CSP n'autorise pas dans `img-src`). Lecture en data URL désormais, CSP non élargie (PR #13).
-  - **Perf** : `jspdf` sorti du préchargement initial (~400 kB / 130 kB gzip économisés à
-    l'ouverture) — il ne sert qu'à l'export PDF du kit. Carte Trello FYSQKIyz.
-  - **Accessibilité** : la vue plein écran d'une photo est une vraie modale (dialog, focus,
-    Escape) ; cibles tactiles à 44px. Barre d'onglets passée de 3 à 6 entrées : elle enroule au
-    lieu de déborder, avec un test E2E anti-débordement en 360px.
+### [Version riche du mail de connexion](https://trello.com/c/otF5YfKQ)
 
-- **Modifier profil : Prénom + champs numériques durcis** (v0.3.8) : le champ "Nom" du modal
-  Base Camp renommé en "Prénom" ; les 5 champs stats (Km saison, D+ saison, Sorties, Best km,
-  Best D+) laissaient passer des caractères non numériques (`--71`) → saisie filtrée aux chiffres
-  uniquement. Cartes Trello 6a5b61ae7a18b1382e1aaf36, 6a5b61ae0ad86bc1af761526.
-- **Fenêtre : refonte UX du bloc Mon statut** (v0.3.8) : les 4 boutons pilules (DISPO/RETOUR
-  DIM./+1 JOUR/INDISPO) n'expliquaient pas leur sens ni la visibilité côté cordée → cartes
-  empilées (icône + titre + explication courte) + rappel "Visible par la cordée sur le
-  calendrier, à ton nom." Maquette validée par Wacil (option B sur 3 propositions). Carte Trello
-  6a5b7f426c415181c69f8454.
-- **Flèches Distance/Dénivelé restaurées** (v0.3.7) : le durcissement v0.3.4 (type=text) avait fait
-  disparaître les spinners natifs (retour Adebola) → retour à type=number (min=1, step=1) avec tous
-  les garde-fous conservés (blocage clavier e/./-/+/,, nettoyage collage, entier positif au submit).
-  Carte Trello 6a5a8a45.
-- **Modifier mon profil mis en avant** (v0.3.6) : le bouton était noyé en bas du Base Camp → bouton
-  primaire pleine largeur (ink/gold, icône crayon) sous les Personal Bests, Déconnexion/Réinitialiser
-  côte à côte en dessous. Option validée sur maquette visuelle. Carte Trello 6a5a84ab.
-- **Checklist départ clarifiée** (v0.3.5) : la checkbox nue se confondait avec la prise en charge
-  (retour Adebola) → chip explicite "À préparer / ✓ Prêt", ligne d'état combinée ("Wacil s'en occupe ·
-  pas encore prêt"), et "Me retirer" remet aussi l'article à préparer. Première spec E2E Cordée (3 cas).
-  Carte Trello 6a5a58d0.
-- **Proposer une rando : date + saisies durcies** (v0.3.4) : calendrier custom en français (le picker
-  natif suit la langue du navigateur, `lang` ignoré), saisie date au clavier avec masque JJ/MM/AAAA
-  (`frToIso` au submit, 31/02 rejeté), distance/dénivelé limités aux entiers positifs y compris au
-  collage (sanitize à l'input). Cartes Trello kVwK6JU5, C81LrmPc.
-- **Bouton GPX Komoot réparé** (v0.3.2) : Komoot a supprimé la recherche texte par URL → URL discover
-  géographique construite depuis lat/lon (toFixed(7), Komoot 404 sans décimale), repli Google sans coords.
-- Suite de tests **Playwright E2E** + intégration CI (login Google/e-mail, propositions, votes, admin, Base Camp…).
-- **Whitelist dynamique** gérable depuis le portail Admin (`config/allowedEmails`) — règles Firestore déployées.
-- **wacil78** ajouté comme **admin**.
-- Écran **compte / Base Camp** via l'avatar (parité app d'origine).
-- **Connexion par e-mail** (lien magique) : activée, en français, **sans pop-up** (adresse embarquée dans le lien).
-- **Auto-déploiement GitHub → Vercel** connecté.
-- Fonction d'envoi d'e-mail personnalisé **codée** (en attente des secrets ci-dessus).
+Une fois le domaine pris : remplacer le bandeau texte par le design topographique complet (image hébergée). Aperçu de référence déjà conçu (bandeau topo + ligne de crête, univers rando).
+
+### [Staging isolé : projet Firebase dédié + auto-login test](https://trello.com/c/6W9BQWgd)
+
+**Objectif** : environnement de staging avec données factices, où un auto-login est acceptable (zéro connexion pour tester), sans aucun risque sur les données prod.
+
+**Contexte** : aujourd'hui staging et prod partagent le même projet Firebase (altimates-4c37f) — mêmes données réelles. Un auto-login déployé y est donc interdit (session admin publique sur les vraies données). L'isolation était déjà notée comme amélioration future dans le skill environnements.
+
+**À faire** :
+1. Créer un second projet Firebase (ex. altimates-staging) : Auth (Google + lien e-mail) + Firestore
+2. Déployer les mêmes firestore.rules sur ce projet
+3. Script de seed : données de test (randos, membres, kit, idées) + compte de test whitelisté
+4. Vercel : env vars Preview pointant vers altimates-staging (config Firebase côté client via variables VITE_*, à extraire du code si en dur)
+5. Auto-login staging : compte de test e-mail+mot de passe dédié, identifiants injectés au build preview uniquement — jamais dans le build production (garde-fou build + test)
+6. CI : le job deploy-staging build avec cette config ; smoke tests enrichis (peuvent alors être authentifiés)
+7. Mettre à jour le skill environnements + BACKLOG.md
+
+**Effort estimé** : ~une session de travail complète.
+**Prérequis** : aucun — indépendant des secrets CI (autre carte), mais plus confortable une fois la CI réparée.
+
+### [Nom de domaine (ex. altimates.fr, ~10€/an)](https://trello.com/c/1t7DrnlY)
+
+Délivrabilité e-mail pro (SPF/DKIM), arrivée en boîte principale garantie, adresse d'envoi propre. Débloque aussi la version riche du mail de connexion.
+
+### [V2 — Trajets train/bus pour les non-véhiculés](https://trello.com/c/pQCNtpYa)
+
+## Contexte
+Suite de la carte « Organisation des voitures » : pour les non-véhiculés, prévoir le trajet en transports (train/bus/covoiturage) jusqu'au point de rendez-vous. Jugé trop complexe pour la V1 (pas d'API horaires gratuite fiable type SNCF) — reporté en V2, décision actée.
+
+## Objectif (V2)
+Un non-véhiculé indique sa grande ville de départ ; l'app aide à organiser : regroupement par ville, point de jonction avec les voitures, et si faisable des suggestions d'itinéraires transports.
+
+## Pistes techniques (exploration)
+- S'appuyer sur `transport` (mode 'non-vehicule') créé par la carte voitures : ajouter `departureCity`.
+- Étudier les API gratuites : Navitia/transport.data.gouv.fr (couverture TER/TGV à vérifier) ; à défaut, simple lien profond vers SNCF Connect/Trainline pré-rempli ville→ville, zéro API.
+- Regroupement par ville = calcul client pur, faisable sans API.
+
+## Critères de déclenchement
+- [ ] Carte voitures livrée et utilisée sur au moins une vraie sortie.
+- [ ] Choix d'approche API vs liens profonds tranché avec Wacil.
+
+### [V2 — Mode payant : Stripe + entitlements premium](https://trello.com/c/U6pLUfYb)
+
+## Contexte
+Projet V2 : offre payante donnant accès aux traces GPX et aux fonds de carte IGN de toutes les randos France. Prérequis de tout le reste : savoir qui a payé, et verrouiller l'accès côté serveur.
+
+## Objectif
+Un membre peut souscrire l'offre premium ; son statut (`free`/`premium`) est fiable côté serveur et conditionne l'accès aux téléchargements GPX et aux tuiles IGN.
+
+## Périmètre
+- Paiement par Stripe Checkout (abonnement ou one-shot : à trancher avec Wacil avant implémentation).
+- Gating serveur uniquement — l'UI cache les boutons, mais la vérité est dans les règles Firestore + les fonctions api/.
+- Pas de gestion de factures/TVA avancée en V2.0 (Stripe Tax plus tard si besoin).
+
+## Pistes techniques
+- `api/stripe-webhook.ts` (même modèle que api/send-signin-link.ts + api/_ratelimit.ts) : vérifie la signature Stripe, écrit `plan: 'premium'` + `planUntil` dans `users/{uid}` via firebase-admin (déjà en dépendance).
+- `api/create-checkout.ts` : crée la session Checkout pour l'uid authentifié (vérifier le token Firebase côté serveur, jamais faire confiance au client).
+- firestore.rules : le champ `plan` de users/{userId} n'est PAS modifiable par le membre lui-même (seulement admin/serveur) — règle dédiée, sinon n'importe qui s'auto-promeut premium.
+- UI : écran d'offre + état d'abonnement dans src/features/basecamp/BasecampPage.tsx.
+
+## Contraintes
+- Secrets Stripe dans les env Vercel (voir skill environnements), jamais en dur.
+- Webhook idempotent (Stripe rejoue les événements).
+- E2E : parcours gating (non-premium refusé par l'API) sans vrais paiements — mode test Stripe.
+
+## Critères d'acceptation
+- [ ] Paiement test Stripe → `plan: 'premium'` visible en base sans action manuelle.
+- [ ] Un membre free appelant l'API de téléchargement reçoit 403.
+- [ ] Un membre ne peut pas écrire son propre champ `plan` (refusé par les règles).
+
+### [V2 — Base GPX France + cartes IGN (sources légales)](https://trello.com/c/XymNO9Z5)
+
+## Contexte
+Projet V2 : donner aux abonnés premium les traces GPX des randos de France + fonds de carte IGN. Contrainte légale actée : PAS de scraping de plateformes tierces (Visorando, AllTrails, Komoot — CGU + droit des bases de données). Sources légales uniquement.
+
+## Objectif
+Un abonné premium télécharge le GPX d'une rando et affiche le fond IGN ; un membre free n'y a pas accès.
+
+## Périmètre
+- Traces : extraction OpenStreetMap France (ODbL) des relations `route=hiking`, GPX générés et stockés chez nous. Sigles GR®/PR® = marques FFRandonnée, à ne pas utiliser sans accord ; les tracés OSM restent utilisables.
+- Cartes : AUCUNE copie massive de tuiles — proxy à la demande vers l'API Géoplateforme IGN, clé côté serveur. Plan IGN v2 (licence ouverte) d'abord ; SCAN 25 seulement après contrat pro IGN (carte Config manuelle).
+- Attributions OSM (« © OpenStreetMap contributors ») et IGN affichées — non négociable.
+
+## Pistes techniques
+- Pipeline hors app (scripts/) : Overpass/osmium sur la France → nettoyage (dédoublonnage, longueur mini) → GPX + métadonnées → Firebase Storage (Blaze requis) + index Firestore `gpxCatalog`.
+- `api/gpx-download.ts` : token Firebase + `plan: 'premium'` vérifiés → URL signée courte durée. Rate limit via api/_ratelimit.ts.
+- `api/tiles.ts` : proxy {z}/{x}/{y} vers Géoplateforme, cache CDN (headers Vercel), gating premium sur les couches non libres.
+- Affichage : MapLibre GL dans src/features/sommets/RandoDetailModal.tsx — lat/lon déjà dans `Rando` (src/core/types/index.ts).
+
+## Contraintes
+- ODbL : vendre l'ACCÈS est permis, privatiser la donnée non (share-alike si redistribution).
+- Volume : GPX France ≈ quelques Go — chiffrer Storage/egress avant ouverture.
+
+## Critères d'acceptation
+- [ ] Pipeline rejouable validé sur 1 région pilote (ex. Écrins) avant la France entière.
+- [ ] Premium télécharge un GPX ; free reçoit 403 (API, pas seulement UI).
+- [ ] Fond Plan IGN v2 affiché avec attributions ; clé IGN jamais exposée au client.
+
+### [Mentions légales, confidentialité et CGU](https://trello.com/c/sWjOeJvt)
+
+## Contexte
+L'app est exposée publiquement et collecte des données personnelles (e-mail, prénom, photos). Aucun document légal n'est accessible aujourd'hui. Wacil générera les textes définitifs plus tard ; en attendant, une première rédaction sert de socle.
+
+## Objectif
+Trois documents — mentions légales, politique de confidentialité, conditions d'utilisation — consultables **avant la connexion** (écran de login) et depuis le **profil** (Base Camp).
+
+## Périmètre
+Textes provisoires, rédigés à partir de ce que fait réellement l'app (Firebase Auth, Firestore, Vercel, open-meteo). Remplacement par les documents définitifs prévu ensuite : le contenu doit vivre dans un seul module facile à réécrire.
+
+## Pistes techniques
+- src/features/legal/legalContent.ts — les 3 documents en données structurées
+- src/features/legal/LegalModal.tsx — visionneuse réutilisable
+- src/App.tsx — pied de page de l'écran de connexion
+- src/features/basecamp/BasecampPage.tsx — section Informations légales
+
+## Critères d'acceptation
+- [ ] Les 3 documents sont atteignables sans être connecté
+- [ ] Les 3 documents sont atteignables depuis le Base Camp
+- [ ] Modale accessible (dialog, Escape, focus) et lisible en 360px
+- [ ] Un bandeau signale que les textes sont provisoires
+
+### [Photos : mise en avant sur la carte de sortie](https://trello.com/c/81Xozrb7)
+
+## Contexte
+Retour de Wacil : après un envoi, il faut ouvrir la sortie puis l'onglet Photos pour voir quoi que ce soit. Les photos ne sont pas mises en avant.
+
+## Objectif
+Voir les photos d'une sortie depuis la liste des Sommets, et les agrandir en un seul geste.
+
+## Périmètre
+- Bandeau de vignettes sur la carte de sortie quand la sortie a des photos
+- Ouverture directe en plein écran depuis une vignette
+- Navigation précédent/suivant dans la visionneuse plein écran
+- Ouverture de la sortie directement sur l'onglet Photos depuis le bandeau
+
+## Pistes techniques
+- src/features/sommets/RandoCard.tsx — bandeau de vignettes
+- src/features/sommets/PhotoLightbox.tsx — visionneuse extraite de PhotosTab, réutilisée aux deux endroits
+- src/features/sommets/RandoDetailModal.tsx — onglet initial paramétrable
+
+## Contraintes
+Les photos sont des data URL en Firestore (pas de Storage) : ne pas multiplier les lectures. Accessibilité : la visionneuse reste une vraie modale (dialog, Escape, focus). Cibles tactiles 44px.
+
+## Critères d'acceptation
+- [ ] Une sortie avec photos affiche ses vignettes dans la liste
+- [ ] Un clic sur une vignette ouvre le plein écran, sans passer par le détail
+- [ ] Flèches précédent/suivant + clavier dans le plein écran
+- [ ] Aucun débordement horizontal en 360px
+
+### [Photo de profil des membres](https://trello.com/c/6OJ9Cq7h)
+
+## Contexte
+Les membres se distinguent aujourd'hui par un prénom et deux initiales colorées. Wacil veut que chacun se reconnaisse à sa photo.
+
+## Objectif
+Chaque membre peut ajouter, remplacer ou retirer sa photo de profil ; elle apparaît là où il est identifié.
+
+## Périmètre
+- Choix de la photo dans « Modifier mon profil » (Base Camp)
+- Affichage : pastille du header, hero du Base Camp, liste des membres de la Cordée
+- Repli sur les initiales colorées quand aucune photo
+
+## Pistes techniques
+- src/core/services/media.ts — compression dédiée (carré, petit côté, poids très inférieur aux photos de sortie)
+- src/hooks/useUserProfile.ts — champ `photo` dans Profile (data URL, comme randoMedia : pas de Storage donc pas de plan Blaze)
+- firestore.rules — plafonner la taille et exiger un préfixe data:image sur users/{uid}, sinon la collection devient un espace de stockage libre
+
+## Contraintes
+Un document Firestore est plafonné à 1 Mio et users/{uid} porte aussi le kit : la photo doit rester légère (quelques dizaines de Ko).
+
+## Critères d'acceptation
+- [ ] Ajout, remplacement et retrait fonctionnent depuis le profil
+- [ ] La photo apparaît dans le header, le Base Camp et la Cordée
+- [ ] Une écriture dépassant le plafond est refusée par les règles Firestore
+- [ ] Sans photo, l'affichage actuel (initiales colorées) est inchangé
+
+---
+
+## ✅ Déjà fait (61)
+
+Historique des livraisons. Le détail vit sur les cartes (descriptions et commentaires).
+
+- [x] [Idée : ajouter ses anciennes sorties (XP + reco)](https://trello.com/c/UMZwrszs)
+- [x] [Idée : gestion des électrolytes/minéraux/vitamines](https://trello.com/c/sh4dnCPg)
+- [x] [Audit accessibilité / responsive](https://trello.com/c/smJCQ1cc)
+- [x] [Fenêtre : refonte UX du bloc Mon statut (cartes avec explication)](https://trello.com/c/FThXjAqY)
+- [x] [Onglet Fenêtre : calendrier de disponibilités de la cordée](https://trello.com/c/ZYp4GMYV)
+- [x] [Barre de navigation : position instable entre onglets](https://trello.com/c/5jk180LR)
+- [x] [Rando : « Pas partant » avec 🇨🇳 seul](https://trello.com/c/Wh8HdFYy)
+- [x] [Idée : cost simulator type Tricount](https://trello.com/c/3pVl7i79)
+- [x] [Audit accessibilité complet (WCAG 2.1 AA) — corrections](https://trello.com/c/eo5TKmf3)
+- [x] [Suite Playwright E2E + CI](https://trello.com/c/VXWRSRGM)
+- [x] [Code-splitting jspdf + html2canvas (~600 kB)](https://trello.com/c/FYSQKIyz)
+- [x] [Kit : taux de complétion faux — skip/réfléchir comptés dans le dénominateur](https://trello.com/c/2x5vn0jD)
+- [x] [Modifier profil : renommer champ Nom en Prénom](https://trello.com/c/nczxBFvI)
+- [x] [Rando : flèches disparues sur Distance/Dénivelé (retour Adebola)](https://trello.com/c/Z1BNIaOT)
+- [x] [🐞 Bloquant : picker de date inopérant dans Proposer une rando](https://trello.com/c/kVwK6JU5)
+- [x] [Membres affichés "Anonyme" (connexion lien e-mail sans displayName)](https://trello.com/c/FMl7ZRjm)
+- [x] [Bouton GPX/Komoot cassé : 404 sur komoot.com/search](https://trello.com/c/WRyjPj21)
+- [x] [Whitelist dynamique (config/allowedEmails)](https://trello.com/c/7ZkqW06G)
+- [x] [useMemberName réactif (onSnapshot)](https://trello.com/c/E8kNnM7k)
+- [x] [Kit : triage non relancé après « Réinitialiser mon kit » (repro trek)](https://trello.com/c/GMkpUySj)
+- [x] [Modifier profil : bloquer caractères spéciaux dans champs numériques](https://trello.com/c/ms5VCCt2)
+- [x] [🐞 Moyen : distance/dénivelé négatifs acceptés dans Proposer une rando](https://trello.com/c/C81LrmPc)
+- [x] [Kit : popup info article tronquée](https://trello.com/c/ULsaLXjC)
+- [x] [wacil78 ajouté comme admin](https://trello.com/c/F74OPhEm)
+- [x] [Gate CI → déploiement Vercel](https://trello.com/c/ysayNGLC)
+- [x] [Header : avatar "AN" incompréhensible — afficher le prénom complet](https://trello.com/c/jGR5Kq1F)
+- [x] [Écran compte / Base Camp via l'avatar](https://trello.com/c/NVVpMqng)
+- [x] [Rate-limiting sur api/send-signin-link](https://trello.com/c/kh7mcscm)
+- [x] [Rando : ajouter option « Pas partant » (lettre chinoise + 🇨🇳)](https://trello.com/c/ESBRpPcH)
+- [x] [Sommets : popup détail trek tronquée](https://trello.com/c/fOfVRpDJ)
+- [x] [Connexion par e-mail (lien magique)](https://trello.com/c/FL410tii)
+- [x] [Revue de sécurité — flux auth + fonction serverless](https://trello.com/c/qeToAb2E)
+- [x] [Rando : emoji pour option « Peut-être »](https://trello.com/c/aeuzIxcH)
+- [x] [Sommets : popup hydratation tronquée](https://trello.com/c/fNbUqaLA)
+- [x] [Auto-déploiement GitHub → Vercel](https://trello.com/c/2Sigoh9D)
+- [x] [Kit : logos des sites marchands absents dans la popup conseils](https://trello.com/c/Ues2px7c)
+- [x] [Rando : emoji ✅ pour option « Partant »](https://trello.com/c/ixFn31Kk)
+- [x] [Fonction d'envoi d'e-mail personnalisé codée](https://trello.com/c/cL2IAFkB)
+- [x] [Idées : supprimer la vue Kanban (remplacée par Trello)](https://trello.com/c/cKGNrwoU)
+- [x] [Trello : créer une carte par idée de l'onglet Idées](https://trello.com/c/r78G4Qmo)
+- [x] [npm audit : 0 vulnérabilité en production (résolu 30/07)](https://trello.com/c/53o7yAvU)
+- [x] [CI : empêcher l'accumulation de runs prod en attente](https://trello.com/c/OoSJG7rp)
+- [x] [Dates au format français (JJ/MM/AAAA) partout](https://trello.com/c/07bIXK8A)
+- [x] [Idée : filtrer les randos par dénivelé max](https://trello.com/c/Puc0asuv)
+- [x] [Desktop : barre « Proposer une rando » par-dessus la popup rando](https://trello.com/c/jQSBtKyD)
+- [x] [Popup rando délavée / cachée par la nav (sorties passées)](https://trello.com/c/v8DglJFQ)
+- [x] [Idée : ravito — répartition précise de qui ramène quoi](https://trello.com/c/NGbktc3o)
+- [x] [Idée : éditer/modifier une idée déjà soumise](https://trello.com/c/yIWyMYvk)
+- [x] [Idée : section photos après rando](https://trello.com/c/erFQSUCR)
+- [x] [Admin : modifier / supprimer n'importe quelle rando soumise](https://trello.com/c/4frTweH9)
+- [x] [Checklist départ : clarifier checkbox vs prise en charge (retour Adebola)](https://trello.com/c/y9SPIHSg)
+- [x] [Audit responsive mobile complet (iPhone/Android) — corrections](https://trello.com/c/tx51Nt5R)
+- [x] [Base Camp : mettre en avant Modifier profil (bouton primaire pleine largeur)](https://trello.com/c/Mun13jbb)
+- [x] [Photos post-rando (organisateur)](https://trello.com/c/Y60EbMBD)
+- [x] [Kit : poids du sac estimé, dynamique comme le budget](https://trello.com/c/EBJHNtpY)
+- [x] [Tricount des dépenses par sortie](https://trello.com/c/4afNgJ95)
+- [x] [Kit : poids porté dans le sac, hors équipement porté sur soi](https://trello.com/c/bYmZfK8j)
+- [x] [Organisation des voitures vers le départ](https://trello.com/c/h0Qveixj)
+- [x] [Kit : références produit Decathlon réelles avec liens](https://trello.com/c/X37qYjLL)
+- [x] [Kit : refonte UX écran starter pack (trop lourd, trop de saisie)](https://trello.com/c/YPCdBcY0)
+- [x] [Kit : « Tout retrier » + « Réinitialiser mon kit » (test triage de bout en bout)](https://trello.com/c/3Uw6B33t)

@@ -58,12 +58,12 @@ describe('KitPage', () => {
   it('affiche le poids du sac estimé, hors articles skippés', () => {
     // Mode journée : 14 articles, dont 5 portés sur soi (chaussures, bâtons, casquette,
     // t-shirt, chaussettes) exclus du sac. sac20 (1100–1270 g) skippé → 8 articles dans
-    // le sac, soit 1560–2470 g (sommes des fourchettes `weight` de gear.ts).
+    // le sac, soit 1820–2395 g (sommes des fourchettes `weight` de gear.ts).
     state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus: { sac20: 'skip' } }
     render(<KitPage user={user} memberName="Wacil" />)
     const poids = document.querySelector('.budget-weight-val')!.textContent
-    expect(poids).toContain('1,6 kg')
-    expect(poids).toContain('2,5 kg')
+    expect(poids).toContain('1,8 kg')
+    expect(poids).toContain('2,4 kg')
     expect(screen.getByText(/8 articles dans le sac/)).toBeTruthy()
   })
 
@@ -74,7 +74,7 @@ describe('KitPage', () => {
     state.profile = { name: 'Wacil', level: 'expert', mode: 'journee', kitStatus: { chaussures: 'have' } }
     render(<KitPage user={user} memberName="Wacil" />)
     const poids = document.querySelector('.budget-weight-val')!.textContent
-    expect(poids).toContain('2,7 kg')
+    expect(poids).toContain('2,9 kg')
     expect(poids).toContain('3,7 kg')
     expect(screen.getByText(/9 articles dans le sac/)).toBeTruthy()
   })

@@ -1,4 +1,5 @@
 import { getApps, initializeApp } from 'firebase-admin/app'
+import { getAuth } from 'firebase-admin/auth'
 import { FieldValue, getFirestore } from 'firebase-admin/firestore'
 
 // Accès admin aux émulateurs Firebase pour le reset et le seed des données de test.
@@ -13,9 +14,12 @@ export const AUTH_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST ?? '127.0.0.1:9
 process.env.FIRESTORE_EMULATOR_HOST = FIRESTORE_HOST
 process.env.FIREBASE_AUTH_EMULATOR_HOST = AUTH_HOST
 
+function app() {
+  return getApps()[0] ?? initializeApp({ projectId: PROJECT_ID })
+}
+
 function db() {
-  if (getApps().length === 0) initializeApp({ projectId: PROJECT_ID })
-  return getFirestore()
+  return getFirestore(app())
 }
 
 /** Vide toutes les données Firestore ET tous les comptes Auth des émulateurs. */
@@ -33,18 +37,18 @@ export async function resetEmulators(): Promise<void> {
   })
   if (!auth.ok) throw new Error(`Reset Auth échoué: ${auth.status} ${await auth.text()}`)
 
-  await waitForFirestoreEmpty()
+  await Promise.all([waitForFirestoreEmpty(), waitForAuthEmpty()])
 }
 
 /**
- * Attend que la suppression soit RÉELLEMENT visible.
+ * Vérifie que la suppression est RÉELLEMENT visible avant de rendre la main.
  *
- * L'endpoint de reset répond 200 avant que les documents aient disparu des
- * lectures : un `seedRando` enchaîné aussitôt cohabitait alors avec la rando du
- * test précédent, et le mode strict de Playwright échouait sur deux cartes
- * homonymes — sans aucun rapport avec le comportement testé. Le symptôme était
- * documenté comme « fuite entre fichiers de specs » ; c'est en fait une simple
- * course, qu'il suffit d'attendre.
+ * Garde-fou : la « fuite entre fichiers de specs » historiquement imputée à une
+ * suppression asynchrone venait en réalité d'un reset qui ne s'exécutait pas du
+ * tout (hook enregistré dans le seul premier fichier — voir e2e/fixtures.ts).
+ * En pratique la suppression s'est montrée synchrone une fois le 200 reçu, mais
+ * cette vérification est quasi gratuite et transformerait un reset silencieusement
+ * inefficace en erreur explicite plutôt qu'en flake mystérieux.
  */
 async function waitForFirestoreEmpty(timeoutMs = 5000): Promise<void> {
   const deadline = Date.now() + timeoutMs
@@ -58,6 +62,27 @@ async function waitForFirestoreEmpty(timeoutMs = 5000): Promise<void> {
     if (Date.now() > deadline) {
       const restantes = collections.filter((_, i) => !counts[i].empty).map((c) => c.id)
       throw new Error(`Reset Firestore incomplet après ${timeoutMs}ms : ${restantes.join(', ')}`)
+    }
+    await new Promise((r) => setTimeout(r, 50))
+  }
+}
+
+/**
+ * Même garde-fou que waitForFirestoreEmpty, côté Auth. Les comptes qui
+ * « survivaient » au reset (e-mail déjà pris comme compte Google fédéré, sur
+ * lequel signInWithPassword échoue — d'où les adresses dédiées de
+ * photos-securite.spec.ts) venaient du reset jamais exécuté, pas d'une
+ * suppression lente. On vérifie néanmoins que la liste est réellement vide :
+ * un seul listUsers(1) quand tout va bien, et une erreur explicite sinon.
+ */
+async function waitForAuthEmpty(timeoutMs = 5000): Promise<void> {
+  const deadline = Date.now() + timeoutMs
+  for (;;) {
+    const { users } = await getAuth(app()).listUsers(1)
+    if (users.length === 0) return
+
+    if (Date.now() > deadline) {
+      throw new Error(`Reset Auth incomplet après ${timeoutMs}ms : ${users[0].email} survit`)
     }
     await new Promise((r) => setTimeout(r, 50))
   }

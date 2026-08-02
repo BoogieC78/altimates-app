@@ -34,10 +34,21 @@ branche pour voir où ça s'est arrêté, et continuer à l'étape non cochée.
 - [x] Audit accessibilité des 3 nouveaux onglets : 3 constats corrigés
 - [x] Audit responsive des 3 nouveaux onglets : 0 constat, test de débordement 360px ajouté
 - [x] 8 cartes déjà résolues clôturées avec preuve (5 idées livrées, 3 optimisations)
-- [ ] Merge de la PR #12
-- [ ] **Déployer les règles Firestore APRÈS le merge** — la règle randoMedia durcie exige
-      le champ `randoDocId`, que seul le nouveau client envoie. Ordre à respecter.
-- [ ] Rapport du matin
+- [x] Merge de la PR #12 (13a4833) → pipeline main vert jusqu'à smoke-staging
+- [x] Règles Firestore durcies déployées APRÈS le merge (ordre respecté : le client
+      envoie `randoDocId` avant que la règle ne l'exige)
+- [x] Rapport du matin
+
+## État final
+
+Staging à jour et vérifié par les smoke tests. Production **non touchée** : le job
+deploy-production reste sous approbation manuelle, c'est la décision de Wacil.
+
+Reste au board, tout bloqué sur une action de Wacil :
+- 🔧 Config : Blaze, Stripe, licence IGN, Brevo, nom public Firebase
+- ⚡ Optimisations : poids du kit à relever à la main, npm audit en attente d'un patch
+  Vercel, retry de isMemberEmail (analyse posée sur la carte, demande un go)
+- ✨ Améliorations : nom de domaine, mail riche, staging isolé, les 3 cartes V2
 
 ## Précision sur le staging
 

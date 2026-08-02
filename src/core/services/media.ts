@@ -71,7 +71,7 @@ export async function compressImage(file: File): Promise<string> {
   canvas.width = width
   canvas.height = height
   const ctx = canvas.getContext('2d')
-  if (!ctx) throw new Error("Impossible de préparer l'image")
+  if (!ctx) throw new Error("Impossible de préparer la photo. Recharge la page et réessaie.")
   ctx.drawImage(bitmap, 0, 0, width, height)
 
   let dataUrl = ''
@@ -79,22 +79,43 @@ export async function compressImage(file: File): Promise<string> {
     dataUrl = canvas.toDataURL('image/jpeg', quality)
     if (dataUrlBytes(dataUrl) <= TARGET_BYTES) return dataUrl
   }
-  if (dataUrlBytes(dataUrl) > MAX_BYTES) throw new Error('Photo trop lourde même après compression')
+  if (dataUrlBytes(dataUrl) > MAX_BYTES) {
+    throw new Error('Photo trop lourde même après compression. Choisis une photo moins grande.')
+  }
   return dataUrl
 }
 
+/**
+ * Charge le fichier dans un élément Image.
+ *
+ * Le fichier est lu en data URL et NON via `URL.createObjectURL` : la CSP du
+ * projet autorise `data:` dans `img-src` mais pas `blob:`, si bien que l'URL
+ * d'objet était bloquée par le navigateur et faisait échouer tout ajout de photo
+ * (constaté en staging le 2026-08-02). Passer par `data:` évite d'élargir la CSP.
+ */
 function loadImage(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file)
-    const img = new Image()
-    img.onload = () => {
-      URL.revokeObjectURL(url)
-      resolve(img)
+    const reader = new FileReader()
+    reader.onerror = () => reject(new Error('Impossible de lire ce fichier. Réessaie avec une autre photo.'))
+    reader.onload = () => {
+      const img = new Image()
+      img.onload = () => resolve(img)
+      img.onerror = () => reject(new Error(undecodableMessage(file.type)))
+      img.src = String(reader.result)
     }
-    img.onerror = () => {
-      URL.revokeObjectURL(url)
-      reject(new Error("Image illisible"))
-    }
-    img.src = url
+    reader.readAsDataURL(file)
   })
+}
+
+/**
+ * Message d'échec de décodage. Le cas courant est la photo iPhone en HEIC : le
+ * fichier est valide, mais aucun navigateur de bureau ne sait l'afficher. Dire
+ * « image illisible » laisse l'utilisateur sans issue — on nomme la cause et la
+ * manœuvre de sortie.
+ */
+function undecodableMessage(type: string): string {
+  if (/heic|heif/i.test(type)) {
+    return "Ton iPhone a enregistré cette photo en HEIC, un format que le navigateur ne sait pas ouvrir. Dans Réglages > Appareil photo > Formats, choisis « Plus compatible », ou partage la photo par mail pour obtenir un JPEG."
+  }
+  return "Ce fichier n'est pas une photo que le navigateur sait ouvrir. Réessaie avec un JPEG ou un PNG."
 }

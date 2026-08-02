@@ -40,9 +40,10 @@ export function PhotosTab({ rando: r, memberName }: { rando: WithDocId<Rando>; m
       const dataUrl = await compressImage(file)
       await addRandoMedia({ randoId, randoDocId: r.docId, author: memberName, authorUid: user.uid, dataUrl })
     } catch (e) {
-      // Message lisible plutôt qu'un échec silencieux : sur mobile, une photo
-      // refusée sans explication laisse croire que l'app est cassée.
-      setError(e instanceof Error ? e.message.toUpperCase() : 'ÉCHEC DE L\'AJOUT')
+      // Phrase telle quelle : ces messages expliquent quoi faire, les passer en
+      // majuscules les rendrait criards et pénibles à lire. Les libellés courts
+      // façon code (« MAXIMUM 6 PHOTOS ») restent en majuscules, eux.
+      setError(e instanceof Error ? e.message : "L'ajout a échoué. Réessaie dans un instant.")
     } finally {
       setBusy(false)
       if (inputRef.current) inputRef.current.value = ''

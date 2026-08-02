@@ -1,7 +1,7 @@
 # Backlog ALTImates
 
 Tâches reportées et pistes d'optimisation. Cochez au fur et à mesure.
-Dernière mise à jour : 2026-07-31 (release prod v0.3.10).
+Dernière mise à jour : 2026-08-02 (v0.4.0 en prod ; PR #14 en staging).
 
 ---
 
@@ -45,6 +45,18 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
   carte Trello FMl7ZRjm).
 - [x] **Header : avatar « AN » incompréhensible** — prénom complet affiché en pastille dans le
   header (retour Adebola). Livré prod 2026-07-17 (carte Trello jGR5Kq1F).
+- [x] **Dépenses : écart de 2 centimes entre membres** (2026-08-02, PR #14) — `splitAmount`
+  donnait le reste de la division toujours aux **premiers** bénéficiaires : sur plusieurs
+  dépenses, les mêmes personnes cumulaient les centimes en trop (21,44 € contre 21,42 € pour
+  une part identique, sur 90 € + 60 € partagés à 7). `computeBalances` mémorise désormais le
+  surplus déjà attribué et donne le centime suivant à qui en a le moins reçu.
+  Carte Trello XViB86aS.
+- [x] **Dépense/transport refusés en silence pour un membre connecté par Google** (2026-08-02,
+  PR #14) — un login Google n'écrit jamais `profile.name` (la modale de prénom ne s'affiche pas,
+  le displayName existe), or les règles Firestore identifient l'auteur **par ce champ**.
+  L'écriture était refusée et l'échec partait en `console.warn` : bouton apparemment inerte,
+  saisie perdue. Le prénom affiché est maintenant adopté en base dès la connexion, et un refus
+  d'enregistrement s'affiche.
 - [ ] **Bugs Base Camp** — signalés (« il y a des bugs ») mais pas encore détaillés.
   → À faire : lister précisément les symptômes (captures) puis corriger.
 - [x] **Kit : popup info article tronquée** — livré prod v0.3.1 (2026-07-15).
@@ -82,6 +94,10 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
   d'où les adresses dédiées `*.test@altimates.test` de `photos-securite.spec.ts`. Règle pratique
   en attendant le correctif : **un spec sensible à l'état = ses propres e-mails et ses propres
   noms de randos**.
+  Atténué le 2026-08-02 (PR #14) : `resetEmulators()` attend maintenant que la suppression soit
+  réellement visible avant de rendre la main — l'endpoint de reset répondait 200 avant que les
+  documents aient disparu des lectures. La fuite subsiste néanmoins par moments : un spec qui
+  parle d'UNE sortie doit cadrer ses locators sur elle plutôt que supposer la liste vide.
 
 - [ ] **Code-splitting `jspdf` + `html2canvas`** (~600 kB) : ne sont utiles que pour l'export PDF du kit.
   Les charger en `import()` dynamique à la demande → bundle initial nettement allégé.
@@ -115,6 +131,22 @@ sans elle). Adresse dédiée créée : `Contact.altimates@gmail.com`.
   - **Fix reset→trek** : condition d'ouverture du triage réévaluée à chaque rendu (verrou pris
     sur un rendu périmé avant l'écho onSnapshot du reset). Carte GMkpUySj.
   - E2E kit : emails dédiés par test sensible à l'état (fuite d'uid partagé entre tests).
+- [x] **Mentions légales, confidentialité et conditions d'utilisation** (2026-08-02, PR #14) :
+  les trois documents sont consultables avant la connexion (pied de page de l'écran de login) et
+  depuis le Base Camp. **Textes provisoires** rédigés d'après ce que fait réellement l'app, à
+  remplacer par les documents définitifs — tout le contenu est dans
+  [src/features/legal/legalContent.ts](src/features/legal/legalContent.ts), et ce qui reste à
+  renseigner (identité de l'éditeur, adresse de contact) y est marqué « [à compléter] ».
+  Carte Trello sWjOeJvt.
+- [x] **Photos mises en avant sur la carte de sortie** (2026-08-02, PR #14) : bandeau de vignettes
+  dans la liste des Sommets, plein écran en un seul clic depuis la liste, navigation
+  précédent/suivant au clic et au clavier. Visionneuse partagée avec l'onglet Photos
+  (`PhotoLightbox`). Un seul abonnement à `randoMedia` pour toute la page. Carte Trello 81Xozrb7.
+- [x] **Photo de profil des membres** (2026-08-02, PR #14) : ajout/remplacement/retrait depuis
+  « Modifier mon profil » ; affichée dans le header, le Base Camp et la Cordée, repli sur les
+  initiales colorées. Data URL compressée (carré 256 px, ~40 Ko) faute de Storage ; les règles
+  Firestore plafonnent la taille et exigent un préfixe `data:image` sur `users/{uid}`.
+  Carte Trello 6OJ9Cq7h.
 - [ ] **Nom de domaine** (ex. `altimates.fr`, ~10 €/an) → délivrabilité e-mail « pro » (SPF/DKIM),
   arrivée en boîte principale garantie, et adresse d'envoi propre.
 - [ ] **Version riche du mail de connexion** : une fois le domaine pris, remplacer le bandeau texte par le

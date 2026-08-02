@@ -100,11 +100,18 @@ describe('PhotosTab', () => {
   })
 
   it('remonte l\'échec de compression sans écrire', async () => {
-    compressImage.mockRejectedValueOnce(new Error('Photo trop lourde même après compression'))
+    compressImage.mockRejectedValueOnce(
+      new Error('Photo trop lourde même après compression. Choisis une photo moins grande.'),
+    )
     render(<PhotosTab rando={rando} memberName="Nordine" />)
     fireEvent.change(screen.getByLabelText('Ajouter une photo de la sortie'), { target: { files: [jpeg()] } })
 
-    await waitFor(() => expect(screen.getByRole('alert').textContent).toBe('PHOTO TROP LOURDE MÊME APRÈS COMPRESSION'))
+    // Message affiché tel quel : c'est une phrase qui dit quoi faire, pas un code.
+    await waitFor(() =>
+      expect(screen.getByRole('alert').textContent).toBe(
+        'Photo trop lourde même après compression. Choisis une photo moins grande.',
+      ),
+    )
     expect(addRandoMedia).not.toHaveBeenCalled()
   })
 

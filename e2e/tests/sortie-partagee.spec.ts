@@ -92,4 +92,56 @@ test.describe('Sortie partagée — dépenses, transport, photos', () => {
       expect(overflow, `débordement horizontal sur l'onglet ${onglet}`).toBeLessThanOrEqual(0)
     }
   })
+
+  test('ajouter une vraie photo la fait apparaître dans la galerie', async ({ page }) => {
+    await seedRando({
+      id: 100_010,
+      name: 'Tête de Chabrière',
+      proposedBy: 'Wacil',
+      memberVotes: { Wacil: 'oui' },
+    })
+    await login(page, { email: MEMBER_EMAIL, name: 'Wacil' })
+    await openRando(page, 'Tête de Chabrière')
+    await page.getByRole('button', { name: /Photos/ }).click()
+
+    // Vrai fichier JPEG décodé par le navigateur : c'est le seul moyen de couvrir
+    // la chaîne complète lecture → décodage → compression canvas → écriture
+    // Firestore. Un mock de compressImage laisserait passer une régression de
+    // lecture (cas vécu : URL blob: bloquée par la CSP en production).
+    await page.getByLabel('Ajouter une photo de la sortie').setInputFiles('e2e/fixtures-media/photo-test.jpg')
+
+    // On n'assert pas le compteur « n/6 » : seedRando réutilise toujours le même
+    // id métier (100001), et les photos sont indexées dessus — une photo d'un
+    // test précédent qui aurait survécu au reset ferait varier le nombre sans
+    // que le comportement testé soit en cause.
+    await expect(page.getByAltText(/Photo de la sortie partagée par Wacil/)).toBeVisible()
+    // Aucune erreur affichée : le message d'erreur a role="alert".
+    await expect(page.getByRole('alert')).toHaveCount(0)
+  })
+
+  test('ajout de photo sous la CSP de production (img-src sans blob:)', async ({ page }) => {
+    // Le serveur de preview local ne renvoie pas les en-têtes de vercel.json :
+    // sans cette injection, la panne vécue en staging (URL blob: bloquée par la
+    // CSP) reste invisible en CI. On rejoue donc la directive img-src réelle.
+    await page.addInitScript(() => {
+      const apply = () => {
+        const meta = document.createElement('meta')
+        meta.httpEquiv = 'Content-Security-Policy'
+        meta.content =
+          "img-src 'self' data: https://*.gstatic.com https://www.google.com https://lh3.googleusercontent.com"
+        document.head.appendChild(meta)
+      }
+      if (document.head) apply()
+      else document.addEventListener('readystatechange', apply, { once: true })
+    })
+
+    await seedRando({ id: 100_011, name: 'Pointe Percée', proposedBy: 'Wacil', memberVotes: { Wacil: 'oui' } })
+    await login(page, { email: MEMBER_EMAIL, name: 'Wacil' })
+    await openRando(page, 'Pointe Percée')
+    await page.getByRole('button', { name: /Photos/ }).click()
+    await page.getByLabel('Ajouter une photo de la sortie').setInputFiles('e2e/fixtures-media/photo-test.jpg')
+
+    await expect(page.getByAltText(/Photo de la sortie partagée par Wacil/)).toBeVisible()
+    await expect(page.getByRole('alert')).toHaveCount(0)
+  })
 })

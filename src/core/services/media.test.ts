@@ -1,10 +1,11 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   MAX_BYTES,
   MAX_EDGE,
   MAX_PHOTOS,
   TARGET_BYTES,
   checkCanAdd,
+  compressImage,
   dataUrlBytes,
   fitDimensions,
   isAcceptedImage,
@@ -72,5 +73,43 @@ describe('checkCanAdd', () => {
 
   it('refuse un format non supporté avec un message explicite', () => {
     expect(checkCanAdd(0, 'video/quicktime')).toBe('FORMAT NON SUPPORTÉ')
+  })
+})
+
+describe('compressImage — lecture du fichier', () => {
+  // La CSP du projet autorise `data:` dans img-src, pas `blob:`. Une URL d'objet
+  // était donc bloquée par le navigateur et faisait échouer tout ajout de photo
+  // en production (constaté en staging le 2026-08-02). Ce test verrouille le
+  // choix : l'échec serait invisible en local, où aucune CSP ne s'applique.
+  it("lit le fichier en data URL et ne crée jamais d'URL blob", async () => {
+    const createObjectURL = vi.fn(() => 'blob:interdit')
+    vi.stubGlobal('URL', { ...URL, createObjectURL, revokeObjectURL: vi.fn() })
+
+    const sources: string[] = []
+    vi.stubGlobal(
+      'Image',
+      class {
+        onload: (() => void) | null = null
+        onerror: (() => void) | null = null
+        width = 800
+        height = 600
+        set src(value: string) {
+          sources.push(value)
+          setTimeout(() => this.onload?.(), 0)
+        }
+      },
+    )
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
+      drawImage: vi.fn(),
+    } as unknown as CanvasRenderingContext2D)
+    vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue('data:image/jpeg;base64,YWJj')
+
+    const result = await compressImage(new File(['contenu'], 'photo.jpg', { type: 'image/jpeg' }))
+
+    expect(createObjectURL).not.toHaveBeenCalled()
+    expect(sources[0].startsWith('data:')).toBe(true)
+    expect(result).toBe('data:image/jpeg;base64,YWJj')
+
+    vi.unstubAllGlobals()
   })
 })

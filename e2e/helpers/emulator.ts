@@ -70,6 +70,13 @@ export async function seedDoc(collection: string, data: Record<string, unknown>)
 }
 
 export interface SeedRandoOptions {
+  /**
+   * Id MÉTIER de la rando (distinct de l'id du document). Les données rattachées
+   * à une sortie — ravito, hydratation, dépenses, transport, photos — sont
+   * indexées dessus : deux randos seedées avec le même id partagent donc leurs
+   * pièces jointes. À personnaliser dans tout test qui en crée.
+   */
+  id?: number
   name?: string
   region?: string
   proposedBy?: string
@@ -86,7 +93,7 @@ export async function seedRando(opts: SeedRandoOptions = {}): Promise<string> {
   const proposedBy = opts.proposedBy ?? 'Nordine'
   const dateStart = opts.dateStart ?? '2099-08-15'
   return seedDoc('randos', {
-    id: 100_001,
+    id: opts.id ?? 100_001,
     name: opts.name ?? 'Lac Blanc',
     region: opts.region ?? 'Haute-Savoie',
     diff: 'Moyen',

@@ -16,7 +16,7 @@ test.describe('Documents légaux', () => {
     // cadrage sur le dialogue, chaque nom de document matcherait deux boutons.
     const modale = page.getByRole('dialog')
     await expect(modale.getByRole('heading', { name: 'Mentions légales' })).toBeVisible()
-    await expect(modale.getByText(/Version provisoire/)).toBeVisible()
+    await expect(modale.getByText(/Dernière mise à jour/)).toBeVisible()
 
     // Les trois documents sont dans la même modale : on passe de l'un à l'autre
     // sans repasser par l'écran de connexion.

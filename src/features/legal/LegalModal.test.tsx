@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { LegalLinks, LegalModal } from './LegalModal'
-import { LEGAL_DOCS } from './legalContent'
+import { CONTACT_EMAIL, LEGAL_DOCS } from './legalContent'
 
 describe('contenu légal', () => {
   it('fournit les trois documents attendus', () => {
@@ -19,11 +19,29 @@ describe('contenu légal', () => {
     }
   })
 
-  it('marque explicitement ce qui reste à renseigner', () => {
-    // Une mention légale inventée (raison sociale, adresse, contact) est pire
-    // qu'une mention absente : les trous doivent rester visibles.
+  it('ne laisse aucun trou de rédaction dans les textes publiés', () => {
+    // Garde-fou : un « [à compléter] » oublié se retrouverait affiché tel quel
+    // dans un document légal public.
+    const tout = LEGAL_DOCS.flatMap((d) => d.sections.flatMap((s) => s.body)).join(' ')
+    expect(tout).not.toMatch(/\[à compléter|TODO|XXX|lorem/i)
+  })
+
+  it('publie une adresse de contact dans les trois documents', () => {
+    // Sans point de contact, le droit d'accès et de suppression RGPD annoncé
+    // dans la politique de confidentialité n'est pas exerçable.
+    for (const doc of LEGAL_DOCS) {
+      const texte = doc.sections.flatMap((s) => s.body).join(' ')
+      expect(texte, `aucun contact dans « ${doc.title} »`).toContain(CONTACT_EMAIL)
+    }
+  })
+
+  it('nomme les hébergeurs et les services tiers réellement utilisés', () => {
+    // Ces textes doivent suivre le code : si une origine externe est ajoutée à
+    // la CSP sans être mentionnée ici, les mentions légales deviennent fausses.
     const mentions = LEGAL_DOCS[0].sections.flatMap((s) => s.body).join(' ')
-    expect(mentions).toMatch(/\[à compléter/)
+    for (const tiers of ['Vercel', 'Firebase', 'Brevo', 'open-meteo', 'Google']) {
+      expect(mentions, `${tiers} absent des mentions légales`).toContain(tiers)
+    }
   })
 })
 
@@ -37,7 +55,6 @@ describe('LegalModal', () => {
     render(<LegalModal initial="mentions" onClose={() => {}} />)
     fireEvent.click(screen.getByRole('button', { name: 'Confidentialité' }))
     expect(screen.getByRole('heading', { name: 'Politique de confidentialité' })).toBeTruthy()
-    expect(screen.getByText(/Version provisoire/)).toBeTruthy()
   })
 
   it('est une boîte de dialogue fermable', () => {

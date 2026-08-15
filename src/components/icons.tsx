@@ -54,11 +54,6 @@ export const NAV_ICONS: Record<string, React.ReactNode> = {
       <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14" />
     </svg>
   ),
-  idees: (
-    <svg viewBox="0 0 24 24" {...stroke}>
-      <path d="M9 18h6M10 22h4M12 2a7 7 0 0 1 7 7c0 2.6-1.4 4.9-3.5 6.2V17a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1v-1.8C6.4 13.9 5 11.6 5 9a7 7 0 0 1 7-7z" />
-    </svg>
-  ),
   fenetre: (
     <svg viewBox="0 0 24 24" {...stroke}>
       <rect x="3" y="4" width="18" height="18" rx="2" />
@@ -90,6 +85,13 @@ export const NAV_ICONS: Record<string, React.ReactNode> = {
     </svg>
   ),
 }
+
+// Ampoule de la boîte à idées (ex-icône de l'onglet Idées, retiré).
+export const BulbIcon = ({ size = 20 }: { size?: number }) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} {...stroke}>
+    <path d="M9 18h6M10 22h4M12 2a7 7 0 0 1 7 7c0 2.6-1.4 4.9-3.5 6.2V17a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1v-1.8C6.4 13.9 5 11.6 5 9a7 7 0 0 1 7-7z" />
+  </svg>
+)
 
 export const PinIcon = () => (
   <svg width="10" height="10" viewBox="0 0 24 24" {...stroke}>

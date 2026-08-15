@@ -14,8 +14,8 @@ import { InvitePage } from './features/cordee/InvitePage'
 import { SommetsPage } from './features/sommets/SommetsPage'
 import { RadioPage } from './features/radio/RadioPage'
 import { KitPage } from './features/kit/KitPage'
-import { IdeesPage } from './features/idees/IdeesPage'
 import { FenetrePage } from './features/fenetre/FenetrePage'
+import { FeedbackBulb } from './features/feedback/FeedbackBulb'
 import { CordeePage } from './features/cordee/CordeePage'
 import { BasecampPage } from './features/basecamp/BasecampPage'
 import { AdminPage } from './features/admin/AdminPage'
@@ -52,7 +52,6 @@ const TABS: ReadonlyArray<{ key: string; label: string; short?: string }> = [
   { key: 'kit', label: 'Kit' },
   { key: 'radio', label: 'Radio' },
   { key: 'fenetre', label: 'Fenêtre' },
-  { key: 'idees', label: 'Idées' },
   { key: 'cordee', label: 'Cordée' },
   { key: 'basecamp', label: 'Base Camp', short: 'Camp' },
 ]
@@ -261,15 +260,19 @@ export default function App() {
               <div className="logo-sub">GROUPE · 5 MEMBRES</div>
             </div>
           </div>
-          <button
-            className="av-btn"
-            onClick={() => setTab('basecamp')}
-            title="Mon Base Camp"
-            aria-label="Mon Base Camp"
-          >
-            {memberPhoto && <Avatar name={memberName} photo={memberPhoto} size={24} />}
-            {memberName}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            {/* Boîte à idées : ampoule persistante, atteignable depuis chaque onglet */}
+            <FeedbackBulb memberName={memberName} email={user.email} />
+            <button
+              className="av-btn"
+              onClick={() => setTab('basecamp')}
+              title="Mon Base Camp"
+              aria-label="Mon Base Camp"
+            >
+              {memberPhoto && <Avatar name={memberName} photo={memberPhoto} size={24} />}
+              {memberName}
+            </button>
+          </div>
         </header>
 
         <main style={{ display: 'contents' }}>
@@ -281,8 +284,6 @@ export default function App() {
           <KitPage user={user} memberName={memberName} />
         ) : tab === 'fenetre' ? (
           <FenetrePage user={user} memberName={memberName} />
-        ) : tab === 'idees' ? (
-          <IdeesPage memberName={memberName} />
         ) : tab === 'cordee' ? (
           <CordeePage memberName={memberName} />
         ) : tab === 'basecamp' ? (

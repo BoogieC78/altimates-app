@@ -179,6 +179,12 @@ export async function seedDoc(collection: string, data: Record<string, unknown>)
   return ref.id
 }
 
+/** Lit tous les documents d'une collection (bypass des règles, pour les assertions). */
+export async function readCollection(collection: string): Promise<Record<string, unknown>[]> {
+  const snap = await db().collection(collection).get()
+  return snap.docs.map((d) => d.data())
+}
+
 export interface SeedRandoOptions {
   /**
    * Id MÉTIER de la rando (distinct de l'id du document). Les données rattachées

@@ -13,6 +13,7 @@ import type {
   Expense,
   TransportDoc,
   RandoMedia,
+  SurveyResponse,
   Cordee,
   CordeeInvite,
   CordeeJoinRequest,
@@ -38,6 +39,7 @@ export const availabilityCol = typedCollection<AvailabilityDoc>('availability')
 export const expensesCol = typedCollection<Expense>('expenses')
 export const transportCol = typedCollection<TransportDoc>('transport')
 export const randoMediaCol = typedCollection<RandoMedia>('randoMedia')
+export const randoSurveysCol = typedCollection<SurveyResponse>('randoSurveys')
 
 // ── Cordées multiples & parrainage ──
 export const cordeesCol = typedCollection<Cordee>('cordees')

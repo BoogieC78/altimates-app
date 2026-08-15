@@ -312,3 +312,32 @@ export interface RandoMedia {
   caption?: string
   createdAt?: Timestamp
 }
+
+// ── Enquête post-rando (collection randoSurveys, 1 doc par rando+membre) ──
+// Une réponse par membre et par sortie : l'id du document est imposé
+// (`${randoId}_${uid}`), une nouvelle soumission écrase donc la précédente
+// au lieu de s'ajouter — l'unicité est garantie par les règles Firestore.
+
+export type SurveyDifficulty = 'facile' | 'comme-prevu' | 'plus-dur'
+export type SurveyWeather = 'soleil' | 'nuageux' | 'pluie' | 'neige'
+
+export interface SurveyResponse {
+  /** id métier de la rando (String(rando.id)), comme les dépenses et photos */
+  randoId: string
+  /** prénom du membre (profile.name), dupliqué pour l'affichage nominatif */
+  author: string
+  /** uid Firebase du répondant — c'est lui que les règles vérifient, pas le prénom */
+  authorUid: string
+  /** note globale de la sortie, 1 à 5 étoiles */
+  rating: number
+  /** difficulté ressentie par rapport à ce qui était annoncé */
+  difficulty: SurveyDifficulty
+  /** météo rencontrée sur place */
+  weather: SurveyWeather
+  /** qualité de l'organisation, 1 à 5 */
+  organization: number
+  /** commentaire libre, facultatif et court */
+  comment?: string
+  createdAt?: Timestamp
+  updatedAt?: Timestamp
+}

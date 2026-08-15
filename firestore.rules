@@ -156,6 +156,37 @@ service cloud.firestore {
       allow update: if false;
     }
 
+    // Enquête post-rando : une réponse par membre et par sortie. L'unicité est
+    // garantie ICI par l'id du document, imposé à `${randoId}_${uid}` : une
+    // seconde soumission ÉCRASE la première au lieu de s'ajouter (c'est ce qui
+    // rend la réponse modifiable), et personne ne peut répondre au nom d'un
+    // autre — c'est l'uid qui est vérifié, jamais le prénom. Réponses
+    // nominatives, lisibles par tous les membres (restitution à la cordée).
+    // La fenêtre de 14 jours est un calcul client assumé : la contourner ne
+    // permet que de noter sa propre sortie hors délai, sans impact sécurité.
+    match /randoSurveys/{doc} {
+      allow read: if isMember();
+      allow create, update: if isMember()
+        && request.resource.data.authorUid == request.auth.uid
+        && doc == request.resource.data.randoId + '_' + request.auth.uid
+        && request.resource.data.randoId is string
+        && request.resource.data.rating is int
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5
+        && request.resource.data.organization is int
+        && request.resource.data.organization >= 1
+        && request.resource.data.organization <= 5
+        && request.resource.data.difficulty in ['facile', 'comme-prevu', 'plus-dur']
+        && request.resource.data.weather in ['soleil', 'nuageux', 'pluie', 'neige']
+        // Commentaire optionnel mais borné : sans plafond, la collection
+        // deviendrait un espace de stockage libre pour tout membre.
+        && (!('comment' in request.resource.data)
+          || (request.resource.data.comment is string
+            && request.resource.data.comment.size() <= 400));
+      allow delete: if isMember()
+        && (resource.data.authorUid == request.auth.uid || isAdmin());
+    }
+
     // ── Cordées & parrainage ────────────────────────────────────────────────
     // Invariants appliqués ICI, jamais dans l'UI :
     //  - un lien d'invitation expire 24 h après sa création ;

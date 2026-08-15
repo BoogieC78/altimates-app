@@ -27,10 +27,13 @@ import type {
   RavitoRetour,
   WaterSourceId,
 } from '../../core/types'
+import { surveyState } from '../../core/services/survey'
+import { todayLocalISO } from '../../core/services/dates'
 import { EditRandoModal } from './EditRandoModal'
 import { ExpensesTab } from './ExpensesTab'
 import { TransportTab } from './TransportTab'
 import { PhotosTab } from './PhotosTab'
+import { SurveyTab } from './SurveyTab'
 
 // ── Icônes locales (mêmes tracés SVG que l'ancienne app) ──
 
@@ -237,7 +240,15 @@ function PhotoTabIcon() {
   )
 }
 
-type TabId = 'info' | 'ravito' | 'hydra' | 'expenses' | 'transport' | 'photos'
+function StarTabIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" {...svgProps} style={{ display: 'inline', verticalAlign: -2, marginRight: 3 }}>
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  )
+}
+
+type TabId = 'info' | 'ravito' | 'hydra' | 'expenses' | 'transport' | 'photos' | 'survey'
 
 interface RandoDetailModalProps {
   rando: WithDocId<Rando>
@@ -253,6 +264,9 @@ export function RandoDetailModal({ rando: r, memberName, initialTab = 'info', on
   const [tab, setTab] = useState<TabId>(initialTab)
   const [showEdit, setShowEdit] = useState(false)
   const isProposer = r.proposedBy === memberName
+  // L'onglet Enquête n'apparaît qu'une fois la date de la sortie passée
+  // (déclenchement calculé côté client — pas de tâche planifiée serveur).
+  const surveyVisible = surveyState(r, todayLocalISO()) !== 'avant'
 
   if (showEdit) {
     return <EditRandoModal rando={r} onClose={() => setShowEdit(false)} />
@@ -307,6 +321,12 @@ export function RandoDetailModal({ rando: r, memberName, initialTab = 'info', on
           <PhotoTabIcon />
           Photos
         </button>
+        {surveyVisible && (
+          <button className={tab === 'survey' ? 'ravito-tab active' : 'ravito-tab'} aria-pressed={tab === 'survey'} onClick={() => setTab('survey')}>
+            <StarTabIcon />
+            Enquête
+          </button>
+        )}
       </div>
       {tab === 'info' && <InfoTab rando={r} memberName={memberName} onClose={onClose} />}
       {tab === 'ravito' && <RavitoTab rando={r} memberName={memberName} />}
@@ -314,6 +334,7 @@ export function RandoDetailModal({ rando: r, memberName, initialTab = 'info', on
       {tab === 'expenses' && <ExpensesTab rando={r} memberName={memberName} />}
       {tab === 'transport' && <TransportTab rando={r} memberName={memberName} />}
       {tab === 'photos' && <PhotosTab rando={r} memberName={memberName} />}
+      {tab === 'survey' && surveyVisible && <SurveyTab rando={r} memberName={memberName} />}
     </Modal>
   )
 }

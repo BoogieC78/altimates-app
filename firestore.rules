@@ -298,6 +298,11 @@ service cloud.firestore {
     }
 
     // Collections collaboratives : lecture/écriture pour tous les membres.
+    // NB : la collection racine `messages` (ancienne radio globale) est devenue
+    // le canal radio « Broadcast » — mêmes règles, aucune migration : l'app
+    // prod v0.5.0 continue d'y lire/écrire à l'identique. Les fils par cordée
+    // vivent dans cordees/{cid}/messages (règle dédiée plus haut, réservée aux
+    // membres de la cordée).
     match /{collection}/{doc} {
       allow read, write: if isMember()
         && collection in ['randos', 'messages', 'departItems', 'ravito', 'hydra'];

@@ -51,3 +51,22 @@ export const CORDEE_ORIGINE_ID = 'origine'
 export function cordeeMembersCol(cordeeId: string): CollectionReference<CordeeMember> {
   return collection(db, 'cordees', cordeeId, 'members') as CollectionReference<CordeeMember>
 }
+
+// ── Radio par canal ──
+// Chaque cordée a son propre fil (cordees/{cid}/messages, lisible par SES seuls
+// membres via firestore.rules). Le canal « broadcast » est l'ancienne collection
+// racine `messages` : AUCUNE migration, mêmes règles (tous les membres) — l'app
+// prod v0.5.0 continue d'y lire/écrire à l'identique.
+
+/** Id du canal broadcast (visible par tous les membres de l'app). */
+export const BROADCAST_CHANNEL_ID = 'broadcast'
+
+/** Messages d'une cordée : sous-collection cordees/{cid}/messages. */
+export function cordeeMessagesCol(cordeeId: string): CollectionReference<RadioMessage> {
+  return collection(db, 'cordees', cordeeId, 'messages') as CollectionReference<RadioMessage>
+}
+
+/** Collection des messages d'un canal radio (broadcast = collection racine historique). */
+export function messagesColForChannel(channelId: string): CollectionReference<RadioMessage> {
+  return channelId === BROADCAST_CHANNEL_ID ? messagesCol : cordeeMessagesCol(channelId)
+}

@@ -5,6 +5,7 @@ import {
   PROJECT_ID,
   seedCordee,
   seedCordeeOrigine,
+  seedDoc,
   seedInvite,
   seedRando,
 } from '../helpers/emulator'
@@ -224,6 +225,19 @@ test.describe('Invitations — contrôle serveur (firestore.rules)', () => {
     expect(
       await getDocRest(membreOrigine.idToken, `cordees/equipeB/members/${PARRAINE_EMAIL}`),
     ).toBe(403)
+
+    // Radio par cordée : le fil cordees/{cid}/messages est un canal PRIVÉ —
+    // lisible par les membres de la cordée, refusé (par les règles, pas l'UI)
+    // à un membre d'une autre cordée.
+    const msgId = await seedDoc('cordees/origine/messages', { text: 'point météo à 8h' })
+    expect(await getDocRest(membreOrigine.idToken, `cordees/origine/messages/${msgId}`)).toBe(200)
+    expect(await getDocRest(membreB.idToken, `cordees/origine/messages/${msgId}`)).toBe(403)
+
+    // Canal broadcast = collection racine `messages`, sémantique v0.5.0
+    // inchangée : ouverte aux membres de l'app (whitelist/origine), pas aux
+    // membres d'une cordée tierce uniquement.
+    expect(await createDocRest(membreOrigine.idToken, 'messages', { text: s('annonce') })).toBe(200)
+    expect(await createDocRest(membreB.idToken, 'messages', { text: s('annonce') })).toBe(403)
   })
 
   test('un membre de la cordée d\'origine HORS whitelist accède aux données historiques', async () => {

@@ -276,7 +276,7 @@ export default function App() {
         {tab === 'sommets' ? (
           <SommetsPage memberName={memberName} />
         ) : tab === 'radio' ? (
-          <RadioPage memberName={memberName} />
+          <RadioPage user={user} memberName={memberName} />
         ) : tab === 'kit' ? (
           <KitPage user={user} memberName={memberName} />
         ) : tab === 'fenetre' ? (

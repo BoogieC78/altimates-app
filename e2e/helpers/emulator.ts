@@ -1,6 +1,6 @@
 import { getApps, initializeApp } from 'firebase-admin/app'
 import { getAuth } from 'firebase-admin/auth'
-import { FieldValue, getFirestore } from 'firebase-admin/firestore'
+import { FieldValue, Timestamp, getFirestore } from 'firebase-admin/firestore'
 
 // Accès admin aux émulateurs Firebase pour le reset et le seed des données de test.
 // L'admin SDK contourne les firestore.rules (bypass total), ce qui est exactement
@@ -113,6 +113,62 @@ export const DEFAULT_MEMBERS = [
 /** Écrit la whitelist dynamique config/allowedEmails. */
 export async function seedAllowedEmails(emails: string[] = DEFAULT_MEMBERS): Promise<void> {
   await db().collection('config').doc('allowedEmails').set({ emails })
+}
+
+/**
+ * Seed la « Cordée d'origine » (multi-cordées) avec les membres donnés — miroir
+ * de ce que fait ensureCordeeOrigineSeeded côté AdminPage en prod.
+ */
+export async function seedCordeeOrigine(emails: string[] = DEFAULT_MEMBERS): Promise<void> {
+  await seedCordee('origine', "Cordée d'origine", emails, 'seed')
+}
+
+/** Seed une cordée arbitraire avec ses membres (docs cordees/{id}/members/{email}). */
+export async function seedCordee(
+  cordeeId: string,
+  name: string,
+  emails: string[],
+  via: 'seed' | 'fondateur' | 'invitation' = 'seed',
+): Promise<void> {
+  const ref = db().collection('cordees').doc(cordeeId)
+  await ref.set({
+    name,
+    createdBy: emails[0] ?? 'hammadou.nordine@gmail.com',
+    createdAt: FieldValue.serverTimestamp(),
+  })
+  for (const email of emails) {
+    await ref.collection('members').doc(email).set({
+      email,
+      addedBy: 'seed-e2e',
+      via,
+      addedAt: FieldValue.serverTimestamp(),
+    })
+  }
+}
+
+export interface SeedInviteOptions {
+  cordeeId?: string
+  cordeeName?: string
+  createdBy?: string
+  /** âge du lien en millisecondes (pour tester l'expiration 24 h) */
+  ageMs?: number
+  /** e-mails déjà entrés via ce lien (pour tester le quota de 6) */
+  approved?: string[]
+}
+
+/** Seed un lien de parrainage ; renvoie son jeton (id du doc invites). */
+export async function seedInvite(opts: SeedInviteOptions = {}): Promise<string> {
+  const ref = await db()
+    .collection('invites')
+    .add({
+      cordeeId: opts.cordeeId ?? 'origine',
+      cordeeName: opts.cordeeName ?? "Cordée d'origine",
+      createdBy: opts.createdBy ?? 'ousa.chac@gmail.com',
+      createdByName: null,
+      approved: opts.approved ?? [],
+      createdAt: Timestamp.fromMillis(Date.now() - (opts.ageMs ?? 0)),
+    })
+  return ref.id
 }
 
 /** Ajoute un document dans une collection ; renvoie son docId. */

@@ -1,16 +1,21 @@
 import {
   arrayRemove,
   arrayUnion,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
+  serverTimestamp,
   setDoc,
   writeBatch,
   type CollectionReference,
 } from 'firebase/firestore'
-import { db } from './app'
+import { auth, db } from './app'
 import {
+  CORDEE_ORIGINE_ID,
   configCol,
+  cordeeMembersCol,
+  cordeesCol,
   departItemsCol,
   feedbacksCol,
   messagesCol,
@@ -76,10 +81,61 @@ export async function ensureAllowedEmailsSeeded(defaults: string[]): Promise<boo
 
 export async function addAllowedEmail(email: string): Promise<void> {
   await setDoc(allowedEmailsDoc, { emails: arrayUnion(email) }, { merge: true })
+  // Miroir cordée d'origine : la whitelist et les membres de 'origine' doivent
+  // rester alignés (les deux donnent accès aux données historiques). Best-effort :
+  // si la cordée n'est pas encore seedée, le seed la rattrapera.
+  try {
+    await setDoc(doc(cordeeMembersCol(CORDEE_ORIGINE_ID), email), {
+      email,
+      addedBy: auth.currentUser?.email ?? 'admin',
+      via: 'seed',
+      addedAt: serverTimestamp(),
+    })
+  } catch (e) {
+    console.warn('miroir cordée origine (ajout):', e)
+  }
 }
 
 export async function removeAllowedEmail(email: string): Promise<void> {
   await setDoc(allowedEmailsDoc, { emails: arrayRemove(email) }, { merge: true })
+  // Miroir cordée d'origine : sans ce retrait, l'appartenance à 'origine'
+  // continuerait de donner accès aux données historiques malgré le retrait de
+  // la whitelist (isMember = whitelist OU membre d'origine).
+  try {
+    await deleteDoc(doc(cordeeMembersCol(CORDEE_ORIGINE_ID), email))
+  } catch (e) {
+    console.warn('miroir cordée origine (retrait):', e)
+  }
+}
+
+/**
+ * Migration multi-cordées : crée la « Cordée d'origine » (id fixe 'origine') et
+ * y inscrit tous les e-mails fournis (whitelist + admins) si elle n'existe pas
+ * encore. Aucune donnée déplacée : les collections racines SONT les données de
+ * cette cordée. Ne touche à rien si le doc existe déjà (membres retirés depuis
+ * l'Admin non ré-ajoutés). Réservé à l'admin (règles Firestore).
+ */
+export async function ensureCordeeOrigineSeeded(emails: string[]): Promise<boolean> {
+  const origineRef = doc(cordeesCol, CORDEE_ORIGINE_ID)
+  const snap = await getDoc(origineRef)
+  if (snap.exists()) return false
+  const adminEmail = auth.currentUser?.email ?? 'admin'
+  const batch = writeBatch(db)
+  batch.set(origineRef, {
+    name: "Cordée d'origine",
+    createdBy: adminEmail,
+    createdAt: serverTimestamp(),
+  })
+  for (const email of new Set(emails.map((e) => e.trim().toLowerCase()))) {
+    batch.set(doc(cordeeMembersCol(CORDEE_ORIGINE_ID), email), {
+      email,
+      addedBy: adminEmail,
+      via: 'seed',
+      addedAt: serverTimestamp(),
+    })
+  }
+  await batch.commit()
+  return true
 }
 
 /** Liste les membres enregistrés (collection users). */

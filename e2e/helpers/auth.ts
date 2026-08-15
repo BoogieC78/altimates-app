@@ -11,6 +11,8 @@ export interface SignInOptions {
   email?: string
   /** Prénom affiché → devient le memberName (clé des votes) quand users/{uid} n'existe pas. */
   name?: string
+  /** URL de départ (défaut '/') — ex. un lien d'invitation `/?invite=JETON`. */
+  url?: string
 }
 
 /**
@@ -23,7 +25,7 @@ export async function signInWithEmulator(page: Page, opts: SignInOptions = {}): 
   const email = opts.email ?? MEMBER_EMAIL
   const name = opts.name ?? 'Wacil'
 
-  await page.goto('/')
+  await page.goto(opts.url ?? '/')
   await expect(page.getByRole('button', { name: /Continuer avec Google/i })).toBeVisible()
 
   const popupPromise = page.waitForEvent('popup')

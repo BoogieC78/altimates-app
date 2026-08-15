@@ -25,9 +25,22 @@ service cloud.firestore {
         : [];
     }
 
+    // ── Cordées multiples (modèle additif, rétrocompatible v0.5.0) ──────────
+    // L'appartenance à une cordée est matérialisée par l'EXISTENCE du document
+    // cordees/{cordeeId}/members/{email}. La cordée 'origine' correspond aux
+    // données historiques : ses membres obtiennent l'accès aux collections
+    // racines existantes via isMember(), en PLUS de la whitelist — l'app prod
+    // v0.5.0 (whitelist seule) continue de fonctionner à l'identique.
+    function isCordeeMember(cordeeId) {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/cordees/$(cordeeId)/members/$(request.auth.token.email));
+    }
+
     function isMember() {
       return request.auth != null
-        && (isAdmin() || request.auth.token.email in allowedEmails());
+        && (isAdmin()
+          || request.auth.token.email in allowedEmails()
+          || isCordeeMember('origine'));
     }
 
     // Prénom du membre courant (users/{uid}.profile.name). Sert d'identité dans
@@ -140,6 +153,147 @@ service cloud.firestore {
             && get(/databases/$(database)/documents/randos/$(request.resource.data.randoDocId)).data.get('proposedBy', '') == memberName()));
       allow delete: if isMember()
         && (resource.data.authorUid == request.auth.uid || isAdmin());
+      allow update: if false;
+    }
+
+    // ── Cordées & parrainage ────────────────────────────────────────────────
+    // Invariants appliqués ICI, jamais dans l'UI :
+    //  - un lien d'invitation expire 24 h après sa création ;
+    //  - un lien fait entrer 6 personnes maximum (7e usage refusé) ;
+    //  - seul le CRÉATEUR du lien approuve une demande ;
+    //  - un invité non approuvé ne lit et n'écrit RIEN dans la cordée ;
+    //  - les données d'une cordée ne sont lisibles que par SES membres.
+
+    // Approbation d'une demande : création de cordees/{cid}/members/{email} par
+    // le créateur du lien, dans le MÊME batch que la mise à jour du quota sur
+    // invites/{id}.approved (vérifié via getAfter : sans l'écriture jumelle sur
+    // le lien — celle qui applique le plafond de 6 — l'ajout du membre est
+    // refusé). La demande (joinRequests) a elle-même été validée à sa création :
+    // lien existant, non expiré, quota non atteint.
+    function approvalValid(cordeeId, memberEmail) {
+      let d = request.resource.data;
+      let invitePath = /databases/$(database)/documents/invites/$(d.inviteId);
+      let requestPath = /databases/$(database)/documents/joinRequests/$(d.requestId);
+      return d.inviteId is string
+        && d.requestId is string
+        && exists(invitePath)
+        && get(invitePath).data.cordeeId == cordeeId
+        && get(invitePath).data.createdBy == request.auth.token.email
+        && exists(requestPath)
+        && get(requestPath).data.inviteId == d.inviteId
+        && get(requestPath).data.email == memberEmail
+        && getAfter(invitePath).data.approved.hasAll([memberEmail]);
+    }
+
+    match /cordees/{cordeeId} {
+      // Lisible par ses membres uniquement : un invité non approuvé (ou un
+      // membre d'une AUTRE cordée) n'y voit rien. Le nom affiché à l'invité
+      // vit dénormalisé dans le doc d'invitation.
+      allow read: if isAdmin() || isCordeeMember(cordeeId);
+      // N'importe quel utilisateur authentifié peut fonder une cordée (nombre
+      // illimité par utilisateur) : une cordée vide n'expose aucune donnée,
+      // et l'entrée d'autrui reste soumise au parrainage ci-dessous.
+      // EXCEPTION : l'id 'origine' est réservé — ses membres accèdent aux
+      // données historiques (isMember), seul un admin peut donc le créer.
+      allow create: if (cordeeId != 'origine' || isAdmin())
+        && request.auth != null
+        && request.resource.data.createdBy == request.auth.token.email
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 1
+        && request.resource.data.name.size() <= 60;
+      allow update, delete: if isAdmin();
+
+      match /members/{memberEmail} {
+        allow read: if isAdmin() || isCordeeMember(cordeeId);
+        // `email` dupliqué en champ (== id du doc) : les requêtes collectionGroup
+        // "mes cordées" filtrent dessus, il doit être fiable.
+        allow create: if request.resource.data.email == memberEmail
+          && (isAdmin()
+            // Fondateur : s'ajoute lui-même dans le batch qui crée sa cordée.
+            || (request.auth != null
+              && memberEmail == request.auth.token.email
+              && getAfter(/databases/$(database)/documents/cordees/$(cordeeId)).data.createdBy == request.auth.token.email)
+            // Entrée par parrainage, approuvée par le créateur du lien.
+            || approvalValid(cordeeId, memberEmail));
+        // Quitter une cordée : chacun peut retirer sa propre appartenance.
+        allow delete: if isAdmin()
+          || (request.auth != null && memberEmail == request.auth.token.email);
+        allow update: if false;
+      }
+
+      // Données partitionnées par cordée (radio, sorties… — cartes suivantes) :
+      // accessibles aux seuls membres de LA cordée. Liste explicite pour ne
+      // JAMAIS englober /members (sinon tout membre pourrait s'auto-inviter).
+      match /{col}/{doc} {
+        allow read, write: if (isAdmin() || isCordeeMember(cordeeId))
+          && col in ['randos', 'messages', 'departItems', 'ravito', 'hydra', 'feedbacks'];
+      }
+    }
+
+    // Requêtes collectionGroup « mes cordées » : chacun ne peut lister que ses
+    // PROPRES docs d'appartenance (where email == son e-mail), où qu'ils soient.
+    match /{path=**}/members/{memberEmail} {
+      allow read: if request.auth != null
+        && resource.data.email == request.auth.token.email;
+    }
+
+    // Liens de parrainage. L'id du doc EST le jeton (capacité) : un `get` par id
+    // est ouvert à tout utilisateur authentifié (l'invité doit voir le nom de la
+    // cordée), mais le LISTAGE est réservé aux liens qu'on a soi-même créés —
+    // sinon n'importe quel compte Google énumérerait tous les jetons actifs.
+    match /invites/{inviteId} {
+      allow get: if request.auth != null;
+      allow list: if request.auth != null
+        && resource.data.createdBy == request.auth.token.email;
+      allow create: if isCordeeMember(request.resource.data.cordeeId)
+        && request.resource.data.createdBy == request.auth.token.email
+        // serverTimestamp exigé : l'expiration 24 h se calcule dessus, un
+        // createdAt choisi par le client la rendrait contournable.
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.approved == [];
+      // Seule évolution permise : la liste `approved` qui GRANDIT (jamais de
+      // retrait — sinon le quota de 6 serait réarmable), plafonnée à 6.
+      allow update: if (isAdmin() || resource.data.createdBy == request.auth.token.email)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['approved'])
+        && request.resource.data.approved is list
+        && request.resource.data.approved.size() <= 6
+        && request.resource.data.approved.hasAll(resource.data.approved);
+      allow delete: if isAdmin()
+        || (request.auth != null && resource.data.createdBy == request.auth.token.email);
+    }
+
+    // Demandes d'entrée. C'est ICI que se jouent l'expiration (24 h) et le
+    // refus anticipé du 7e : passé le délai ou le quota, plus AUCUNE demande
+    // ne peut être créée sur ce lien.
+    match /joinRequests/{requestId} {
+      allow create: if request.auth != null
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.inviteId is string
+        // Id imposé (lien_uid) : une seule demande par utilisateur et par lien,
+        // pas de spam de documents à ids arbitraires.
+        && requestId == request.resource.data.inviteId + '_' + request.auth.uid
+        && exists(/databases/$(database)/documents/invites/$(request.resource.data.inviteId))
+        && get(/databases/$(database)/documents/invites/$(request.resource.data.inviteId)).data.cordeeId
+          == request.resource.data.cordeeId
+        && request.time
+          < get(/databases/$(database)/documents/invites/$(request.resource.data.inviteId)).data.createdAt
+            + duration.value(24, 'h')
+        && get(/databases/$(database)/documents/invites/$(request.resource.data.inviteId)).data.approved.size() < 6;
+      // Le demandeur suit sa propre demande ; les membres de la cordée visée la
+      // voient pour l'approuver (l'approbation effective reste réservée au
+      // créateur du lien, via approvalValid).
+      allow read: if isAdmin()
+        || (request.auth != null && resource.data.email == request.auth.token.email)
+        || isCordeeMember(resource.data.cordeeId);
+      // Refus = suppression, par le créateur du lien ; le demandeur peut aussi
+      // retirer sa propre demande.
+      allow delete: if isAdmin()
+        || (request.auth != null && resource.data.email == request.auth.token.email)
+        || (request.auth != null
+          && get(/databases/$(database)/documents/invites/$(resource.data.inviteId)).data.createdBy
+            == request.auth.token.email);
       allow update: if false;
     }
 

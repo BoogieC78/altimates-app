@@ -13,6 +13,10 @@ import type {
   Expense,
   TransportDoc,
   RandoMedia,
+  Cordee,
+  CordeeInvite,
+  CordeeJoinRequest,
+  CordeeMember,
 } from '../types'
 
 // Références typées vers les collections existantes. Une seule source de vérité
@@ -34,3 +38,16 @@ export const availabilityCol = typedCollection<AvailabilityDoc>('availability')
 export const expensesCol = typedCollection<Expense>('expenses')
 export const transportCol = typedCollection<TransportDoc>('transport')
 export const randoMediaCol = typedCollection<RandoMedia>('randoMedia')
+
+// ── Cordées multiples & parrainage ──
+export const cordeesCol = typedCollection<Cordee>('cordees')
+export const invitesCol = typedCollection<CordeeInvite>('invites')
+export const joinRequestsCol = typedCollection<CordeeJoinRequest>('joinRequests')
+
+/** Cordée par défaut portant les données historiques (collections racines). */
+export const CORDEE_ORIGINE_ID = 'origine'
+
+/** Membres d'une cordée : sous-collection cordees/{cid}/members, 1 doc par e-mail. */
+export function cordeeMembersCol(cordeeId: string): CollectionReference<CordeeMember> {
+  return collection(db, 'cordees', cordeeId, 'members') as CollectionReference<CordeeMember>
+}

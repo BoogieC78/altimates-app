@@ -12,6 +12,7 @@ import { LVLS, type Level } from '../../core/constants/gear'
 import { useCollection } from '../../hooks/useCollection'
 import { TrashIcon } from '../../components/icons'
 import { Avatar } from '../../components/Avatar'
+import { CordeeManager } from './CordeeManager'
 
 interface CordeePageProps {
   memberName: string
@@ -21,19 +22,6 @@ export function CordeePage({ memberName }: CordeePageProps) {
   const { data: users, loading } = useCollection(usersCol)
   const { data: departItems } = useCollection(departItemsCol)
   const [newItem, setNewItem] = useState('')
-  const [copied, setCopied] = useState(false)
-
-  // Lien d'invitation : URL de l'app (comme copyInvite de l'ancienne app)
-  const inviteUrl = window.location.origin
-  const copyInvite = () => {
-    void navigator.clipboard
-      .writeText(inviteUrl)
-      .then(() => {
-        setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
-      })
-      .catch((e) => console.warn('clipboard:', e))
-  }
 
   const members = users
     .map((u) => ({
@@ -223,18 +211,11 @@ export function CordeePage({ memberName }: CordeePageProps) {
         </button>
       </div>
 
-      <h2 className="sec" style={{ marginTop: 12 }}>
-        Inviter
-      </h2>
-      <div className="card" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-        <input className="form-input" aria-label="Lien d'invitation" style={{ flex: 1, fontSize: 11 }} readOnly value={inviteUrl} />
-        <button className="btn btn-sm" onClick={copyInvite}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-          </svg>
-          {copied ? 'Copié !' : 'Copier'}
-        </button>
+      <div style={{ marginTop: 12 }}>
+        {/* Parrainage & cordées multiples : lien d'invitation nominatif (24 h,
+            6 personnes max, approbation manuelle) — remplace l'ancien copier-coller
+            de l'URL de l'app qui ne faisait entrer personne. */}
+        <CordeeManager memberName={memberName} />
       </div>
     </div>
   )

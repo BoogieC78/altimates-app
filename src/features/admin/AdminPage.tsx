@@ -4,6 +4,7 @@ import {
   addAllowedEmail,
   countCollection,
   ensureAllowedEmailsSeeded,
+  ensureCordeeOrigineSeeded,
   flushCollection,
   getAllowedEmails,
   listUsers,
@@ -65,10 +66,16 @@ export function AdminPage({ memberName }: AdminPageProps) {
       })
       .catch(() => setUsersError(true))
     // Amorce la whitelist si elle n'existe pas encore (migration), puis la charge.
+    // Amorce aussi la « Cordée d'origine » (multi-cordées) avec whitelist + admins :
+    // aucune perte pour les membres existants, les données historiques restent
+    // les leurs via cette cordée par défaut.
     void ensureAllowedEmailsSeeded(DEFAULT_ALLOWED_EMAILS)
       .catch(() => {})
       .then(() => getAllowedEmails())
-      .then(setAllowedEmails)
+      .then((emails) => {
+        setAllowedEmails(emails)
+        return ensureCordeeOrigineSeeded([...emails, ...ADMIN_EMAILS])
+      })
       .catch(() => {})
   }, [])
 

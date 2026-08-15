@@ -6,10 +6,13 @@ import { ADMIN_EMAILS, DEFAULT_ALLOWED_EMAILS, isAdminEmail, isMemberEmail } fro
 // et les I/O Firestore. Tout le reste de ./auth s'exécute en vrai.
 // vi.hoisted : les factories vi.mock sont remontées en tête de fichier et ne
 // peuvent pas référencer des variables top-level ordinaires.
-const { getIdToken, authStateReady, getDoc } = vi.hoisted(() => ({
+const { getIdToken, authStateReady, getDoc, getDocs } = vi.hoisted(() => ({
   getIdToken: vi.fn<(force?: boolean) => Promise<string>>(),
   authStateReady: vi.fn<() => Promise<void>>(),
   getDoc: vi.fn<() => Promise<{ data: () => unknown }>>(),
+  // Requête collectionGroup "mes cordées" (appartenance par parrainage) :
+  // par défaut, aucune appartenance.
+  getDocs: vi.fn<() => Promise<{ empty: boolean; docs: unknown[] }>>(),
 }))
 
 vi.mock('./app', () => ({
@@ -26,6 +29,20 @@ vi.mock('./app', () => ({
 vi.mock('firebase/firestore', () => ({
   doc: vi.fn(() => ({})),
   getDoc: () => getDoc(),
+  getDocs: () => getDocs(),
+  // Le graphe d'import de ./auth passe désormais par ./cordees et ./collections
+  // (cordées multiples) : tout import nommé doit exister, même inutilisé ici.
+  collection: vi.fn(() => ({})),
+  collectionGroup: vi.fn(() => ({})),
+  query: vi.fn(() => ({})),
+  where: vi.fn(() => ({})),
+  limit: vi.fn(() => ({})),
+  setDoc: vi.fn(() => Promise.resolve()),
+  deleteDoc: vi.fn(() => Promise.resolve()),
+  serverTimestamp: vi.fn(() => ({})),
+  writeBatch: vi.fn(() => ({ set: vi.fn(), update: vi.fn(), delete: vi.fn(), commit: vi.fn() })),
+  arrayUnion: vi.fn(() => ({})),
+  arrayRemove: vi.fn(() => ({})),
 }))
 
 describe('isAdminEmail', () => {
@@ -60,6 +77,7 @@ describe('isMemberEmail', () => {
     authStateReady.mockResolvedValue(undefined)
     getIdToken.mockResolvedValue('jeton')
     getDoc.mockResolvedValue(snapWith([MEMBER]))
+    getDocs.mockResolvedValue({ empty: true, docs: [] })
   })
 
   it('refuse null/undefined/vide sans lecture Firestore', async () => {
@@ -91,9 +109,11 @@ describe('isMemberEmail', () => {
   })
 
   it('réessaie une fois avec jeton forcé sur permission-denied transitoire', async () => {
+    // Jeton pas encore propagé : la whitelist ET la requête cordées sont refusées.
     getDoc
       .mockRejectedValueOnce(new FirebaseError('permission-denied', 'jeton pas encore propagé'))
       .mockResolvedValueOnce(snapWith([MEMBER]))
+    getDocs.mockRejectedValueOnce(new FirebaseError('permission-denied', 'jeton pas encore propagé'))
     await expect(isMemberEmail(MEMBER)).resolves.toBe(true)
     expect(getDoc).toHaveBeenCalledTimes(2)
     expect(getIdToken).toHaveBeenCalledWith(true) // rafraîchissement forcé
@@ -101,8 +121,23 @@ describe('isMemberEmail', () => {
 
   it('refuse après un permission-denied persistant (deux lectures max)', async () => {
     getDoc.mockRejectedValue(new FirebaseError('permission-denied', 'non membre'))
+    getDocs.mockRejectedValue(new FirebaseError('permission-denied', 'non membre'))
     await expect(isMemberEmail('intrus@gmail.com')).resolves.toBe(false)
     expect(getDoc).toHaveBeenCalledTimes(2)
+  })
+
+  it("accepte un membre entré par parrainage (hors whitelist, membre d'une cordée)", async () => {
+    // Non-membre de la whitelist : sa lecture est refusée (permission-denied
+    // attendu), mais la requête collectionGroup sur SES appartenances aboutit.
+    getDoc.mockRejectedValue(new FirebaseError('permission-denied', 'non whitelisté'))
+    getDocs.mockResolvedValue({ empty: false, docs: [{}] })
+    await expect(isMemberEmail('parraine@gmail.com')).resolves.toBe(true)
+  })
+
+  it("refuse un email hors whitelist ET sans cordée (requête cordées vide)", async () => {
+    getDoc.mockResolvedValue(snapWith([MEMBER]))
+    await expect(isMemberEmail('intrus@gmail.com')).resolves.toBe(false)
+    expect(getDocs).toHaveBeenCalledTimes(1)
   })
 
   it('refuse sans réessayer sur une erreur non permission-denied', async () => {

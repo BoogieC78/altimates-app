@@ -9,6 +9,7 @@ vi.mock('../../core/firebase/admin', async (importOriginal) => ({
   flushCollection: vi.fn(() => Promise.resolve()),
   getAllowedEmails: vi.fn(() => Promise.resolve(['wacil@example.com'])),
   ensureAllowedEmailsSeeded: vi.fn(() => Promise.resolve(false)),
+  ensureCordeeOrigineSeeded: vi.fn(() => Promise.resolve(false)),
   addAllowedEmail: vi.fn(() => Promise.resolve()),
   removeAllowedEmail: vi.fn(() => Promise.resolve()),
   listUsers: vi.fn(() =>

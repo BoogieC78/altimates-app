@@ -20,6 +20,11 @@ vi.mock('../../hooks/useCollection', () => ({
     error: null,
   }),
 }))
+// La gestion des cordées (parrainage) parle à Firestore en vrai : hors sujet ici,
+// elle a son propre parcours E2E (invitations.spec.ts).
+vi.mock('./CordeeManager', () => ({
+  CordeeManager: () => <div data-testid="cordee-manager" />,
+}))
 vi.mock('../../core/firebase/depart', () => ({
   addDepartItem: vi.fn(() => Promise.resolve()),
   assignDepartItem: vi.fn(() => Promise.resolve()),

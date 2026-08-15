@@ -12,6 +12,7 @@ import {
 import { FirebaseError } from 'firebase/app'
 import { doc, getDoc } from 'firebase/firestore'
 import { auth, db } from './app'
+import { isCordeeMemberAnywhere } from './cordees'
 
 // Liste d'amorçage : les membres historiques. Elle ne sert plus qu'à SEEDER le
 // document config/allowedEmails la première fois (voir ensureAllowedEmailsSeeded).
@@ -75,8 +76,27 @@ export async function fetchAllowedEmails(): Promise<string[]> {
 }
 
 /**
+ * Accès effectif d'un non-admin : whitelist config/allowedEmails OU appartenance
+ * à au moins une cordée. La lecture de la whitelist est refusée aux non-membres
+ * (permission-denied) : pour un membre entré UNIQUEMENT par parrainage dans une
+ * cordée, ce refus est normal et ne doit pas conclure "non autorisé" — on tranche
+ * alors via la requête collectionGroup sur ses propres appartenances (toujours
+ * autorisée pour son propre e-mail).
+ */
+async function hasAnyAccess(email: string): Promise<boolean> {
+  try {
+    if ((await fetchAllowedEmails()).includes(email)) return true
+  } catch (err) {
+    // Seul un refus de permission est un "non" attendu ; toute autre erreur remonte.
+    if (!(err instanceof FirebaseError) || err.code !== 'permission-denied') throw err
+  }
+  return isCordeeMemberAnywhere(email)
+}
+
+/**
  * Un email a-t-il accès ? Les admins passent toujours (sans lecture Firestore).
- * Les autres sont autorisés s'ils figurent dans config/allowedEmails.
+ * Les autres sont autorisés s'ils figurent dans config/allowedEmails ou s'ils
+ * sont membres d'au moins une cordée (parrainage).
  *
  * Cause racine du permission-denied transitoire juste après la connexion :
  * Firestore est notifié du nouveau jeton d'auth de façon asynchrone, donc une
@@ -97,25 +117,71 @@ export async function isMemberEmail(email: string | null | undefined): Promise<b
     // Jeton indisponible : la lecture ci-dessous tranchera.
   }
   try {
-    return (await fetchAllowedEmails()).includes(email)
+    return await hasAnyAccess(email)
   } catch (err) {
     if (!(err instanceof FirebaseError) || err.code !== 'permission-denied') return false
     try {
       await auth.currentUser?.getIdToken(true)
-      return (await fetchAllowedEmails()).includes(email)
+      return await hasAnyAccess(email)
     } catch {
       return false // refus persistant : réellement non autorisé (ou hors ligne)
     }
   }
 }
 
-/** Vérifie l'appartenance et déconnecte + throw si l'email n'est pas autorisé. */
-async function enforceMembership(user: User): Promise<User> {
-  if (!(await isMemberEmail(user.email))) {
-    await fbSignOut(auth)
-    throw new Error('Email non autorisé. Demande un accès à la cordée.')
+// ── Invitation par lien de parrainage (?invite=JETON) ───────────────────────
+// Le jeton est mémorisé en localStorage : la connexion Google (popup) ou par
+// lien e-mail (aller-retour par la boîte mail) fait perdre les paramètres d'URL.
+
+const INVITE_TOKEN_KEY = 'altimates-invite-token'
+
+/** Mémorise le jeton d'invitation présent dans l'URL, et renvoie le jeton courant. */
+export function capturePendingInvite(): string | null {
+  let fromUrl: string | null = null
+  try {
+    fromUrl = new URLSearchParams(window.location.search).get('invite')
+    if (fromUrl) window.localStorage.setItem(INVITE_TOKEN_KEY, fromUrl)
+    return fromUrl ?? window.localStorage.getItem(INVITE_TOKEN_KEY)
+  } catch {
+    return fromUrl
   }
-  return user
+}
+
+/** Jeton d'invitation en attente, s'il y en a un. */
+export function getPendingInvite(): string | null {
+  try {
+    return window.localStorage.getItem(INVITE_TOKEN_KEY)
+  } catch {
+    return null
+  }
+}
+
+export function clearPendingInvite(): void {
+  try {
+    window.localStorage.removeItem(INVITE_TOKEN_KEY)
+  } catch {
+    /* rien à nettoyer */
+  }
+  // Retire aussi le paramètre de l'URL pour ne pas recapturer le jeton au prochain chargement.
+  const url = new URL(window.location.href)
+  if (url.searchParams.has('invite')) {
+    url.searchParams.delete('invite')
+    window.history.replaceState(null, '', url.toString())
+  }
+}
+
+/**
+ * Vérifie l'appartenance et déconnecte + throw si l'email n'est pas autorisé.
+ * Exception : un jeton d'invitation en attente laisse l'utilisateur connecté en
+ * MODE INVITÉ — il ne verra que la page d'invitation (App), et les règles
+ * Firestore ne lui laissent de toute façon rien lire ni écrire dans la cordée
+ * tant qu'il n'est pas approuvé.
+ */
+async function enforceMembership(user: User): Promise<User> {
+  if (await isMemberEmail(user.email)) return user
+  if (getPendingInvite()) return user
+  await fbSignOut(auth)
+  throw new Error('Email non autorisé. Demande un accès à la cordée.')
 }
 
 export async function signInWithGoogle(): Promise<User> {

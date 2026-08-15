@@ -7,7 +7,10 @@ import {
   isDevAutoLoginEnabled,
   sendEmailSignInLink,
   completeEmailSignIn,
+  capturePendingInvite,
+  clearPendingInvite,
 } from './core/firebase/auth'
+import { InvitePage } from './features/cordee/InvitePage'
 import { SommetsPage } from './features/sommets/SommetsPage'
 import { RadioPage } from './features/radio/RadioPage'
 import { KitPage } from './features/kit/KitPage'
@@ -55,9 +58,12 @@ const TABS: ReadonlyArray<{ key: string; label: string; short?: string }> = [
 ]
 
 export default function App() {
-  const { user, loading } = useAuth()
+  const { user, loading, member } = useAuth()
   const { name: memberName, photo: memberPhoto, needsName, saveName } = useMemberName(user)
   const [tab, setTab] = useState('sommets')
+  // Jeton d'invitation (?invite=…) capturé AVANT tout (la connexion fait perdre
+  // les paramètres d'URL) : tant qu'il est là, la page d'invitation s'affiche.
+  const [inviteToken, setInviteToken] = useState<string | null>(capturePendingInvite)
   const [loginError, setLoginError] = useState('')
   const [email, setEmail] = useState('')
   const [emailSent, setEmailSent] = useState(false)
@@ -91,6 +97,28 @@ export default function App() {
 
   if (loading) return null
 
+  // Parcours d'invitation : un utilisateur connecté avec un jeton en attente ne
+  // voit QUE cette page — qu'il soit un invité sans aucun accès (member=false,
+  // seul cas où useAuth garde un non-membre connecté) ou un membre existant qui
+  // rejoint une cordée supplémentaire.
+  if (user && inviteToken) {
+    return (
+      <InvitePage
+        token={inviteToken}
+        user={user}
+        isAppMember={member}
+        onDone={() => {
+          clearPendingInvite()
+          setInviteToken(null)
+        }}
+      />
+    )
+  }
+
+  // Connecté sans appartenance et sans jeton d'invitation : état transitoire
+  // (déconnexion en cours) — ne jamais montrer l'app à un non-membre.
+  if (user && !member) return null
+
   if (!user) {
     return (
       <div className="auth-screen">
@@ -119,7 +147,11 @@ export default function App() {
         </div>
         <main className="auth-card">
           <h1 className="auth-title">Bienvenue dans la cordée</h1>
-          <div className="auth-sub">Connecte-toi pour accéder à l'app et rejoindre ton groupe</div>
+          <div className="auth-sub">
+            {inviteToken
+              ? 'Tu as reçu une invitation : connecte-toi pour demander à rejoindre la cordée'
+              : "Connecte-toi pour accéder à l'app et rejoindre ton groupe"}
+          </div>
           <button
             className="auth-google-btn"
             onClick={() => signInWithGoogle().catch((e: Error) => setLoginError(friendlyAuthError(e)))}

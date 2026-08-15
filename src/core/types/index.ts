@@ -233,6 +233,63 @@ export interface TransportDoc {
   updatedAt?: Timestamp
 }
 
+// ── Cordées multiples & parrainage ──
+// Un profil, N cordées. L'appartenance = existence de cordees/{cid}/members/{email}
+// (source de vérité côté règles). La cordée 'origine' (id fixe CORDEE_ORIGINE_ID)
+// porte les données historiques : ses membres accèdent aux collections racines.
+
+export interface Cordee {
+  name: string
+  /** e-mail du fondateur */
+  createdBy: string
+  createdAt?: Timestamp
+}
+
+export type CordeeMemberVia = 'seed' | 'fondateur' | 'invitation'
+
+/** Doc cordees/{cid}/members/{email} — l'id du doc EST l'e-mail (minuscules). */
+export interface CordeeMember {
+  /** dupliqué de l'id du doc : les requêtes collectionGroup filtrent dessus */
+  email: string
+  /** prénom déclaré à l'entrée, si connu */
+  name?: string | null
+  /** e-mail de qui a fait entrer ce membre (approbateur, fondateur ou admin) */
+  addedBy?: string
+  via?: CordeeMemberVia
+  /** lien de parrainage utilisé (via 'invitation') */
+  inviteId?: string
+  /** demande d'entrée approuvée (via 'invitation') */
+  requestId?: string
+  addedAt?: Timestamp
+}
+
+/** Doc invites/{inviteId} — l'id du doc est le jeton du lien de parrainage. */
+export interface CordeeInvite {
+  cordeeId: string
+  /** nom dénormalisé : l'invité ne peut pas lire le doc cordée avant approbation */
+  cordeeName: string
+  /** e-mail du créateur du lien — seul lui approuve les demandes */
+  createdBy: string
+  createdByName?: string | null
+  /** e-mails déjà entrés via ce lien — 6 maximum (quota appliqué par les règles) */
+  approved: string[]
+  /** base de l'expiration 24 h (serverTimestamp, exigé par les règles) */
+  createdAt?: Timestamp
+}
+
+/** Doc joinRequests/{inviteId_uid} : demande d'entrée en attente d'approbation. */
+export interface CordeeJoinRequest {
+  inviteId: string
+  cordeeId: string
+  cordeeName?: string
+  /** e-mail du demandeur (== auth, vérifié par les règles) */
+  email: string
+  uid: string
+  /** prénom déclaré par le demandeur */
+  name?: string | null
+  createdAt?: Timestamp
+}
+
 // ── Photos post-rando (collection randoMedia, 1 doc par photo) ──
 
 export interface RandoMedia {

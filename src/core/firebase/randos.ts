@@ -10,7 +10,7 @@ import { randosCol } from './collections'
 import { applyVote } from '../services/votes'
 import { formatDateLabel, durationLabel } from '../services/dates'
 import { safeExternalUrl } from '../services/url'
-import type { Difficulty, Rando, RandoTrace, VoteValue } from '../types'
+import type { Difficulty, Rando, RandoTrace, RandoVisibility, VoteValue } from '../types'
 
 export interface NewRandoInput {
   name: string
@@ -22,6 +22,8 @@ export interface NewRandoInput {
   dplus?: number
   komoot?: string
   proposedBy: string
+  /** défaut 'potes' — voir RandoVisibility */
+  visibility?: RandoVisibility
 }
 
 /** Extrait lat/lon d'une URL Komoot du type .../@45.93,6.87 (même heuristique que l'ancienne app). */
@@ -53,6 +55,7 @@ export async function addRando(input: NewRandoInput): Promise<void> {
     alert: null,
     votes: { oui: 1, peut: 0, non: 0 },
     memberVotes: { [input.proposedBy]: 'oui' },
+    visibility: input.visibility ?? 'potes',
   }
   await addDoc(randosCol, { ...rando, createdAt: serverTimestamp() } as Rando)
 }
@@ -83,6 +86,11 @@ export interface EditRandoInput {
   km?: number
   dplus?: number
   komoot?: string
+  /**
+   * Nouvelle visibilité. Les règles Firestore ne laissent CHANGER ce champ
+   * qu'à l'auteur de la sortie ou à un admin (refus explicite sinon).
+   */
+  visibility?: RandoVisibility
 }
 
 /**
@@ -101,6 +109,7 @@ export async function updateRando(rando: Rando & { docId: string }, input: EditR
     dateStart: input.dateStart ?? null,
     dateEnd: input.dateEnd ?? null,
   }
+  if (input.visibility) fields.visibility = input.visibility
   const komoot = safeExternalUrl(input.komoot)
   if (komoot) {
     const coords = parseKomootCoords(komoot)

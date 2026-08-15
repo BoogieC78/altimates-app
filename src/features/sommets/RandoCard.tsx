@@ -137,8 +137,20 @@ export function RandoCard({ rando: r, memberName, photos = [] }: RandoCardProps)
                 {r.dur}
               </span>
             )}
+            {r.visibility === 'public' && (
+              <span
+                className="tag tb"
+                style={{ marginLeft: 'auto' }}
+                title="Visible par les membres des autres cordées"
+              >
+                Publique
+              </span>
+            )}
             {r.diff && (
-              <span className={`tag ${DIFF_TAG[r.diff] ?? 'ta'}`} style={{ marginLeft: 'auto' }}>
+              <span
+                className={`tag ${DIFF_TAG[r.diff] ?? 'ta'}`}
+                style={{ marginLeft: r.visibility === 'public' ? undefined : 'auto' }}
+              >
                 {r.diff}
               </span>
             )}

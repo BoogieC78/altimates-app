@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from 'react'
 import { DateField, frToIso } from '../../components/DateField'
-import { blockNonDigitKeys, digitsOnlyInput, positive } from './AddRandoModal'
+import { blockNonDigitKeys, digitsOnlyInput, positive, VisibilityField } from './AddRandoModal'
 import { Modal } from '../../components/Modal'
 import { updateRando } from '../../core/firebase/randos'
-import type { Difficulty, Rando } from '../../core/types'
+import type { Difficulty, Rando, RandoVisibility } from '../../core/types'
 import type { WithDocId } from '../../hooks/useCollection'
 
 interface EditRandoModalProps {
@@ -15,6 +15,8 @@ interface EditRandoModalProps {
 // mêmes champs que AddRandoModal, pré-remplis, recalcul date/dur à l'enregistrement.
 export function EditRandoModal({ rando: r, onClose }: EditRandoModalProps) {
   const [isTrek, setIsTrek] = useState(Boolean(r.dateEnd && r.dateEnd !== r.dateStart))
+  // Champ absent sur les randos historiques = potes (même défaut que les règles).
+  const [visibility, setVisibility] = useState<RandoVisibility>(r.visibility ?? 'potes')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -35,6 +37,7 @@ export function EditRandoModal({ rando: r, onClose }: EditRandoModalProps) {
         km: positive(form.get('km')),
         dplus: positive(form.get('dplus')),
         komoot: String(form.get('komoot') ?? '').trim() || undefined,
+        visibility,
       })
       onClose()
     } catch (err) {
@@ -122,6 +125,7 @@ export function EditRandoModal({ rando: r, onClose }: EditRandoModalProps) {
             <input className="form-input" id="edit-rando-dplus" name="dplus" type="number" min="1" step="1" inputMode="numeric" onKeyDown={blockNonDigitKeys} onInput={digitsOnlyInput} defaultValue={r.dplus ?? ''} placeholder="850" />
           </div>
         </div>
+        <VisibilityField value={visibility} onChange={setVisibility} idPrefix="edit-rando" />
         {error && (
           <div className="alert-band" role="alert" style={{ marginBottom: 10 }}>
             <div className="alert-text">{error}</div>

@@ -8,6 +8,16 @@ import type { Timestamp } from 'firebase/firestore'
 export type VoteValue = 'oui' | 'peut' | 'non'
 export type Difficulty = 'Facile' | 'Moyen' | 'Difficile'
 
+/**
+ * Visibilité d'une sortie :
+ *  - 'potes'  : visible par les membres de la cordée uniquement (défaut).
+ *  - 'public' : visible EN PLUS par tout membre connecté de l'app, quelle que
+ *               soit sa cordée — jamais par un visiteur anonyme.
+ * Champ ABSENT = 'potes' (compat : les randos historiques v0.5.0 n'ont pas ce
+ * champ, et les règles Firestore appliquent le même défaut côté serveur).
+ */
+export type RandoVisibility = 'potes' | 'public'
+
 export interface RandoTrace {
   id: number
   label: string
@@ -42,6 +52,8 @@ export interface Rando {
   votes: { oui: number; peut: number; non?: number }
   /** vote par membre : clé = prénom du membre (profile.name) */
   memberVotes?: Record<string, VoteValue>
+  /** absent = 'potes' (randos historiques) — voir RandoVisibility */
+  visibility?: RandoVisibility
   createdAt?: Timestamp
 }
 

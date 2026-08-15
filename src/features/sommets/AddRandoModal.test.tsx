@@ -27,7 +27,19 @@ describe('AddRandoModal', () => {
       dplus: 600,
       komoot: undefined,
       proposedBy: 'Wacil',
+      visibility: 'potes',
     })
+  })
+
+  it('envoie visibility public quand la bascule Potes + public est activée', async () => {
+    const onClose = vi.fn()
+    render(<AddRandoModal memberName="Wacil" onClose={onClose} />)
+    fireEvent.change(screen.getByPlaceholderText('ex: Lac Blanc'), { target: { value: 'Mont Thou' } })
+    fireEvent.click(screen.getByText('Potes + public'))
+    fireEvent.click(screen.getByText('Proposer la rando'))
+
+    await waitFor(() => expect(onClose).toHaveBeenCalled())
+    expect(addRando).toHaveBeenCalledWith(expect.objectContaining({ visibility: 'public' }))
   })
 
   it('la bascule Journée/Plusieurs jours change les champs de date', () => {

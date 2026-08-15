@@ -199,6 +199,11 @@ export interface SeedRandoOptions {
   dateStart?: string
   votesOui?: number
   memberVotes?: Record<string, 'oui' | 'peut'>
+  /**
+   * Visibilité de la sortie. ABSENT par défaut, comme les randos historiques
+   * écrites par la prod v0.5.0 — les règles doivent traiter ce cas en 'potes'.
+   */
+  visibility?: 'potes' | 'public'
 }
 
 /**
@@ -225,6 +230,8 @@ export async function seedRando(opts: SeedRandoOptions = {}): Promise<string> {
     alert: null,
     votes: { oui: opts.votesOui ?? 1, peut: 0 },
     memberVotes: opts.memberVotes ?? { [proposedBy]: 'oui' },
+    // Champ absent si non demandé : c'est la forme des données historiques.
+    ...(opts.visibility ? { visibility: opts.visibility } : {}),
   })
 }
 

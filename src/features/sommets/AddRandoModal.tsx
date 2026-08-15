@@ -2,7 +2,52 @@ import { useState, type FormEvent } from 'react'
 import { DateField, frToIso } from '../../components/DateField'
 import { Modal } from '../../components/Modal'
 import { addRando } from '../../core/firebase/randos'
-import type { Difficulty } from '../../core/types'
+import type { Difficulty, RandoVisibility } from '../../core/types'
+
+/**
+ * Sélecteur de visibilité partagé Add/Edit. Le choix est appliqué par les
+ * règles Firestore (lecture serveur), pas seulement par l'affichage.
+ */
+export function VisibilityField({
+  value,
+  onChange,
+  idPrefix,
+}: {
+  value: RandoVisibility
+  onChange: (v: RandoVisibility) => void
+  idPrefix: string
+}) {
+  return (
+    <div style={{ marginBottom: 9 }}>
+      <label className="form-lbl" id={`${idPrefix}-visibility-lbl`}>Visibilité</label>
+      <div role="group" aria-labelledby={`${idPrefix}-visibility-lbl`} style={{ display: 'flex', gap: 8 }}>
+        <button
+          type="button"
+          className={value === 'potes' ? 'btn btn-sm btn-primary' : 'btn btn-sm'}
+          aria-pressed={value === 'potes'}
+          style={{ flex: 1, justifyContent: 'center' }}
+          onClick={() => onChange('potes')}
+        >
+          Potes seulement
+        </button>
+        <button
+          type="button"
+          className={value === 'public' ? 'btn btn-sm btn-primary' : 'btn btn-sm'}
+          aria-pressed={value === 'public'}
+          style={{ flex: 1, justifyContent: 'center' }}
+          onClick={() => onChange('public')}
+        >
+          Potes + public
+        </button>
+      </div>
+      <div style={{ fontSize: 10, color: 'var(--ink3)', marginTop: 4 }}>
+        {value === 'potes'
+          ? 'Visible uniquement par ta cordée.'
+          : 'Visible aussi par les membres des autres cordées (jamais hors connexion). Dépenses, transport, photos et enquête restent privés.'}
+      </div>
+    </div>
+  )
+}
 
 /** Distance/dénivelé : seuls les entiers strictement positifs sont retenus. */
 export function positive(v: FormDataEntryValue | null): number | undefined {
@@ -35,6 +80,7 @@ interface AddRandoModalProps {
 
 export function AddRandoModal({ memberName, onClose }: AddRandoModalProps) {
   const [isTrek, setIsTrek] = useState(false)
+  const [visibility, setVisibility] = useState<RandoVisibility>('potes')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -56,6 +102,7 @@ export function AddRandoModal({ memberName, onClose }: AddRandoModalProps) {
         dplus: positive(form.get('dplus')),
         komoot: String(form.get('komoot') ?? '').trim() || undefined,
         proposedBy: memberName,
+        visibility,
       })
       onClose()
     } catch (err) {
@@ -137,6 +184,7 @@ export function AddRandoModal({ memberName, onClose }: AddRandoModalProps) {
             <input className="form-input" id="add-rando-dplus" name="dplus" type="number" min="1" step="1" inputMode="numeric" onKeyDown={blockNonDigitKeys} onInput={digitsOnlyInput} placeholder="850" />
           </div>
         </div>
+        <VisibilityField value={visibility} onChange={setVisibility} idPrefix="add-rando" />
         {error && (
           <div className="alert-band" role="alert" style={{ marginBottom: 10 }}>
             <div className="alert-text">{error}</div>

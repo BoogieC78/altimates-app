@@ -253,12 +253,30 @@ service cloud.firestore {
         allow update: if false;
       }
 
+      // Sorties par cordée : mêmes règles de visibilité que la collection
+      // racine `randos` (une sortie 'public' est lisible par tout connecté,
+      // le changement de visibilité est réservé à l'auteur ou un admin).
+      match /randos/{doc} {
+        allow read: if isAdmin() || isCordeeMember(cordeeId)
+          || (request.auth != null
+            && resource.data.get('visibility', 'potes') == 'public');
+        allow create: if (isAdmin() || isCordeeMember(cordeeId))
+          && request.resource.data.get('visibility', 'potes') in ['potes', 'public'];
+        allow update: if (isAdmin() || isCordeeMember(cordeeId))
+          && request.resource.data.get('visibility', 'potes') in ['potes', 'public']
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['visibility'])
+            || resource.data.get('proposedBy', '') == memberName()
+            || isAdmin());
+        allow delete: if isAdmin() || isCordeeMember(cordeeId);
+      }
+
       // Données partitionnées par cordée (radio, sorties… — cartes suivantes) :
       // accessibles aux seuls membres de LA cordée. Liste explicite pour ne
       // JAMAIS englober /members (sinon tout membre pourrait s'auto-inviter).
+      // `randos` a sa règle dédiée ci-dessus (visibilité) — ne pas la remettre ici.
       match /{col}/{doc} {
         allow read, write: if (isAdmin() || isCordeeMember(cordeeId))
-          && col in ['randos', 'messages', 'departItems', 'ravito', 'hydra', 'feedbacks'];
+          && col in ['messages', 'departItems', 'ravito', 'hydra', 'feedbacks'];
       }
     }
 
@@ -328,15 +346,45 @@ service cloud.firestore {
       allow update: if false;
     }
 
+    // ── Sorties (collection racine = randos de la cordée d'origine) ─────────
+    // Visibilité choisie par l'auteur, appliquée ICI (masquer dans l'UI ne
+    // protège rien) :
+    //  - champ `visibility` ABSENT ou 'potes' → membres uniquement, à
+    //    l'identique de la prod v0.5.0 (qui écrit des randos sans ce champ) ;
+    //  - 'public' → lisible EN PLUS par tout utilisateur CONNECTÉ (public ne
+    //    veut jamais dire anonyme). Les sous-données de la sortie (expenses,
+    //    transport, randoMedia, randoSurveys, ravito, hydra) restent réservées
+    //    aux membres : leurs règles exigent isMember(), un lecteur public
+    //    non-pote y reçoit permission-denied. Le doc rando lui-même expose
+    //    memberVotes (Firestore ne filtre pas champ par champ) — l'UI publique
+    //    ne doit afficher que les compteurs, jamais la liste nominative.
+    // Le CHANGEMENT de visibilité est réservé à l'auteur (proposedBy) ou à un
+    // admin ; les autres écritures membres (votes, traces…) restent libres.
+    match /randos/{doc} {
+      allow read: if isMember()
+        || (request.auth != null
+          && resource.data.get('visibility', 'potes') == 'public');
+      allow create: if isMember()
+        && request.resource.data.get('visibility', 'potes') in ['potes', 'public'];
+      allow update: if isMember()
+        && request.resource.data.get('visibility', 'potes') in ['potes', 'public']
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['visibility'])
+          || resource.data.get('proposedBy', '') == memberName()
+          || isAdmin());
+      allow delete: if isMember();
+    }
+
     // Collections collaboratives : lecture/écriture pour tous les membres.
     // NB : la collection racine `messages` (ancienne radio globale) est devenue
     // le canal radio « Broadcast » — mêmes règles, aucune migration : l'app
     // prod v0.5.0 continue d'y lire/écrire à l'identique. Les fils par cordée
     // vivent dans cordees/{cid}/messages (règle dédiée plus haut, réservée aux
-    // membres de la cordée).
+    // membres de la cordée). `randos` a sa règle dédiée ci-dessus (visibilité) —
+    // ne PAS la remettre ici, sinon le OR des règles annulerait la restriction
+    // sur le changement de visibilité.
     match /{collection}/{doc} {
       allow read, write: if isMember()
-        && collection in ['randos', 'messages', 'departItems', 'ravito', 'hydra'];
+        && collection in ['messages', 'departItems', 'ravito', 'hydra'];
     }
   }
 }

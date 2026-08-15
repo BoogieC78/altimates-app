@@ -119,7 +119,7 @@ Les articles sans référence produit unique gardent un ordre de grandeur, marqu
 Relevé à faire à la main, en magasin ou sur la fiche produit. Retirer `weightEstimated` au fur et à mesure.
 
 
-## ✨ Améliorations / plus tard (6)
+## ✨ Améliorations / plus tard (11)
 
 ### [Version riche du mail de connexion](https://trello.com/c/otF5YfKQ)
 
@@ -223,6 +223,31 @@ Un abonné premium télécharge le GPX d'une rando et affiche le fond IGN ; un m
 - [ ] Premium télécharge un GPX ; free reçoit 403 (API, pas seulement UI).
 - [ ] Fond Plan IGN v2 affiché avec attributions ; clé IGN jamais exposée au client.
 
+
+> Les 5 cartes ci-dessous sont le chantier de la semaine du 02/08/2026, listées dans l'ordre où
+> il faut les développer. « Radio : canal par cordée » et « Niveaux de visibilité » définissent
+> leurs règles à partir du modèle de cordée introduit par « Invitations » — cette carte passe
+> donc en premier.
+
+### [Invitations : parrainage + cordées multiples](https://trello.com/c/uhcFvF1I)
+
+Sortir de la whitelist unique éditée par un admin : lien de parrainage généré par un membre, liste d'invités avec approbation manuelle, et un profil appartenant à N cordées cloisonnées (potes, famille, collègues). **Acté le 02/08** : un lien vaut pour 6 personnes maximum et expire au bout de 24 h — quota et expiration vérifiés côté serveur. À trancher : qui approuve, limite du nombre de cordées. Touche `src/core/firebase/auth.ts`, `firestore.rules`, `src/features/admin/AdminPage.tsx`.
+
+### [Radio : canal par cordée (fin de la radio globale)](https://trello.com/c/IcqKwQmP)
+
+Décision du 02/08/2026 : l'onglet Radio global disparaît, la radio devient un canal propre à chaque cordée. Question ouverte : comment communiquer avant qu'une cordée soit formée (proposition Wacil : message broadcast à tous, type padel — « Cherche 3 randonneurs pour le Mont Toubkal »). Dépend du modèle multi-cordées. Fichiers : `src/features/radio/RadioPage.tsx`, `src/core/firebase/messages.ts`, `src/App.tsx`, `firestore.rules`.
+
+### [Boîte à idée (ampoule) en remplacement de l'onglet Idées](https://trello.com/c/e0fLmMCv)
+
+Décision du 02/08/2026 : suppression de l'onglet Idées, remplacé par une icône ampoule accessible depuis tous les onglets (amélioration / fonctionnalité / bug + contact). Envoi acheminé vers Trello par une fonction `api/` — identifiants Trello en variables d'environnement Vercel, jamais côté client. Réutiliser `src/core/firebase/feedbacks.ts`.
+
+### [Enquête post-rando (déclenchée après la date de sortie)](https://trello.com/c/EicxJ6aQ)
+
+Passé la date d'une sortie, proposer une enquête courte pour la noter. À trancher : les questions (note globale, difficulté, météo, organisation), le timing et la durée d'ouverture, la visibilité des réponses. Piste : onglet du détail de sortie, déclenchement calculé côté client sur la date.
+
+### [Niveaux de visibilité d'une sortie (potes / public)](https://trello.com/c/hAAgIaxW)
+
+Cadrage : potes seulement / potes + public / invisible (jugé probablement hors sujet, à valider). Repose sur la notion de « potes » introduite par les cordées multiples. La visibilité est une règle de lecture Firestore, pas un filtre d'UI. Trancher ce qui reste privé en mode public (prénoms, photos, dépenses).
 
 
 ## 🧪 À tester (7)

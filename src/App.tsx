@@ -7,6 +7,7 @@ import {
   isDevAutoLoginEnabled,
   sendEmailSignInLink,
   completeEmailSignIn,
+  completeRedirectSignIn,
   capturePendingInvite,
   clearPendingInvite,
 } from './core/firebase/auth'
@@ -79,6 +80,9 @@ export default function App() {
     completeEmailSignIn(() => window.prompt('Confirme ton e-mail pour terminer la connexion')).catch(
       (e: Error) => setLoginError(e.message),
     )
+    // Retour du signInWithRedirect (connexion Google en PWA iOS standalone) :
+    // termine la connexion et affiche l'éventuel refus, comme le flux popup.
+    completeRedirectSignIn().catch((e: Error) => setLoginError(friendlyAuthError(e)))
   }, [])
 
   const submitEmail = (e: FormEvent<HTMLFormElement>) => {

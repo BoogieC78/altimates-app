@@ -1,11 +1,13 @@
 import {
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
+  getRedirectResult,
   isSignInWithEmailLink,
   sendSignInLinkToEmail,
   signInWithEmailAndPassword,
   signInWithEmailLink,
   signInWithPopup,
+  signInWithRedirect,
   signOut as fbSignOut,
   type User,
 } from 'firebase/auth'
@@ -184,8 +186,42 @@ async function enforceMembership(user: User): Promise<User> {
   throw new Error('Email non autorisé. Demande un accès à la cordée.')
 }
 
+/**
+ * PWA installée sur iOS ("Ajouter à l'écran d'accueil") : signInWithPopup y est
+ * peu fiable — le popup s'ouvre dans un contexte séparé (SFSafariViewController)
+ * qui ne peut pas rendre la main à la web app standalone. On bascule alors sur
+ * signInWithRedirect ; le retour est terminé au chargement par
+ * completeRedirectSignIn() (appelé dans App).
+ */
+function isIosStandalonePwa(): boolean {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') return false
+  const ua = navigator.userAgent
+  // iPadOS se présente comme "Macintosh" mais expose un écran tactile.
+  const isIos = /iPhone|iPad|iPod/.test(ua) || (ua.includes('Macintosh') && navigator.maxTouchPoints > 1)
+  const isStandalone =
+    window.matchMedia?.('(display-mode: standalone)')?.matches === true ||
+    (navigator as Navigator & { standalone?: boolean }).standalone === true
+  return isIos && isStandalone
+}
+
 export async function signInWithGoogle(): Promise<User> {
+  if (isIosStandalonePwa()) {
+    await signInWithRedirect(auth, new GoogleAuthProvider())
+    // La page navigue vers Google : cette promesse ne se résout jamais ici.
+    return new Promise<never>(() => {})
+  }
   const result = await signInWithPopup(auth, new GoogleAuthProvider())
+  return enforceMembership(result.user)
+}
+
+/**
+ * Termine une connexion Google par redirection (retour PWA iOS). Renvoie null
+ * s'il n'y a pas de retour de redirection en attente. Throw si l'email n'est
+ * pas autorisé (même contrat que signInWithGoogle).
+ */
+export async function completeRedirectSignIn(): Promise<User | null> {
+  const result = await getRedirectResult(auth)
+  if (!result) return null
   return enforceMembership(result.user)
 }
 

@@ -52,6 +52,9 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return
   // Fonctions serverless : toujours le réseau, jamais de cache.
   if (url.pathname.startsWith('/api/')) return
+  // Handler d'auth Firebase servi same-origin via le rewrite vercel.json :
+  // jamais intercepté (et surtout jamais mis en cache comme shell).
+  if (url.pathname.startsWith('/__/')) return
 
   // Navigation SPA : réseau d'abord, repli sur le shell en cache si hors-ligne.
   if (request.mode === 'navigate') {

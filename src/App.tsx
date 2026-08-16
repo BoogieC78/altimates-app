@@ -98,7 +98,15 @@ export default function App() {
       .catch((err: Error) => setLoginError(friendlyAuthError(err)))
   }
 
-  if (loading) return null
+  // Jamais d'écran totalement vide : sur iPhone (PWA), un blocage du flux de
+  // connexion laissait une page beige nue, indiagnosticable pour l'utilisateur.
+  if (loading) {
+    return (
+      <div className="auth-screen" role="status" aria-live="polite">
+        <p style={{ textAlign: 'center', paddingTop: '40dvh', opacity: 0.6 }}>Connexion…</p>
+      </div>
+    )
+  }
 
   // Parcours d'invitation : un utilisateur connecté avec un jeton en attente ne
   // voit QUE cette page — qu'il soit un invité sans aucun accès (member=false,
@@ -120,7 +128,13 @@ export default function App() {
 
   // Connecté sans appartenance et sans jeton d'invitation : état transitoire
   // (déconnexion en cours) — ne jamais montrer l'app à un non-membre.
-  if (user && !member) return null
+  if (user && !member) {
+    return (
+      <div className="auth-screen" role="status" aria-live="polite">
+        <p style={{ textAlign: 'center', paddingTop: '40dvh', opacity: 0.6 }}>Déconnexion…</p>
+      </div>
+    )
+  }
 
   if (!user) {
     return (

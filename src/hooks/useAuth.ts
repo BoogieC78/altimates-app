@@ -63,6 +63,11 @@ export function useAuth(): AuthState {
           { email: user.email ?? null, displayName: user.displayName ?? null },
           { merge: true },
         ).catch((e) => console.warn('users identity:', e))
+      }).catch((e) => {
+        // Sans ce catch, un rejet laisserait loading=true pour toujours (écran vide).
+        console.error('isMemberEmail:', e)
+        if (mounted && my === seq) setState({ user: null, loading: false, member: false })
+        void signOut()
       })
     })
 

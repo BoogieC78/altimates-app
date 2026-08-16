@@ -13,6 +13,7 @@ import { LegalLinks } from '../legal/LegalModal'
 import { compressAvatar, isAcceptedImage } from '../../core/services/media'
 import { RandoDetailModal } from '../sommets/RandoDetailModal'
 import { blockNonDigitKeys } from '../sommets/AddRandoModal'
+import { BadgesSection } from './BadgesSection'
 
 interface BasecampPageProps {
   user: User
@@ -269,6 +270,8 @@ export function BasecampPage({ user, memberName, onGoKit }: BasecampPageProps) {
           </div>
         </div>
       </div>
+
+      <BadgesSection randos={randos} memberName={memberName} />
 
       <PastOutingsSection outings={profile?.pastOutings ?? []} onChange={(outings) => void update({ pastOutings: outings })} />
 

@@ -43,6 +43,18 @@ test.describe('Base Camp (écran compte via avatar)', () => {
     await expect(page.locator('.modal input.form-input').first()).toHaveValue('Wacil Test')
   })
 
+  test('la section Mes badges affiche les 10 paliers animaliers', async ({ page }) => {
+    await login(page, { name: 'Wacil' })
+    await page.locator('.av-btn').click()
+    await configure(page, 'Wacil')
+
+    await expect(page.getByText('Mes badges')).toBeVisible()
+    // Collection complète : 10 médaillons, tous avec un aria-label nom + seuil.
+    await expect(page.locator('.badge-grid .badge-medal')).toHaveCount(10)
+    await expect(page.getByRole('img', { name: /Écureuil roux — 1 sortie/ })).toBeVisible()
+    await expect(page.getByRole('img', { name: /Aigle royal — 180 sorties/ })).toBeVisible()
+  })
+
   test('le bouton Kit renvoie vers l\'onglet Kit', async ({ page }) => {
     await login(page, { name: 'Wacil' })
     await page.locator('.av-btn').click()

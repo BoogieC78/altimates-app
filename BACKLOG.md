@@ -253,7 +253,25 @@ Carte interactive (fond de carte, pointage), modèle de signalements + confirmat
 - Points + badge Sentinelle pour un danger confirmé
 
 
-## 🧪 À tester (7)
+## 🧪 À tester (8)
+
+### [PWA iOS : login Google KO en standalone (redirect revient non connecté)](https://trello.com/c/zNHc05Q6)
+
+## Repro (vidéo Wacil 16/08 08:42)
+PWA installée sur iPhone > Continuer avec Google > feuille Safari altimates-4c37f.firebaseapp.com > retour écran login, non connecté.
+
+## Cause
+authDomain (firebaseapp.com) ≠ origine de l'app : Safari iOS partitionne/bloque le storage tiers, l'état du signInWithRedirect se perd (ITP). Cas documenté Firebase « signInWithRedirect best practices ».
+
+## Fix (option proxy same-origin)
+1. vercel.json : rewrite /__/auth/:path* vers https://altimates-4c37f.firebaseapp.com/__/auth/:path*
+2. src/core/firebase/app.ts : authDomain = hostname de l'app sur les domaines Vercel, fallback firebaseapp.com en local
+3. **Config manuelle Wacil** : Google Cloud Console > APIs & Services > Credentials > OAuth 2.0 Client IDs (client web du projet altimates-4c37f) > Authorized redirect URIs, ajouter :
+   - https://altimates-app.vercel.app/__/auth/handler
+   - https://altimates-app-staging.vercel.app/__/auth/handler
+
+## Critère
+Login Google aboutit dans la PWA standalone iOS (et rien ne casse en desktop/Safari classique).
 
 ### [Invitations : parrainage + cordées multiples](https://trello.com/c/uhcFvF1I)
 

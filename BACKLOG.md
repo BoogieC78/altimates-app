@@ -8,11 +8,11 @@
 >
 > Chaque entrée porte le lien de sa carte, pour retrouver commentaires et historique.
 
-Dernière synchro : 2026-08-02.
+Dernière synchro : 2026-08-16.
 
 ---
 
-## 🔧 Config manuelle (6)
+## 🔧 Config manuelle (7)
 
 ### [E-mail de connexion personnalisé — secrets à configurer (Brevo)](https://trello.com/c/mKsewYrP)
 
@@ -61,7 +61,6 @@ Le projet V2 premium (GPX + cartes IGN) exige trois démarches que seul Wacil pe
 ## Ordre
 Blaze et Stripe débloquent le dev ; la licence IGN peut arriver après (le proxy tuiles démarre sur Plan IGN v2).
 
-
 ### [Firebase : renseigner le Nom public du projet = ALTImates](https://trello.com/c/JiKOzqH8)
 
 Console Firebase → Paramètres du projet → Nom public → saisir `ALTImates`.
@@ -88,16 +87,23 @@ Tout le contenu vit dans un seul fichier : `src/features/legal/legalContent.ts`.
 - [ ] Le bandeau « Version provisoire » a disparu
 - [ ] La date de dernière mise à jour est celle de la validation
 
+### [Boîte à idée : configurer TRELLO_KEY + TRELLO_TOKEN dans Vercel](https://trello.com/c/15fbu1hs)
 
-## 🐞 Bugs à corriger (1)
+## Contexte
+La boîte à idée (ampoule, commit e06864d) relaie chaque retour vers Trello via api/send-feedback.ts. Sans secrets, le feedback reste bien enregistré en Firestore mais aucune carte Trello n'est créée (erreur loguée dans Vercel).
 
-### [Base Camp : bugs signalés mais non détaillés](https://trello.com/c/sCP4WUxO)
+## À faire (Wacil, console Vercel)
+1. Vercel > projet altimates-app > Settings > Environment Variables, environnements Preview ET Production :
+   - TRELLO_KEY = clé API (https://trello.com/app-key)
+   - TRELLO_TOKEN = token (même valeur que .claude/trello.local.json local)
+2. Optionnel : TRELLO_LIST_BUG / TRELLO_LIST_IDEE / TRELLO_LIST_CONTACT pour surcharger les listes cibles (défauts corrects pour le board actuel).
+3. Redéployer pour prise en compte.
 
-Wacil a signalé « il y a des bugs » sur le Base Camp, sans plus de détail. Rien n'est reproductible en l'état.
+## Critère
+Un envoi via l'ampoule en staging crée une carte dans la bonne liste du board.
 
-**À faire** : lister précisément les symptômes (captures d'écran annotées), puis corriger. Écrire le test de régression avant ou en même temps que le fix (cf. skill e2e-playwright).
 
-Remonté depuis BACKLOG.md le 30/07/2026 : l'item y vivait depuis des semaines sans carte correspondante. Maintenant que Trello fait foi, il lui fallait une carte pour ne pas disparaître à la régénération du fichier.
+## 🐞 Bugs à corriger (0)
 
 
 ## ⚡ Optimisations techniques (1)
@@ -119,11 +125,11 @@ Les articles sans référence produit unique gardent un ordre de grandeur, marqu
 Relevé à faire à la main, en magasin ou sur la fiche produit. Retirer `weightEstimated` au fur et à mesure.
 
 
-## ✨ Améliorations / plus tard (11)
+## ✨ Améliorations / plus tard (8)
 
-### [Version riche du mail de connexion](https://trello.com/c/otF5YfKQ)
+### [Nom de domaine (ex. altimates.fr, ~10€/an)](https://trello.com/c/1t7DrnlY)
 
-Une fois le domaine pris : remplacer le bandeau texte par le design topographique complet (image hébergée). Aperçu de référence déjà conçu (bandeau topo + ligne de crête, univers rando).
+Délivrabilité e-mail pro (SPF/DKIM), arrivée en boîte principale garantie, adresse d'envoi propre. Débloque aussi la version riche du mail de connexion.
 
 ### [Staging isolé : projet Firebase dédié + auto-login test](https://trello.com/c/6W9BQWgd)
 
@@ -143,9 +149,9 @@ Une fois le domaine pris : remplacer le bandeau texte par le design topographiqu
 **Effort estimé** : ~une session de travail complète.
 **Prérequis** : aucun — indépendant des secrets CI (autre carte), mais plus confortable une fois la CI réparée.
 
-### [Nom de domaine (ex. altimates.fr, ~10€/an)](https://trello.com/c/1t7DrnlY)
+### [Version riche du mail de connexion](https://trello.com/c/otF5YfKQ)
 
-Délivrabilité e-mail pro (SPF/DKIM), arrivée en boîte principale garantie, adresse d'envoi propre. Débloque aussi la version riche du mail de connexion.
+Une fois le domaine pris : remplacer le bandeau texte par le design topographique complet (image hébergée). Aperçu de référence déjà conçu (bandeau topo + ligne de crête, univers rando).
 
 ### [V2 — Trajets train/bus pour les non-véhiculés](https://trello.com/c/pQCNtpYa)
 
@@ -163,7 +169,6 @@ Un non-véhiculé indique sa grande ville de départ ; l'app aide à organiser :
 ## Critères de déclenchement
 - [ ] Carte voitures livrée et utilisée sur au moins une vraie sortie.
 - [ ] Choix d'approche API vs liens profonds tranché avec Wacil.
-
 
 ### [V2 — Mode payant : Stripe + entitlements premium](https://trello.com/c/U6pLUfYb)
 
@@ -194,7 +199,6 @@ Un membre peut souscrire l'offre premium ; son statut (`free`/`premium`) est fia
 - [ ] Un membre free appelant l'API de téléchargement reçoit 403.
 - [ ] Un membre ne peut pas écrire son propre champ `plan` (refusé par les règles).
 
-
 ### [V2 — Base GPX France + cartes IGN (sources légales)](https://trello.com/c/XymNO9Z5)
 
 ## Contexte
@@ -223,170 +227,258 @@ Un abonné premium télécharge le GPX d'une rando et affiche le fond IGN ; un m
 - [ ] Premium télécharge un GPX ; free reçoit 403 (API, pas seulement UI).
 - [ ] Fond Plan IGN v2 affiché avec attributions ; clé IGN jamais exposée au client.
 
+### [Badges transversaux (chocard, salamandre, hermine…) : ravitos, dépenses, conditions](https://trello.com/c/NipWiZqm)
 
-> Les 5 cartes ci-dessous sont le chantier de la semaine du 02/08/2026, listées dans l'ordre où
-> il faut les développer. « Radio : canal par cordée » et « Niveaux de visibilité » définissent
-> leurs règles à partir du modèle de cordée introduit par « Invitations » — cette carte passe
-> donc en premier.
+## Contexte
+Suite de l'échelle animalière (carte « Badges : échelle animalière »). Idées WhatsApp : récompenser aussi les ravitos remplis, l'usage de l'onglet dépenses — « plus ça utilise l'app plus ça reward ». Proposition Claude : badges transversaux par exploit plutôt que paliers — chocard (sorties hivernales), salamandre (sorties sous la pluie), hermine (course en blanc), + à définir : ravito rempli N fois, dépenses équilibrées N sorties.
 
-### [Invitations : parrainage + cordées multiples](https://trello.com/c/uhcFvF1I)
+## À trancher avant de commencer
+- Liste exacte des badges transversaux et leurs seuils
+- Garder l'animalier pour la seule échelle verticale ou en faire le langage visuel de tout le système
 
-Sortir de la whitelist unique éditée par un admin : lien de parrainage généré par un membre, liste d'invités avec approbation manuelle, et un profil appartenant à N cordées cloisonnées (potes, famille, collègues). **Acté le 02/08** : un lien vaut pour 6 personnes maximum et expire au bout de 24 h — quota et expiration vérifiés côté serveur. À trancher : qui approuve, limite du nombre de cordées. Touche `src/core/firebase/auth.ts`, `firestore.rules`, `src/features/admin/AdminPage.tsx`.
+## Dépendance
+Après livraison de l'échelle animalière (infra badges + Base Camp).
 
-### [Radio : canal par cordée (fin de la radio globale)](https://trello.com/c/IcqKwQmP)
+### [V10 — Signalement de dangers sur carte (type Komoot) + badge Sentinelle](https://trello.com/c/NgFXU7KK)
 
-Décision du 02/08/2026 : l'onglet Radio global disparaît, la radio devient un canal propre à chaque cordée. Question ouverte : comment communiquer avant qu'une cordée soit formée (proposition Wacil : message broadcast à tous, type padel — « Cherche 3 randonneurs pour le Mont Toubkal »). Dépend du modèle multi-cordées. Fichiers : `src/features/radio/RadioPage.tsx`, `src/core/firebase/messages.ts`, `src/App.tsx`, `firestore.rules`.
+## Contexte
+Idée WhatsApp explicitement datée « pas avant une v10 » : signaler des dangers sur une carte interactive (interface type Komoot où on pointe sur la map), points/gamification pour les dangers confirmés par d'autres membres, badge Sentinelle (comme Garmin pour une bonne nuit — ici pour un danger confirmé par des mates).
 
-### [Boîte à idée (ampoule) en remplacement de l'onglet Idées](https://trello.com/c/e0fLmMCv)
+## Prérequis
+Carte interactive (fond de carte, pointage), modèle de signalements + confirmations, anti-abus. Dépend aussi de la base cartes IGN/GPX (cartes V2 existantes).
 
-Décision du 02/08/2026 : suppression de l'onglet Idées, remplacé par une icône ampoule accessible depuis tous les onglets (amélioration / fonctionnalité / bug + contact). Envoi acheminé vers Trello par une fonction `api/` — identifiants Trello en variables d'environnement Vercel, jamais côté client. Réutiliser `src/core/firebase/feedbacks.ts`.
-
-### [Enquête post-rando (déclenchée après la date de sortie)](https://trello.com/c/EicxJ6aQ)
-
-Passé la date d'une sortie, proposer une enquête courte pour la noter. À trancher : les questions (note globale, difficulté, météo, organisation), le timing et la durée d'ouverture, la visibilité des réponses. Piste : onglet du détail de sortie, déclenchement calculé côté client sur la date.
-
-### [Niveaux de visibilité d'une sortie (potes / public)](https://trello.com/c/hAAgIaxW)
-
-Cadrage : potes seulement / potes + public / invisible (jugé probablement hors sujet, à valider). Repose sur la notion de « potes » introduite par les cordées multiples. La visibilité est une règle de lecture Firestore, pas un filtre d'UI. Trancher ce qui reste privé en mode public (prénoms, photos, dépenses).
+## Périmètre indicatif
+- Poser un signalement géolocalisé sur la carte
+- Confirmation par d'autres membres passés au même endroit
+- Points + badge Sentinelle pour un danger confirmé
 
 
 ## 🧪 À tester (7)
 
-### [Dépenses : écart de 2 centimes entre membres](https://trello.com/c/XViB86aS)
+### [Invitations : parrainage + cordées multiples](https://trello.com/c/uhcFvF1I)
 
 ## Contexte
-Jeu d'essai de Wacil : 150,00 € en deux dépenses (90 € + 60 €) partagées entre 7 personnes. Les soldes affichent 21,42 € / 21,43 € / **21,44 €** — un écart de 2 centimes, alors qu'une répartition au centime près ne devrait jamais dépasser 1 centime d'écart.
+Aujourd'hui l'accès repose sur une whitelist d'e-mails unique (config/allowedEmails), éditée par un admin depuis le portail Admin : tout le monde partage une seule cordée et personne ne peut faire entrer un ami sans passer par l'admin. Wacil veut ouvrir l'app à plusieurs cercles (potes proches, famille, collègues) et rendre l'invitation autonome.
 
-## Cause
-`splitAmount()` (src/core/services/expenses.ts) donne systématiquement le reste de la division aux **premiers** bénéficiaires. Sur plusieurs dépenses, les mêmes personnes cumulent donc les centimes en trop : 9000c/7 → 5 premiers +1c ; 6000c/7 → le 1er +1c. Le bénéficiaire n°1 prend +2c.
-
-## Objectif
-L'écart maximal entre deux membres ayant la même part reste de 1 centime, quel que soit le nombre de dépenses. La somme des soldes reste exactement nulle.
-
-## Pistes techniques
-src/core/services/expenses.ts — répartir le reste dans `computeBalances` en tenant compte du surplus déjà attribué à chaque personne (les centimes vont à ceux qui en ont le moins reçu jusque-là), plutôt qu'aux premiers indices.
-
-## Critères d'acceptation
-- [ ] Sur le jeu d'essai 90+60 € / 7 pers., les parts ne prennent que deux valeurs : 21,42 et 21,43
-- [ ] Somme des soldes = 0 (test unitaire)
-- [ ] Test de non-régression sur plusieurs dépenses successives
-
-### [Mentions légales, confidentialité et CGU](https://trello.com/c/sWjOeJvt)
-
-## Contexte
-L'app est exposée publiquement et collecte des données personnelles (e-mail, prénom, photos). Aucun document légal n'est accessible aujourd'hui. Wacil générera les textes définitifs plus tard ; en attendant, une première rédaction sert de socle.
+**Prérequis de tout le reste** : les cartes « Radio : canal par cordée » et « Niveaux de visibilité d'une sortie » définissent leurs règles à partir du modèle de cordée introduit ici. À développer en premier.
 
 ## Objectif
-Trois documents — mentions légales, politique de confidentialité, conditions d'utilisation — consultables **avant la connexion** (écran de login) et depuis le **profil** (Base Camp).
+Un membre invite lui-même quelqu'un via un lien de parrainage, sans intervention de l'admin. Un utilisateur appartient à plusieurs cordées, chacune avec ses propres membres, ses sorties et ses échanges cloisonnés.
 
 ## Périmètre
-Textes provisoires, rédigés à partir de ce que fait réellement l'app (Firebase Auth, Firestore, Vercel, open-meteo). Remplacement par les documents définitifs prévu ensuite : le contenu doit vivre dans un seul module facile à réécrire.
+- Lien de partage / parrainage généré par un membre
+- Liste d'invités en attente + approbation manuelle avant l'entrée effective
+- Modèle multi-cordées : un profil, N cordées, données partitionnées par cordée
+
+## Décisions actées (02/08/2026)
+- Un lien de parrainage vaut pour **6 personnes maximum** de la cordée. Quota atteint : le lien ne fait plus entrer personne.
+- Un lien est valable **24 heures** après sa création, puis expire.
+
+## Questions ouvertes à trancher avec Wacil
+- Qui approuve une demande : l'admin de la cordée, ou le membre qui a créé le lien ?
+- Un utilisateur peut-il appartenir à un nombre illimité de cordées ?
 
 ## Pistes techniques
-- src/features/legal/legalContent.ts — les 3 documents en données structurées
-- src/features/legal/LegalModal.tsx — visionneuse réutilisable
-- src/App.tsx — pied de page de l'écran de connexion
-- src/features/basecamp/BasecampPage.tsx — section Informations légales
-
-## Critères d'acceptation
-- [ ] Les 3 documents sont atteignables sans être connecté
-- [ ] Les 3 documents sont atteignables depuis le Base Camp
-- [ ] Modale accessible (dialog, Escape, focus) et lisible en 360px
-- [ ] Un bandeau signale que les textes sont provisoires
-
-### [Photos : mise en avant sur la carte de sortie](https://trello.com/c/81Xozrb7)
-
-## Contexte
-Retour de Wacil : après un envoi, il faut ouvrir la sortie puis l'onglet Photos pour voir quoi que ce soit. Les photos ne sont pas mises en avant.
-
-## Objectif
-Voir les photos d'une sortie depuis la liste des Sommets, et les agrandir en un seul geste.
-
-## Périmètre
-- Bandeau de vignettes sur la carte de sortie quand la sortie a des photos
-- Ouverture directe en plein écran depuis une vignette
-- Navigation précédent/suivant dans la visionneuse plein écran
-- Ouverture de la sortie directement sur l'onglet Photos depuis le bandeau
-
-## Pistes techniques
-- src/features/sommets/RandoCard.tsx — bandeau de vignettes
-- src/features/sommets/PhotoLightbox.tsx — visionneuse extraite de PhotosTab, réutilisée aux deux endroits
-- src/features/sommets/RandoDetailModal.tsx — onglet initial paramétrable
+- src/core/firebase/auth.ts — ADMIN_EMAILS et isMemberEmail() ; le contrôle d'accès passe d'une whitelist globale à une appartenance par cordée
+- firestore.rules — isMember() devient dépendant de la cordée visée ; les admins codés en dur restent l'ancre anti-lockout
+- src/features/admin/AdminPage.tsx — gestion des accès à revoir
+- src/core/firebase/collections.ts — nouvelles collections (cordées, invitations)
 
 ## Contraintes
-Les photos sont des data URL en Firestore (pas de Storage) : ne pas multiplier les lectures. Accessibilité : la visionneuse reste une vraie modale (dialog, Escape, focus). Cibles tactiles 44px.
+La vérité du contrôle d'accès est dans firestore.rules, jamais dans le client : quota et expiration du lien se vérifient côté serveur. Un lien de parrainage ne doit pas permettre d'écrire dans une cordée avant approbation. Règles à redéployer à la main : firebase deploy --only firestore:rules.
 
 ## Critères d'acceptation
-- [ ] Une sortie avec photos affiche ses vignettes dans la liste
-- [ ] Un clic sur une vignette ouvre le plein écran, sans passer par le détail
-- [ ] Flèches précédent/suivant + clavier dans le plein écran
-- [ ] Aucun débordement horizontal en 360px
+- [ ] Un membre non-admin génère un lien et fait entrer quelqu'un après approbation
+- [ ] Le 7e usage d'un lien est refusé, et un lien de plus de 24 h aussi — par les règles, pas par l'UI
+- [ ] Un invité non approuvé ne lit et n'écrit rien dans la cordée
+- [ ] Un utilisateur membre de deux cordées ne voit pas les données de l'une depuis l'autre
+- [ ] Aucun lockout possible : les admins gardent l'accès
 
-### [Photo de profil des membres](https://trello.com/c/6OJ9Cq7h)
+### [Radio : canal par cordée (fin de la radio globale)](https://trello.com/c/IcqKwQmP)
 
 ## Contexte
-Les membres se distinguent aujourd'hui par un prénom et deux initiales colorées. Wacil veut que chacun se reconnaisse à sa photo.
+Décision de Wacil (02/08/2026) : l'onglet Radio global disparaît. La radio devient un canal de communication propre à chaque cordée — les échanges se font entre potes d'une même cordée, pas dans un salon unique pour tout le monde.
 
 ## Objectif
-Chaque membre peut ajouter, remplacer ou retirer sa photo de profil ; elle apparaît là où il est identifié.
+Chaque cordée dispose de son propre canal de messages, isolé des autres cordées. Aucun message n'est visible en dehors de la cordée à laquelle il appartient.
 
 ## Périmètre
-- Choix de la photo dans « Modifier mon profil » (Base Camp)
-- Affichage : pastille du header, hero du Base Camp, liste des membres de la Cordée
-- Repli sur les initiales colorées quand aucune photo
+- Suppression de l'onglet Radio global de la navigation
+- Canal de messages rattaché à une cordée
+- Migration ou archivage des messages existants (à trancher)
+
+## Question ouverte à trancher avec Wacil
+Comment communiquer AVANT qu'une cordée soit formée ? Proposition de Wacil : un message radio « broadcast » visible par tous, sur le modèle des applis de padel — « t'envoies un message radio pour tout le monde, pour voir qui est chaud ». Exemple d'usage : « Cherche 3 randonneurs pour le Mont Toubkal ». À décider : broadcast conservé en parallèle des canaux de cordée, ou remplacé par un autre mécanisme (annonce sur une sortie).
 
 ## Pistes techniques
-- src/core/services/media.ts — compression dédiée (carré, petit côté, poids très inférieur aux photos de sortie)
-- src/hooks/useUserProfile.ts — champ `photo` dans Profile (data URL, comme randoMedia : pas de Storage donc pas de plan Blaze)
-- firestore.rules — plafonner la taille et exiger un préfixe data:image sur users/{uid}, sinon la collection devient un espace de stockage libre
+- src/features/radio/RadioPage.tsx — page actuelle
+- src/core/firebase/messages.ts — collection des messages, à indexer par cordée
+- src/App.tsx (TABS, ligne ~50) — retrait de l'onglet
+- firestore.rules — la lecture d'un message doit être restreinte aux membres de la cordée concernée, côté serveur (l'UI ne protège rien)
 
-## Contraintes
-Un document Firestore est plafonné à 1 Mio et users/{uid} porte aussi le kit : la photo doit rester légère (quelques dizaines de Ko).
+## Dépendance
+Nécessite le modèle multi-cordées de la carte « Invitations : parrainage + cordées multiples ». À livrer après, ou en même temps.
 
 ## Critères d'acceptation
-- [ ] Ajout, remplacement et retrait fonctionnent depuis le profil
-- [ ] La photo apparaît dans le header, le Base Camp et la Cordée
-- [ ] Une écriture dépassant le plafond est refusée par les règles Firestore
-- [ ] Sans photo, l'affichage actuel (initiales colorées) est inchangé
+- [ ] Un membre ne voit que les messages des cordées dont il fait partie
+- [ ] Une lecture hors cordée est refusée par les règles Firestore, pas seulement masquée dans l'UI
+- [ ] L'onglet Radio global n'existe plus
+- [ ] Le sort des messages existants est tranché et appliqué
 
-### [Dépense/transport refusés en silence pour un compte Google](https://trello.com/c/ggXNrnpn)
+### [Boîte à idée (ampoule) en remplacement de l'onglet Idées](https://trello.com/c/e0fLmMCv)
 
 ## Contexte
-Trouvé le 02/08 en corrigeant l'écart de centimes (carte XViB86aS). Les règles Firestore identifient l'auteur d'une dépense ou d'une déclaration de transport par `profile.name`, or **un login Google n'écrit jamais ce champ** : la modale de prénom ne s'affiche que pour les connexions par lien e-mail (celles sans displayName). L'écriture était donc refusée par les règles, et l'échec partait en `console.warn` — bouton apparemment inerte, saisie perdue, aucun message.
+Décision de Wacil (02/08/2026) : l'onglet Idées disparaît — toutes les idées qui y vivaient sont soit développées, soit déjà suivies sur Trello. Le besoin réel est de recueillir à tout moment les retours des beta-testeurs, sans les obliger à naviguer vers un onglet dédié.
 
-Invisible pour quiconque a déjà configuré son profil dans le Base Camp, d'où la découverte tardive.
+## Objectif
+Depuis n'importe quel onglet, un membre ouvre une icône ampoule et envoie une proposition d'amélioration, une idée de fonctionnalité, un bug ou un message de contact. Le retour arrive dans le backlog sans ressaisie manuelle.
 
-## Correctifs livrés (PR #14)
-- `src/hooks/useMemberName.ts` : le prénom affiché (displayName Google) est adopté en base dès la connexion.
-- `src/features/sommets/ExpensesTab.tsx` : un refus d'enregistrement s'affiche à l'écran et la saisie est conservée.
+## Périmètre
+- Retrait de l'onglet Idées
+- Icône ampoule persistante, accessible depuis tous les onglets
+- Formulaire court avec choix du type : amélioration / nouvelle fonctionnalité / bug
+- Formulaire de contact
+- Acheminement automatique vers Trello, puis traitement : bug avéré corrigé, fonctionnalité transformée en carte de backlog si validée
 
-## Pourquoi c'est à retester en vrai
-Le parcours ne se reproduit qu'avec un compte Google **qui n'a jamais ouvert le Base Camp**. Les tests E2E passent par l'émulateur : ils couvrent le mécanisme, pas la vraie chaîne OAuth Google en prod.
+## Pistes techniques
+- src/features/idees/IdeesPage.tsx — page à retirer, ainsi que l'entrée TABS de src/App.tsx (ligne ~52)
+- src/core/firebase/feedbacks.ts — collection de retours déjà existante, à réutiliser plutôt qu'à recréer
+- Création Trello côté serveur uniquement : fonction dans api/ sur le modèle de api/send-signin-link.ts, avec rate limit via api/_ratelimit.ts. La clé et le token Trello sont des variables d'environnement Vercel — jamais dans le bundle client
+- Modale via src/components/Modal.tsx (portal sur body)
 
-### [Valider le staging puis approuver la mise en prod (run #14)](https://trello.com/c/7L6za2tI)
+## Contraintes
+Le sort des idées déjà enregistrées en base doit être tranché avant la suppression de l'onglet. Cibles tactiles 44px, modale accessible (dialog, Escape, focus), lisible en 360px.
 
-## Décision en attente
-Le run GitHub du merge de la PR #14 a son job `deploy-production` **bloqué en « Waiting »**, dans l'attente de ton approbation.
+## Critères d'acceptation
+- [ ] L'ampoule est atteignable depuis chaque onglet
+- [ ] Un envoi crée une carte Trello sans intervention manuelle
+- [ ] Les identifiants Trello ne sont pas exposés côté client
+- [ ] Un envoi refusé affiche une erreur à l'écran et conserve la saisie
+- [ ] L'onglet Idées n'existe plus et ses données ont été traitées
 
-👉 https://github.com/BoogieC78/altimates-app/actions/runs/30747252270
+### [Enquête post-rando (déclenchée après la date de sortie)](https://trello.com/c/EicxJ6aQ)
 
-## Avant d'approuver
-Dérouler la QA des 4 cartes de cette liste sur https://altimates-app-staging.vercel.app
+## Contexte
+Une sortie se termine sans qu'aucun retour ne soit collecté. Wacil veut qu'une petite enquête se déclenche une fois la date de la sortie passée, pour noter la rando à chaud.
 
-## Puis
-- **Approve** → rebuild du même commit en env production et déploiement prod.
-- **Reject** → le commit reste en staging, rien ne part en prod.
+## Objectif
+Passé la date d'une sortie, les participants sont invités à la noter ; les réponses sont consultables et donnent une valeur au groupe (qualité de l'itinéraire, de l'organisation).
 
-## Piège à ne pas répéter
-Ne jamais approuver plusieurs runs en attente : ils se déploient dans l'ordre de fin des jobs, et un run ancien terminé en dernier réécrit les alias prod ET staging avec du code antérieur (rollback silencieux vécu le 17/07, v0.3.4 avait écrasé v0.3.5). N'approuver que le run le PLUS RÉCENT.
+## Périmètre
+- Déclenchement automatique après la date de la sortie
+- Questionnaire court, répondable en moins d'une minute
+- Restitution des réponses
 
-### [isMemberEmail : revoir le retry](https://trello.com/c/BD8VnNrk)
+## Questions ouvertes à trancher avec Wacil
+- Quelles questions ? Pistes évoquées : note globale, difficulté ressentie, conditions météo, organisation.
+- Timing : le lendemain de la date ? Pendant combien de temps l'enquête reste-t-elle ouverte ?
+- Qui voit les réponses : toute la cordée, ou seulement l'organisateur ? Anonyme ou nominatif ?
 
-Le retry sur échec de lecture config/allowedEmails (src/core/firebase/auth.ts) est un contournement d'un problème de timing après connexion. Voir si une meilleure approche existe.
+## Pistes techniques
+- src/core/types/index.ts — le type Rando porte déjà la date de la sortie, base du déclenchement
+- src/features/sommets/RandoDetailModal.tsx — l'enquête peut vivre en onglet du détail, comme Dépenses / Transport / Photos
+- src/core/firebase/collections.ts — nouvelle collection de réponses
+- Pas de tâche planifiée côté serveur : le déclenchement peut être un simple calcul client sur la date, sans plan Blaze
+
+## Contraintes
+Une sortie porte ses pièces jointes via son id métier rando.id, pas l'id du document — indexer les réponses de la même façon. Une réponse par membre et par sortie, modifiable tant que l'enquête est ouverte. Refus d'écriture Firestore : afficher l'erreur à l'écran, jamais un console.warn silencieux.
+
+## Critères d'acceptation
+- [ ] L'enquête n'apparaît qu'après la date de la sortie
+- [ ] Un membre ne peut pas répondre deux fois pour la même sortie
+- [ ] Les réponses sont visibles selon la règle de visibilité tranchée
+- [ ] Une sortie sans réponse n'affiche pas de restitution vide
+
+### [Niveaux de visibilité d'une sortie (potes / public)](https://trello.com/c/hAAgIaxW)
+
+## Contexte
+Piste à cadrer, pas encore tranchée. Une fois l'app ouverte à plusieurs cordées et au parrainage, une sortie n'a plus un seul public possible : il faut choisir qui la voit.
+
+## Objectif
+L'auteur d'une sortie choisit son niveau de visibilité au moment de la créer, et ce choix est appliqué côté serveur.
+
+## Périmètre — options évoquées
+- **Potes seulement** : visible uniquement par les personnes dont on a accepté l'invitation ou qu'on a invitées soi-même.
+- **Potes + public** : visible par les potes et publiquement.
+- **Invisible** : jugé probablement hors sujet par Wacil — tout l'intérêt de l'app est de s'organiser avec ses potes. À valider ou écarter explicitement.
+
+## Questions ouvertes à trancher avec Wacil
+- Retient-on deux niveaux ou trois ?
+- « Public » signifie-t-il visible sans être connecté, ou visible par tout membre de l'app ?
+- La visibilité est-elle modifiable après création ?
+
+## Pistes techniques
+- src/core/types/index.ts — champ de visibilité sur Rando
+- src/features/sommets/AddRandoModal.tsx et EditRandoModal.tsx — choix à la création et à l'édition
+- src/features/sommets/SommetsPage.tsx — filtrage de la liste
+- firestore.rules — la visibilité est une règle de lecture serveur ; masquer dans l'UI ne protège rien
+
+## Dépendance
+Repose sur le modèle multi-cordées et la notion de « potes » introduits par la carte « Invitations : parrainage + cordées multiples ». Ne pas démarrer avant.
+
+## Contraintes
+Une sortie publique expose des données personnelles (prénoms, photos, dépenses). Trancher précisément ce qui reste privé même en mode public avant d'implémenter.
+
+## Critères d'acceptation
+- [ ] Le niveau de visibilité est choisi à la création
+- [ ] Une sortie « potes seulement » est refusée en lecture à un non-pote par les règles Firestore
+- [ ] Les données personnelles exclues du mode public sont listées et effectivement non exposées
+
+### [PWA iOS : installer ALTImates comme web app sur l'écran d'accueil](https://trello.com/c/8U0yANBF)
+
+## Contexte
+Demande de Wacil (nuit du 15-16/08) : faire d'ALTImates une web app installable sur iOS en premier lieu (Ajouter à l'écran d'accueil, plein écran, icône, splash), sans passer par l'App Store.
+
+## Périmètre
+- manifest.json (nom, icônes, display standalone, theme color)
+- Meta tags iOS (apple-mobile-web-app-capable, apple-touch-icon, status bar, splash)
+- Service worker de cache raisonnable (app shell, pas de cache agressif des données Firestore)
+- Respect safe-area iOS déjà en place (dvh, env(safe-area-inset-*))
+- Vérifier login Google/lien e-mail en mode standalone iOS (piège connu : popup OAuth dans PWA iOS)
+
+## Critères d'acceptation
+- [ ] Depuis Safari iOS, Partager > Sur l'écran d'accueil installe l'app avec icône et nom ALTImates
+- [ ] Lancement plein écran sans barre Safari
+- [ ] La connexion fonctionne en mode standalone
+- [ ] Lighthouse PWA installable
+
+### [Badges : échelle animalière de progression (10 paliers, 3 zones d'altitude)](https://trello.com/c/MlHN49MY)
+
+## Contexte
+Idée de la conversation WhatsApp (badges gamification, noms d'animaux de montagne du bas vers le sommet), affinée avec Claude le 15/08. L'utilisation de l'app est récompensée : plus tu fais et partages de sorties, plus tu montes dans l'échelle.
+
+## Échelle actée (design Claude validé dans la conversation)
+1 Écureuil roux (1 sortie, 800 m) · 2 Renard (3, 1200 m) · 3 Tétras-lyre (8, 1800 m) · 4 Marmotte (15, 2000 m) · 5 Hermine (25, 2300 m) · 6 Chamois (40, 2500 m) · 7 Lagopède alpin (60, 2700 m) · 8 Bouquetin (90, 3000 m) · 9 Gypaète barbu (130, 3500 m) · 10 Aigle royal (180, au-dessus de tout).
+Paliers qui doublent grossièrement : début très accessible (écureuil dès la 1re sortie), sommets rares (aigle = plusieurs saisons).
+
+## Trois zones de couleur
+Vert montagnard (800-1800 m, paliers 1-3), bleu-vert subalpin/alpin (2000-2700 m, paliers 4-7), ambre nival (3000 m+, paliers 8-10). Feedback visuel sans lire le nom ; permet « tu es en zone alpine, plus que 20 sorties avant l'ambre ».
+
+## Décision produit (compromis validé dans la conversation Claude)
+Le palier compte les **sorties faites** (participation, date passée) — pas seulement partagées — pour ne pas pénaliser ceux qui font les 4000 sans poster. **Liseré doré** sur le badge quand la sortie a été partagée/organisée. Ravitos remplis et dépenses = badges transversaux (carte séparée).
+
+## Graphisme
+Médaillon rond, silhouette pleine de l'animal en négatif sur fond couleur de zone, anneau extérieur matérialisant l'altitude. Silhouettes distinctes à 40 px (queue touffue écureuil, queue lyre tétras, marmotte dressée, cornes crochues chamois vs annelées bouquetin, queue losange gypaète vs aigle).
+
+## Où
+Collection visible dans Base Camp (profil), type Garmin : tous les badges acquis + le prochain à débloquer avec progression.
+
+## Critères d'acceptation
+- [ ] Palier calculé depuis les sorties faites (date passée, participation)
+- [ ] Badge courant + progression vers le suivant visibles dans Base Camp
+- [ ] Collection complète consultable (acquis / à venir)
+- [ ] 10 silhouettes distinctes à 40 px, 3 zones de couleur
 
 
-## ✅ Déjà fait (62)
+## ✅ Done (70)
 
+- [Valider le staging puis approuver la mise en prod (run #14)](https://trello.com/c/7L6za2tI)
+- [Dépense/transport refusés en silence pour un compte Google](https://trello.com/c/ggXNrnpn)
+- [Dépenses : écart de 2 centimes entre membres](https://trello.com/c/XViB86aS)
+- [Photo de profil des membres](https://trello.com/c/6OJ9Cq7h)
+- [Photos : mise en avant sur la carte de sortie](https://trello.com/c/81Xozrb7)
+- [Mentions légales, confidentialité et CGU](https://trello.com/c/sWjOeJvt)
+- [isMemberEmail : revoir le retry](https://trello.com/c/BD8VnNrk)
 - [Idée : ajouter ses anciennes sorties (XP + reco)](https://trello.com/c/UMZwrszs)
 - [Idée : gestion des électrolytes/minéraux/vitamines](https://trello.com/c/sh4dnCPg)
 - [Audit accessibilité / responsive](https://trello.com/c/smJCQ1cc)
@@ -418,6 +510,7 @@ Le retry sur échec de lecture config/allowedEmails (src/core/firebase/auth.ts) 
 - [Rando : ajouter option « Pas partant » (lettre chinoise + 🇨🇳)](https://trello.com/c/ESBRpPcH)
 - [Sommets : popup détail trek tronquée](https://trello.com/c/fOfVRpDJ)
 - [Connexion par e-mail (lien magique)](https://trello.com/c/FL410tii)
+- [Base Camp : bugs signalés mais non détaillés](https://trello.com/c/sCP4WUxO)
 - [Revue de sécurité — flux auth + fonction serverless](https://trello.com/c/qeToAb2E)
 - [Rando : emoji pour option « Peut-être »](https://trello.com/c/aeuzIxcH)
 - [Sommets : popup hydratation tronquée](https://trello.com/c/fNbUqaLA)
